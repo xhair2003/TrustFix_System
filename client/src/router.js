@@ -26,7 +26,7 @@ const UserROUTERS = () => {
             component: <Register />,
             layout: null, // No layout for auth routes
         },
-        // Add more auth routes here...
+        // Add more auth routes here....
     ];
 
     return (
