@@ -4,12 +4,18 @@ import { Routes, Route } from "react-router-dom";
 import HomePage from "./pages/users/HomePage.js";
 import Register from "./pages/users/Register.js";
 import Login from "./pages/users/Login.js";
+import EditProfilePage from "./pages/users/EditProfilePage";
 
 const UserROUTERS = () => {
     const routers = [
         {
             path: ROUTERS.CUSTOMER.HOME,
             component: <HomePage />,
+            layout: MasterLayout, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.PROFILE,
+            component: <EditProfilePage />,
             layout: MasterLayout, // Routes using MasterLayout
         },
         // Add more routes here...

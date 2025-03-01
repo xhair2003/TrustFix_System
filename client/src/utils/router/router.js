@@ -1,3 +1,5 @@
+import { ROUTES } from "../../constants/route";
+
 export const ROUTERS = {
     //MASTER_LAYOUT: 'master-layout',
 
@@ -6,7 +8,7 @@ export const ROUTERS = {
         HOME: '/',
         LOGIN: '/login',
         REGISTER: '/register',
-        PROFILE: '/profile',
+        PROFILE: ROUTES.EDIT_PROFILE,
         CHANGE_PASSWORD: '/change-password',
         FORGOT_PASSWORD: '/forgot-password',
         RESET_PASSWORD: '/reset-password',

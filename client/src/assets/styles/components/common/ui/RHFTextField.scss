@@ -1,0 +1,40 @@
+.text-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.5rem;
+    position: relative;
+
+    .label {
+        font-weight: 500;
+        margin-bottom: 5px;
+        color: #3dbdc8;
+    }
+
+    .input {
+        padding: 12px 20px;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        color: #666;
+
+        &:focus {
+            border: 2px solid #94dbda;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            outline: none;
+        }
+
+        ::placeholder {
+            color: #aaa;
+        }
+    }
+
+    .error {
+        color: red;
+        font-size: 14px;
+        position: absolute;
+        bottom: -20px;
+        left: 0;
+        white-space: nowrap;
+    }
+}

@@ -1,6 +1,6 @@
 import "../../style/style.scss"
-import Header from "../../component/users/customer/Header";
-import Footer from "../../component/users/customer/Footer";
+import Header from "../../components/users/customer/Header";
+import Footer from "../../components/users/customer/Footer";
 import { memo } from "react";
 
 const MasterLayout = ({ children, ...props }) => {
