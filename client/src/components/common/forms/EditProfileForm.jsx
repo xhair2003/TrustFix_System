@@ -2,11 +2,15 @@ import { z } from "zod";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
+
 import RHFTextField from "../ui/RHFTextField";
-import { updateProfileService } from "../../../services/userService";
-import "../../../assets/styles/components/common/forms/EditProfileForm.scss";
+import RHFTextarea from "../ui/RHFTextarea";
 import RHFUploadFileButton from "../ui/RHFUploadFileButton";
 import Button from "../ui/Button";
+
+import { updateProfileService } from "../../../services/userService";
+
+import "../../../assets/styles/components/common/forms/EditProfileForm.scss";
 
 const formSchema = z.object({
     firstName: z.string().min(1, "First name is required"),
@@ -19,6 +23,11 @@ const formSchema = z.object({
         .string()
         .min(1, "Phone number is required")
         .regex(/^[0-9]{10}$/, "Invalid phone number"),
+    address: z.string().min(5, "Address must be at least 5 characters"),
+    description: z
+        .string()
+        .max(300, "Description must be within 300 characters")
+        .optional(),
     imgAvt: z.any().optional(),
 });
 
@@ -27,6 +36,8 @@ const mockUserData = {
     lastName: "Dương",
     email: "duong482003@gmail.com",
     phone: "0123456789",
+    address: "",
+    description: "",
     imgAvt: null,
 };
 
@@ -52,7 +63,10 @@ const EditProfileForm = () => {
             formData.append("lastName", data.lastName);
             formData.append("email", data.email);
             formData.append("phone", data.phone);
-
+            formData.append("address", data.address);
+            if (data.description) {
+                formData.append("description", data.description);
+            }
             if (data.imgAvt && data.imgAvt.length > 0) {
                 formData.append("imgAvt", data.imgAvt[0]);
             }
@@ -98,7 +112,17 @@ const EditProfileForm = () => {
                             placeholder="Enter phone number"
                             type="tel"
                         />
-
+                        <RHFTextField
+                            name="address"
+                            label="Address:"
+                            placeholder="Enter address"
+                        />
+                        <RHFTextarea
+                            name="description"
+                            label="Description:"
+                            placeholder="Write something about yourself..."
+                            rows={4}
+                        />
                         <div className="edit-profile-submit-container">
                             <Button
                                 type="submit"

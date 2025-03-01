@@ -1,4 +1,4 @@
-.text-field {
+.textarea-field {
     display: flex;
     flex-direction: column;
     margin-bottom: 1.5rem;
@@ -10,13 +10,14 @@
         color: #3dbdc8;
     }
 
-    .input {
+    .textarea {
         padding: 12px 20px;
         border: 2px solid #ccc;
         border-radius: 8px;
         font-size: 16px;
         transition: border 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         color: #666;
+        resize: none;
 
         &:focus {
             border: 2px solid #94dbda;
