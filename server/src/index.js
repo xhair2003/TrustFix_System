@@ -1,37 +1,39 @@
-const dotenv = require('dotenv');
-const express = require('express'); 
-const app = express();
-const cors = require('cors');   
-const  {createServer} = require('http');
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const { createServer } = require('http');
+const { connectDB } = require('../config/connect_db');
 
+const startServer = async () => {
+    try {
+        // Khởi tạo express app
+        const app = express();
 
-//config evn
-dotenv.config();
-const connectDB = require('../config/connect_db');  
-const port = process.env.PORT || 3000;
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
- 
+        // Middleware
+        app.use(cors());
+        app.use(express.json());
+        app.use(express.urlencoded({ extended: true }));
 
+        // Kết nối database
+        await connectDB();
 
+        // Import và đồng bộ các model sau khi kết nối thành công
+        const models = require('./models');
+        await models.syncModels();
+        console.log('All database tables have been created or updated');
 
+        // Khởi tạo server
+        const port = process.env.PORT || 8080;
+        const httpServer = createServer(app);
 
+        httpServer.listen(port, () => {
+            console.log(`Server is running on port ${port}`);
+        });
 
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+};
 
-
-
-
-connectDB().then(() => {
-    console.log('Database connected');
-}
-).catch((err) => {
-    console.log('Error connecting to database', err);
-}
-);
-
-
-const httpServer = createServer(app);
-httpServer.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+startServer();
