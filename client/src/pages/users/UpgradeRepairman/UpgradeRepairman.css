@@ -1,0 +1,61 @@
+.upgrade-repairman-form {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+
+}
+
+.form-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.form-group {
+    flex: 1;
+    margin-right: 10px; /* Khoảng cách giữa các trường */
+}
+
+.form-group:last-child {
+    margin-right: 0; /* Không có khoảng cách cho trường cuối cùng */
+}
+
+.label-upgrade {
+    display: block;
+    margin-bottom: 5px;
+    text-decoration: none; /* Không có gạch chân */
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+textarea,
+select {
+    width: calc(100% - 25px); /* Giảm chiều rộng để phù hợp với padding */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+input[type="text"].narrow,
+input[type="email"].narrow,
+input[type="tel"].narrow,
+select.narrow {
+    width: 15%; /* Giảm chiều rộng cho các input cụ thể */
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.submit-btn:hover {
+    background-color: #0056b3;
+}
