@@ -19,7 +19,7 @@ const startServer = async () => {
 
         // Import và đồng bộ các model sau khi kết nối thành công
         const models = require('./models');
-        await models.syncModels();
+        // await models.syncModels();
         console.log('All database tables have been created or updated');
 
         // Khởi tạo server
