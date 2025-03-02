@@ -70,6 +70,7 @@
     flex: 1; /* Chiếm không gian còn lại trong layout */
     padding: 20px; /* Khoảng cách bên trong cho nội dung */
     background-color: #F8F9FA; /* Màu nền cho nội dung */
+    height: 100vh; /* Chiều cao của layout bằng chiều cao của viewport */
 }
 
 .sidebar.collapsed .menu-item {
