@@ -17,10 +17,6 @@
             .edit-profile-row {
                 display: flex;
                 gap: 1rem;
-
-                .half-width {
-                    flex: 1;
-                }
             }
 
             .edit-profile-submit-container {
@@ -44,14 +40,5 @@
                 }
             }
         }
-    }
-
-    .edit-profile-row {
-        display: flex;
-        gap: 12px;
-    }
-
-    .half-width {
-        width: 48%;
     }
 }

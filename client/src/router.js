@@ -1,22 +1,47 @@
 import { ROUTERS } from "./utils/router/router"
-import MasterLayout from "./pages/users/MasterLayout.js"
+import MasterLayoutMain from "./pages/users/MasterLayoutMain.js"
 import { Routes, Route } from "react-router-dom";
-import HomePage from "./pages/users/HomePage.js";
+import HomePage from "./pages/users/HomePage/HomePage.js";
 import Register from "./pages/users/Register.js";
 import Login from "./pages/users/Login.js";
-import EditProfilePage from "./pages/users/EditProfilePage";
+import MasterLayoutUser from "./pages/users/MasterLayoutUser/MasterLayoutUser.js";
+import PersonalInformation from "../src/pages/users/PersonalInformation/PersonalInformation.jsx";
+import ChangePassword from "../src/pages/users/ChangePassword/ChangePassword.js";
+import BookingHistory from "../src/pages/users/BookingHistory/BookingHistory.js";
+import ComplainRepairman from "../src/pages/users/ComplainRepairman/ComplainRepairman.js";
+import UpgradeRepairman from "../src/pages/users/UpgradeRepairman/UpgradeRepairman.js";
 
 const UserROUTERS = () => {
     const routers = [
         {
             path: ROUTERS.CUSTOMER.HOME,
             component: <HomePage />,
-            layout: MasterLayout, // Routes using MasterLayout
+            layout: MasterLayoutMain, // Routes using MasterLayout
         },
         {
             path: ROUTERS.CUSTOMER.PROFILE,
-            component: <EditProfilePage />,
-            layout: MasterLayout, // Routes using MasterLayout
+            component: <PersonalInformation />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.CHANGE_PASSWORD,
+            component: <ChangePassword />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.VIEW_REPAIR_BOOKING_HISTORY,
+            component: <BookingHistory />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.COMPLAIN_REPAIRMAN,
+            component: <ComplainRepairman />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.UPGRADE_REPAIRMAN,
+            component: <UpgradeRepairman />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
         },
         // Add more routes here...
     ];

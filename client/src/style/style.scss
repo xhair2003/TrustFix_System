@@ -6,10 +6,20 @@
 
 
 .container {
-    max-width: 1200px;
+    //max-width: 1200px;
     width: 100%;
     padding-left: 10px;
     padding-right: 10px;
     margin: auto;
     justify-items: center;
+}
+
+.login-container {
+    width: 100vw;
+    height: 100vh; 
+    background-image: url('../assets/login-bg.png');
+    background-size: cover;
+    background-position: center; 
+    background-repeat: no-repeat;
+    position: relative;
 }

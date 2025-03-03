@@ -7,23 +7,28 @@ const  {createServer} = require('http');
 
 //config evn
 dotenv.config();
+const connectDB = require('../config/connect_db');  
 const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+ 
 
 
 
 
 
-console.log('Duc Anh dep trai vai l');
-app.get('/', (req, res) => {
-    res.send('Duc Anh dep trai vai l');
-});
 
 
 
 
+connectDB().then(() => {
+    console.log('Database connected');
+}
+).catch((err) => {
+    console.log('Error connecting to database', err);
+}
+);
 
 
 const httpServer = createServer(app);
