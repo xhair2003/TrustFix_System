@@ -47,31 +47,15 @@ Object.keys(models).forEach(modelName => {
 // Đồng bộ tất cả các model với database
 const syncModels = async () => {
     try {
-        await sequelize.sync({
+        // Alter sync - this will update tables without dropping data
+        await sequelize.sync({ 
             alter: true,
-            // Chỉ hiển thị thông báo quan trọng
-            logging: (msg) => {
-                if (msg.includes('Executing') && msg.includes('SELECT TABLE_NAME')) {
-                    return; // Bỏ qua các thông báo kiểm tra bảng
-                }
-                if (msg.includes('Executing') && msg.includes('SHOW FULL COLUMNS')) {
-                    return; // Bỏ qua các thông báo kiểm tra cột
-                }
-                if (msg.includes('Executing') && msg.includes('SELECT CONSTRAINT_NAME')) {
-                    return; // Bỏ qua các thông báo kiểm tra ràng buộc
-                }
-                if (msg.includes('Executing') && msg.includes('SHOW INDEX')) {
-                    return; // Bỏ qua các thông báo kiểm tra index
-                }
-                if (msg.includes('Executing') && msg.includes('ALTER TABLE')) {
-                    return; // Bỏ qua các thông báo thay đổi bảng
-                }
-                console.log(msg); // Chỉ hiển thị các thông báo còn lại
-            }
+            logging: false 
         });
-        console.log('All models were synchronized successfully');
+        console.log('Database synchronized successfully - tables preserved');
     } catch (error) {
-        console.error('Failed to sync models:', error);
+        console.error('Failed to sync database:', error);
+        throw error;
     }
 };
 

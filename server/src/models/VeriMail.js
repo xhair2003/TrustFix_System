@@ -5,25 +5,41 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true
         },
-        email: {
-            type: DataTypes.STRING,
+        user_id: {
+            type: DataTypes.INTEGER,
             allowNull: false,
             unique: true
         },
-        code: {
+        email: {
             type: DataTypes.STRING,
+            allowNull: false
+        },
+        code: {
+            type: DataTypes.STRING(6),
+            allowNull: false
+        },
+        isVerified: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        },
+        expiresAt: {
+            type: DataTypes.DATE,
             allowNull: false
         }
     }, {
-        timestamps: true
+        timestamps: true,
+        indexes: [
+            {
+                fields: ['user_id']
+            }
+        ]
     });
 
     VeriMail.associate = (models) => {
-        // Define the relationship
         VeriMail.belongsTo(models.User, {
-            foreignKey: 'email',
-            targetKey: 'email',
-            as: 'user'
+            foreignKey: 'user_id',
+            as: 'user',
+            onDelete: 'CASCADE'
         });
     };
 
