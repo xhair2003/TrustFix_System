@@ -1,0 +1,153 @@
+/* Container chính */
+.sp-container {
+    background: #f8fafc; /* Nền xám nhạt */
+    display: flex;
+    justify-content: center;
+    max-height: 95%;
+    width: 100%; /* Đặt chiều rộng đầy đủ */
+    height: 100vh;
+}
+
+/* Wrapper chứa nội dung */
+.sp-content-wrapper {
+    width: 100%; /* Đặt chiều rộng đầy đủ */
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    background-color: white;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+}
+
+/* Tiêu đề và phụ đề */
+.sp-header {
+    margin-bottom: 2rem;
+}
+
+.sp-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.sp-subtitle {
+    font-size: 1.125rem;
+    color: #6b7280;
+    margin-bottom: 2rem;
+}
+
+/* Grid chứa các thẻ */
+.sp-grid {
+    display: grid;
+    gap: 1.5rem;
+    justify-items: center;
+}
+
+    @media (min-width: 768px) {
+        .sp-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+/* Thẻ dịch vụ */
+.sp-card {
+    background: #ffffff;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: transform 0.3s;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    max-width: 250px;
+    padding: 25px;   
+}
+
+.sp-card-content {
+    text-align: center;
+}
+
+/* Tiêu đề của thẻ */
+.sp-card-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #ef4444; /* Màu đỏ */
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+}
+
+/* Giá và đơn vị */
+.sp-price-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    margin-bottom: 1.5rem;
+}
+
+.sp-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #22c55e; /* Màu xanh lá */
+}
+
+.sp-unit {
+    margin-left: 0.25rem;
+    font-size: 1rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+/* Danh sách tính năng */
+.sp-features {
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: left;
+}
+
+.sp-feature-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sp-feature-icon {
+    height: 1.25rem;
+    width: 1.25rem;
+    color: #22c55e; /* Màu xanh lá */
+    flex-shrink: 0;
+    width: 15px;
+    height: 15px;
+}
+
+.sp-feature-text {
+    color: #374151; /* Màu đen nhạt */
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* Nút ngay */
+.sp-button {
+    width: 100%;
+    background-color: #3b82f6; /* Màu xanh dương */
+    color: #ffffff;
+    padding: 1rem 2rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    transition: background-color 0.2s;
+    border: none;
+    cursor: pointer;
+    font-size: 1.125rem;
+}
+
+.sp-button:hover {
+    background-color: #2563eb; /* Màu xanh dương đậm hơn khi hover */
+}
+
+.sp-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #60a5fa; /* Hiệu ứng focus */
+}
