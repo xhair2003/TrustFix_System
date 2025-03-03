@@ -1,0 +1,33 @@
+.view-repairment-histories {
+    padding: 20px;
+    background-color: #ffffff;
+    min-height: 100vh;
+  
+    .breadcrumb {
+      color: #00b4d8;
+      font-size: 14px;
+      margin-bottom: 20px;
+  
+      span {
+        margin: 0 5px;
+      }
+  
+      .current {
+        font-weight: bold;
+      }
+    }
+  
+    .content {
+      display: flex;
+      gap: 20px;
+  
+      .sort-bar {
+        flex: 0 0 250px;
+      }
+  
+      .repairment-history-list {
+        flex: 1;
+        padding: 0;
+      }
+    }
+  }

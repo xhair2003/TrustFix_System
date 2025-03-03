@@ -1,0 +1,63 @@
+.repairment-history-item {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 12px;
+    margin-bottom: 2px;
+    font-family: 'Arial', sans-serif;
+    max-width: auto;
+  }
+  
+  .header {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  
+  .time {
+    color: #666;
+    font-size: 12px;
+  }
+  
+  .status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    padding-inline: 10px;
+   
+  }
+  
+  .completed {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .info-icon {
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+    margin-left:auto;
+  }
+  
+  .details {
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .location,
+  .service,
+  .technician {
+    display: flex;
+    align-items: center;
+    margin: 4px 0;
+    line-height: 1.5;
+  }
+  
+  .location-icon,
+  .service-icon,
+  .technician-icon {
+    margin-right: 8px;
+    font-size: 16px;
+  }
