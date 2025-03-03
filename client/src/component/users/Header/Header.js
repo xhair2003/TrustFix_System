@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from "../../../assets/Images/logo.png";
+<<<<<<< HEAD
 import { FaBell, FaUser, FaLock, FaHistory, FaExclamationCircle, FaSignOutAlt, FaStar } from 'react-icons/fa';
+=======
+import { FaBell, FaUser, FaLock, FaHistory, FaExclamationCircle, FaSignOutAlt, FaStar, FaWallet } from 'react-icons/fa';
+>>>>>>> ae0976cc73bf8bf7d0795bd5c7b95a088c4e4963
 import userImage from '../../../assets/Images/user.jpg';
 import './Header.css';
 
@@ -77,6 +81,12 @@ const Header = () => {
                                 <div className="dropdown-item" onClick={() => navigate("/complain-repair-man")}>
                                     <FaExclamationCircle className="dropdown-icon" /> Khiếu nại
                                 </div>
+<<<<<<< HEAD
+=======
+                                <div className="dropdown-item" onClick={() => navigate("/wallet")}>
+                                    <FaWallet className="dropdown-icon" /> Ví tiền
+                                </div>
+>>>>>>> ae0976cc73bf8bf7d0795bd5c7b95a088c4e4963
                                 <div className="dropdown-item" onClick={() => navigate("/upgrade-repair-man")}>
                                     <FaStar className="dropdown-icon" /> Nâng cấp lên thợ
                                 </div>

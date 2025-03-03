@@ -17,9 +17,26 @@
 .login-container {
     width: 100vw;
     height: 100vh; 
+<<<<<<< HEAD
     background-image: url('../assets/login-bg.png');
+=======
+    background-image: url('../assets/Images/login-bg.png');
+>>>>>>> ae0976cc73bf8bf7d0795bd5c7b95a088c4e4963
     background-size: cover;
     background-position: center; 
     background-repeat: no-repeat;
     position: relative;
+<<<<<<< HEAD
+=======
+}
+
+@import '../style/pages/Responsive.scss';
+
+@include Responsive($MEDIUM_DEVICE){
+    .col-lg-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+        background: green;
+    }
+>>>>>>> ae0976cc73bf8bf7d0795bd5c7b95a088c4e4963
 }

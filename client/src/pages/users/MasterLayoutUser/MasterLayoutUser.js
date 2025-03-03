@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import './MasterLayoutUser.css';
 import userImage from '../../../assets/Images/user.jpg';
+<<<<<<< HEAD
 import { FaUser, FaLock, FaHistory, FaExclamationCircle, FaStar, FaSignOutAlt, FaArrowLeft } from 'react-icons/fa';
+=======
+import { FaUser, FaLock, FaHistory, FaExclamationCircle, FaStar, FaSignOutAlt, FaArrowLeft, FaWallet } from 'react-icons/fa';
+>>>>>>> ae0976cc73bf8bf7d0795bd5c7b95a088c4e4963
 import { useNavigate } from 'react-router-dom';
 import logo from "../../../assets/Images/logo.png";
 import onlyLogo from "../../../assets/Images/onlyLogo.jpg";
@@ -55,6 +59,12 @@ const MasterLayoutUser = ({ children }) => {
                     <div className={`menu-item ${selectedItem === 'complain-repair-man' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/complain-repair-man", name: 'complain-repair-man' })}>
                         {isCollapsed ? <FaExclamationCircle /> : <> <FaExclamationCircle /> Khiếu nại</>}
                     </div>
+<<<<<<< HEAD
+=======
+                    <div className={`menu-item ${selectedItem === 'wallet' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/wallet", name: 'wallet' })}>
+                        {isCollapsed ? <FaWallet /> : <> <FaWallet /> Ví tiền</>}
+                    </div>
+>>>>>>> ae0976cc73bf8bf7d0795bd5c7b95a088c4e4963
                     <div className={`menu-item ${selectedItem === 'upgrade-repair-man' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/upgrade-repair-man", name: 'upgrade-repair-man' })}>
                         {isCollapsed ? <FaStar /> : <> <FaStar /> Nâng cấp lên thợ</>}
                     </div>
@@ -64,7 +74,15 @@ const MasterLayoutUser = ({ children }) => {
                 </div>
 
                 <div>
+<<<<<<< HEAD
                     <img src={isCollapsed ? onlyLogo : logo} alt="Logo" className="lower-sidebar" />
+=======
+                    <img
+                        src={isCollapsed ? onlyLogo : logo}
+                        alt="Logo"
+                        className={isCollapsed ? "only-logo" : "lower-sidebar"}
+                    />
+>>>>>>> ae0976cc73bf8bf7d0795bd5c7b95a088c4e4963
                 </div>
 
             </div>
