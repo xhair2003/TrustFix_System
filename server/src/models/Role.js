@@ -10,8 +10,11 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         type: {
-            type: DataTypes.STRING,
-            allowNull: false
+            type: DataTypes.ENUM('customer', 'repairman', 'admin'),
+            allowNull: false,
+            validate: {
+                isIn: [['customer', 'repairman', 'admin']]
+            }
         }
     }, {
         timestamps: true

@@ -6,11 +6,11 @@ module.exports = (sequelize, DataTypes) => {
             autoIncrement: true
         },
         firstName: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(50),
             allowNull: false
         },
         lastName: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(50),
             allowNull: false
         },
         email: {
@@ -26,35 +26,77 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         phone: {
-            type: DataTypes.STRING,
-            unique: true,
-            allowNull: false
+            type: DataTypes.STRING(15),
+            allowNull: false,
+            unique: true
         },
         imgAvt: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            allowNull: true
         },
         status: {
             type: DataTypes.INTEGER,
-            defaultValue: 1
+            defaultValue: 1,
+            allowNull: false
         },
         address: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            allowNull: true
         },
         description: {
-            type: DataTypes.STRING
+            type: DataTypes.TEXT,
+            allowNull: true
         }
     }, {
-        timestamps: true
+        timestamps: true,
+        indexes: [
+            {
+                unique: true,
+                fields: ['email']
+            },
+            {
+                unique: true,
+                fields: ['phone']
+            }
+        ]
     });
 
     User.associate = (models) => {
-        // Định nghĩa các mối quan hệ
-        User.hasMany(models.Role, { foreignKey: 'user_id', as: 'roles' });
-        User.hasOne(models.Wallet, { foreignKey: 'user_id', as: 'wallet' });
-        User.hasOne(models.Vip, { foreignKey: 'user_id', as: 'vip' });
-        User.hasMany(models.Request, { foreignKey: 'user_id', as: 'requests' });
-        User.hasMany(models.RepairmanUpgradeRequest, { foreignKey: 'user_id', as: 'repairmanUpgradeRequests' });
-        User.hasOne(models.VeriMail, { foreignKey: 'email', sourceKey: 'email', as: 'veriMail' });
+        User.hasMany(models.Role, { 
+            foreignKey: 'user_id',
+            as: 'roles',
+            onDelete: 'CASCADE'
+        });
+        
+        User.hasOne(models.Wallet, { 
+            foreignKey: 'user_id',
+            as: 'wallet',
+            onDelete: 'CASCADE'
+        });
+        
+        User.hasOne(models.Vip, { 
+            foreignKey: 'user_id',
+            as: 'vip',
+            onDelete: 'CASCADE'
+        });
+        
+        User.hasMany(models.Request, { 
+            foreignKey: 'user_id',
+            as: 'requests',
+            onDelete: 'CASCADE'
+        });
+        
+        User.hasMany(models.RepairmanUpgradeRequest, { 
+            foreignKey: 'user_id',
+            as: 'repairmanUpgradeRequests',
+            onDelete: 'CASCADE'
+        });
+        
+        User.hasOne(models.VeriMail, { 
+            foreignKey: 'user_id',
+            as: 'veriMail',
+            onDelete: 'CASCADE'
+        });
     };
 
     return User;
