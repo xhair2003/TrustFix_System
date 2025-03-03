@@ -4,6 +4,8 @@ const cors = require('cors');
 const { createServer } = require('http');
 const { connectDB } = require('../config/connect_db');
 
+
+
 const startServer = async () => {
     try {
         // Khởi tạo express app
@@ -13,7 +15,7 @@ const startServer = async () => {
         app.use(cors());
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
-
+    
         // Kết nối database
         await connectDB();
 
@@ -22,6 +24,12 @@ const startServer = async () => {
         // await models.syncModels();
         console.log('All database tables have been created or updated');
 
+
+     
+        
+
+
+        
         // Khởi tạo server
         const port = process.env.PORT || 8080;
         const httpServer = createServer(app);
