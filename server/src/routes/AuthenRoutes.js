@@ -1,13 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const AuthenController = require("../controllers/AuthenController");
-const AuthMiddleware = require("../middlewares/AuthMiddleware");
+const AuthMiddleware = require("../middlewares/authMiddleware");
 
 // Public routes - no authentication needed
 router.post("/register", AuthenController.register);
 router.post("/login", AuthenController.login);
 router.post("/refresh-token", AuthenController.refreshToken);
 router.post("/logout", AuthMiddleware.verifyToken, AuthenController.logout);
+router.post("/change-password",AuthenController.changePassword);
 
 // Protected routes - require authentication
 // Example route accessible only to admins
