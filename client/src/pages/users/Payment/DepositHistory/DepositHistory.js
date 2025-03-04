@@ -107,14 +107,14 @@ const DepositHistory = () => {
     return (
         <div>
             {/* <Breadcrumb items={breadcrumbItems} /> */}
-            <div className='container'>
-                <div className='card'>
-                    <h1 className='title'>
+            <div className='dh-container'>
+                <div className='dh-card'>
+                    <h1 className='dh-title'>
                         Lịch sử nạp tiền
                     </h1>
-                    <div className='flex-container'>
-                        <div className="table-container">
-                            <table className="table">
+                    <div className='dh-flex-container'>
+                        <div className="dh-table-container">
+                            <table className="dh-table">
                                 <thead>
                                     <tr>
                                         <th>Ngày nạp</th>
@@ -137,20 +137,20 @@ const DepositHistory = () => {
                                 </tbody>
                             </table>
                         </div>
-                        <div className="pagination">
-                            <div className="items-per-page">
-                                <label className="label">Hiển thị</label>
-                                <select className="select" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))}>
+                        <div className="dh-pagination">
+                            <div className="dh-items-per-page">
+                                <label className="dh-label">Hiển thị</label>
+                                <select className="dh-select" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))}>
                                     <option value={5}>5</option>
                                     <option value={10}>10</option>
                                     <option value={15}>15</option>
                                 </select>
                                 <span>giao dịch mỗi trang</span>
                             </div>
-                            <div className="pagination-controls">
-                                <button onClick={handlePreviousPage} className="button" disabled={currentPage === 1}>Trước</button>
+                            <div className="dh-pagination-controls">
+                                <button onClick={handlePreviousPage} className="dh-button" disabled={currentPage === 1}>Trước</button>
                                 <span>{currentPage} trên {totalPages} trang</span>
-                                <button onClick={handleNextPage} className="button" disabled={currentPage === totalPages}>Sau</button>
+                                <button onClick={handleNextPage} className="dh-button" disabled={currentPage === totalPages}>Sau</button>
                             </div>
                         </div>
                     </div>

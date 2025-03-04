@@ -74,9 +74,10 @@ const Header = () => {
                                 <div className="dropdown-item" onClick={() => navigate("/view-repair-booking-history")}>
                                     <FaHistory className="dropdown-icon" /> Lịch sử đặt dịch vụ
                                 </div>
-                                <div className="dropdown-item" onClick={() => navigate("/complain-repair-man")}>
+                                <div className="dropdown-item" onClick={() => navigate("/complain")}>
                                     <FaExclamationCircle className="dropdown-icon" /> Khiếu nại
                                 </div>
+
                                 <div className="dropdown-item" onClick={() => navigate("/wallet")}>
                                     <FaWallet className="dropdown-icon" /> Ví tiền
                                 </div>

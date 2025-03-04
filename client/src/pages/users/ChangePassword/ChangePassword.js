@@ -169,7 +169,7 @@ const ChangePassword = () => {
 
     return (
         <div className="password-change-form">
-            <h2>Đổi Mật Khẩu</h2>
+            <h2 style={{ display: 'flex', justifyContent: 'center' }}>Đổi Mật Khẩu</h2>
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label htmlFor="currentPassword">Mật khẩu hiện tại</label>

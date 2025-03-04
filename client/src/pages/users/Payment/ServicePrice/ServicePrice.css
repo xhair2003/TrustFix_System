@@ -3,9 +3,10 @@
     background: #f8fafc; /* Nền xám nhạt */
     display: flex;
     justify-content: center;
-    max-height: 95%;
-    width: 100%; /* Đặt chiều rộng đầy đủ */
-    height: 100vh;
+    margin: 0 auto;
+    max-width: 1200px;
+    padding: 20px;
+
 }
 
 /* Wrapper chứa nội dung */
