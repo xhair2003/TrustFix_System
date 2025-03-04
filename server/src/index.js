@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { createServer } = require('http');
-const { connectDB } = require('./models');
+const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 
 // Khởi tạo express app
@@ -61,19 +61,34 @@ app.use((err, req, res, next) => {
     });
 });
 
+// MongoDB connection
+const connectDB = async () => {
+    try {
+        if (!process.env.MONGODB_URL) {
+            throw new Error('MONGODB_URL is not defined in environment variables');
+        }
+
+        await mongoose.connect(process.env.MONGODB_URL, {
+            autoIndex: true
+        });
+
+        console.log('MongoDB Connected Successfully to database:', mongoose.connection.db.databaseName);
+    } catch (error) {
+        console.error('MongoDB connection error:', error);
+        process.exit(1);
+    }
+};
+
+// Start server
 const startServer = async () => {
     try {
-        // Connect to MongoDB
         await connectDB();
-
-        // Khởi tạo server
         const port = process.env.PORT || 8080;
         const httpServer = createServer(app);
 
         httpServer.listen(port, () => {
             console.log(`Server is running on port ${port}`);
         });
-
     } catch (error) {
         console.error('Failed to start server:', error);
         process.exit(1);
