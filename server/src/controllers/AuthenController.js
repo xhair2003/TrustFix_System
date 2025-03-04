@@ -59,13 +59,22 @@ const generateOTP = () => {
 
 const initRegister = async (req, res) => {
     try {
-        const { firstName, lastName, email, pass, confirmPassword, phone, role = "customer" } = req.body;
+        const { firstName, lastName, email, pass, confirmPassword, phone, role } = req.body;
 
         // Validate required fields
-        if (!firstName || !lastName || !email || !pass || !confirmPassword || !phone) {
+        if (!firstName || !lastName || !email || !pass || !confirmPassword || !phone || !role) {
             return res.status(400).json({
                 EC: 0,
-                EM: "Vui lòng điền đầy đủ thông tin!"
+                EM: "Vui lòng điền đầy đủ thông tin, bao gồm vai trò!"
+            });
+        }
+
+        // Validate role
+        const validRoles = ['customer', 'repairman'];
+        if (!validRoles.includes(role)) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vai trò không hợp lệ! Vai trò phải là customer hoặc repairman"
             });
         }
 
@@ -126,6 +135,7 @@ const initRegister = async (req, res) => {
             html: `
                 <h1>Xác thực email đăng ký</h1>
                 <p>Xin chào ${firstName} ${lastName},</p>
+                <p>Cảm ơn bạn đã đăng ký tài khoản ${role} tại TrustFix.</p>
                 <p>Mã OTP của bạn là: <strong>${otp}</strong></p>
                 <p>Mã này sẽ hết hạn sau 5 phút.</p>
                 <p>Nếu bạn không yêu cầu đăng ký tài khoản, vui lòng bỏ qua email này.</p>
@@ -197,18 +207,31 @@ const verifyRegister = async (req, res) => {
             email: registration.email,
             pass: hashedPassword,
             phone: registration.phone,
-            role: registration.role
+            status: 1
         });
 
         // Save user
         const savedUser = await newUser.save();
 
+        // Create role for user
+        const newRole = new Role({
+            user_id: savedUser._id,
+            type: registration.role // Sử dụng role từ registration
+        });
+
+        // Save role
+        await newRole.save();
+
         // Remove pending registration
         pendingRegistrations.delete(email);
 
         // Generate tokens
-        const accessToken = generateAccessToken(savedUser);
-        const refreshToken = generateRefreshToken(savedUser);
+        const userWithRole = {
+            ...savedUser.toObject(),
+            role: registration.role
+        };
+        const accessToken = generateAccessToken(userWithRole);
+        const refreshToken = generateRefreshToken(userWithRole);
 
         // Set refresh token in cookie
         res.cookie("refreshToken", refreshToken, {
@@ -228,6 +251,7 @@ const verifyRegister = async (req, res) => {
             EM: "Đăng ký thành công!",
             DT: {
                 ...userResponse,
+                role: registration.role,
                 accessToken
             }
         });
