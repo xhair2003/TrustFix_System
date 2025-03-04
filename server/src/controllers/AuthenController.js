@@ -1,110 +1,81 @@
-const {models,User }= require("../models");
+const { User, Role } = require("../models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+// JWT configuration
+const JWT_ACCESS_KEY = process.env.JWT_ACCESS_KEY || "your_jwt_access_secret_key";
+const JWT_REFRESH_KEY = process.env.JWT_REFRESH_KEY || "your_jwt_refresh_secret_key";
+const DEFAULT_ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@trustfix.com";
+const DEFAULT_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 
-// Get JWT settings from environment variables
-const JWT_SECRET = process.env.JWT_SECRET || "TrustFix_System_jwt_secret_key_2024";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+// Generate tokens
+const generateAccessToken = (user) => {
+    return jwt.sign(
+        {
+            id: user._id,
+            email: user.email,
+            role: user.role
+        },
+        JWT_ACCESS_KEY,
+        { expiresIn: "1d" }
+    );
+};
 
+const generateRefreshToken = (user) => {
+    return jwt.sign(
+        {
+            id: user._id,
+            email: user.email,
+            role: user.role
+        },
+        JWT_REFRESH_KEY,
+        { expiresIn: "7d" }
+    );
+};
 
 const register = async (req, res) => {
     try {
-        // console.log("==== REGISTER REQUEST DEBUG ====");
-        // console.log("Request headers:", req.headers);
-        // console.log("Content-Type:", req.headers['content-type']);
-        
-        // Log raw request body
-        if (req.rawBody) {
-            console.log("Raw request body:", req.rawBody);
-            try {
-                const parsedRawBody = JSON.parse(req.rawBody);
-                console.log("Parsed raw body:", parsedRawBody);
-                // If main body is empty but raw body has content, use it
-                if (Object.keys(req.body).length === 0 && Object.keys(parsedRawBody).length > 0) {
-                    req.body = parsedRawBody;
-                }
-            } catch (e) {
-                console.error("Failed to parse raw body:", e);
-            }
-        }
-        
-        // console.log("Request body (raw):", req.body);
-        // console.log("Request body type:", typeof req.body);
-        // console.log("Request body stringified:", JSON.stringify(req.body));
-        // console.log("==============================");
-        
-        // Try to parse the body manually if it's a string
-        let parsedBody = req.body;
-        if (typeof req.body === 'string') {
-            try {
-                parsedBody = JSON.parse(req.body);
-                console.log("Manually parsed body:", parsedBody);
-            } catch (e) {
-                console.error("Failed to parse body string:", e);
-            }
-        }
-        
-        // Extract fields from either source
-        const body = parsedBody || req.body;
-        const { firstName, lastName, email, pass, confirmPassword, phone, role } = body;
-        
-        // console.log("Fields extracted:");
-        // console.log("firstName:", firstName);
-        // console.log("lastName:", lastName);
-        // console.log("email:", email);
-        // console.log("pass:", pass ? "provided" : "missing");
-        // console.log("confirmPassword:", confirmPassword ? "provided" : "missing");
-        // console.log("phone:", phone);
-        // console.log("role:", role);
+        const { firstName, lastName, email, pass, confirmPassword, phone, role = "customer" } = req.body;
 
         // Validate required fields
-        if (!firstName || !lastName || !email || !pass || !confirmPassword || !phone || !role) {
-            return res.status(400).json({ 
-                EC: 0, 
-                EM: "Vui lòng điền đầy đủ thông tin, bao gồm vai trò!" 
-            });
-        }
-
-        // Validate role
-        if (!['customer', 'repairman', 'admin'].includes(role)) {
-            return res.status(400).json({ 
-                EC: 0, 
-                EM: "Vai trò không hợp lệ! Vai trò phải là customer, repairman hoặc admin." 
+        if (!firstName || !lastName || !email || !pass || !confirmPassword || !phone) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vui lòng điền đầy đủ thông tin!"
             });
         }
 
         // Validate password match
         if (pass !== confirmPassword) {
-            return res.status(400).json({ 
-                EC: 0, 
-                EM: "Mật khẩu không khớp!" 
+            return res.status(400).json({
+                EC: 0,
+                EM: "Mật khẩu không khớp!"
             });
         }
 
-        // Validate password length - at least 8 characters
+        // Validate password length
         if (pass.length < 8) {
-            return res.status(400).json({ 
-                EC: 0, 
-                EM: "Mật khẩu phải có ít nhất 8 ký tự!" 
+            return res.status(400).json({
+                EC: 0,
+                EM: "Mật khẩu phải có ít nhất 8 ký tự!"
             });
         }
 
-        // Check if email already exists
-        const existingEmail = await models.User.findOne({ where: { email } });
+        // Check existing email
+        const existingEmail = await User.findOne({ email });
         if (existingEmail) {
-            return res.status(400).json({ 
-                EC: 0, 
-                EM: "Email đã được sử dụng!" 
+            return res.status(400).json({
+                EC: 0,
+                EM: "Email đã được sử dụng!"
             });
         }
 
-        // Check if phone already exists
-        const existingPhone = await models.User.findOne({ where: { phone } });
+        // Check existing phone
+        const existingPhone = await User.findOne({ phone });
         if (existingPhone) {
-            return res.status(400).json({ 
-                EC: 0, 
-                EM: "Số điện thoại đã được sử dụng!" 
+            return res.status(400).json({
+                EC: 0,
+                EM: "Số điện thoại đã được sử dụng!"
             });
         }
 
@@ -112,50 +83,41 @@ const register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(pass, salt);
 
-        // Create new user with transaction to ensure both user and role are created
-        const result = await models.sequelize.transaction(async (t) => {
-            // Create user
-            const newUser = await models.User.create({
-                firstName,
-                lastName,
-                email,
-                pass: hashedPassword,
-                phone,
-                status: 1
-            }, { transaction: t });
-
-            // Create role for the user
-            await models.Role.create({
-                user_id: newUser.id,
-                type: role
-            }, { transaction: t });
-
-            return newUser;
+        // Create new user
+        const newUser = new User({
+            firstName,
+            lastName,
+            email,
+            pass: hashedPassword,
+            phone,
+            status: 1
         });
 
+        // Save user
+        const savedUser = await newUser.save();
+
+        // Create role for user
+        const newRole = new Role({
+            user_id: savedUser._id,
+            type: role
+        });
+        await newRole.save();
+
         // Remove password from response
-        const userResponse = result.toJSON();
+        const userResponse = savedUser.toObject();
         delete userResponse.pass;
 
-        res.status(201).json({ 
-            EC: 1, 
-            EM: "Đăng ký thành công!", 
-            DT: userResponse 
+        res.status(201).json({
+            EC: 1,
+            EM: "Đăng ký thành công!",
+            DT: userResponse
         });
 
     } catch (err) {
         console.error('Register error:', err);
-        
-        if (err.name === 'SequelizeValidationError') {
-            return res.status(400).json({ 
-                EC: 0, 
-                EM: "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại!" 
-            });
-        }
-
-        res.status(500).json({ 
-            EC: 0, 
-            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!" 
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
         });
     }
 };
@@ -172,16 +134,38 @@ const login = async (req, res) => {
             });
         }
 
-        // Find user by email
-        const user = await models.User.findOne({ 
-            where: { email },
-            include: [{
-                model: models.Role,
-                as: 'roles'
-            }]
-        });
+        // Check if it's admin login
+        if (email === DEFAULT_ADMIN_EMAIL && pass === DEFAULT_ADMIN_PASSWORD) {
+            const adminUser = {
+                _id: "admin",
+                email: DEFAULT_ADMIN_EMAIL,
+                role: "admin",
+                firstName: "Admin",
+                lastName: "System"
+            };
+            const accessToken = generateAccessToken(adminUser);
+            const refreshToken = generateRefreshToken(adminUser);
 
-        // If user doesn't exist
+            res.cookie("refreshToken", refreshToken, {
+                httpOnly: true,
+                secure: false,
+                path: "/",
+                sameSite: "strict",
+                maxAge: 7 * 24 * 60 * 60 * 1000
+            });
+
+            return res.status(200).json({
+                EC: 1,
+                EM: "Đăng nhập thành công!",
+                DT: {
+                    ...adminUser,
+                    accessToken
+                }
+            });
+        }
+
+        // Find user and populate roles
+        const user = await User.findOne({ email }).populate('roles');
         if (!user) {
             return res.status(401).json({
                 EC: 0,
@@ -208,7 +192,6 @@ const login = async (req, res) => {
 
         // Get user roles
         const roles = user.roles ? user.roles.map(role => role.type) : [];
-        
         if (roles.length === 0) {
             return res.status(401).json({
                 EC: 0,
@@ -216,35 +199,30 @@ const login = async (req, res) => {
             });
         }
 
-        // Create JWT token with user information and roles
-        const token = jwt.sign(
-            { 
-                id: user.id,
-                email: user.email,
-                roles: roles
-            }, 
-            JWT_SECRET, 
-            { expiresIn: JWT_EXPIRES_IN }
-        );
+        // Create tokens
+        const accessToken = generateAccessToken({ ...user.toObject(), role: roles[0] });
+        const refreshToken = generateRefreshToken({ ...user.toObject(), role: roles[0] });
+
+        // Set refresh token in cookie
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: false,
+            path: "/",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
 
         // Create user response without password
-        const userResponse = {
-            id: user.id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            phone: user.phone,
-            roles: roles,
-            status: user.status
-        };
+        const userResponse = user.toObject();
+        delete userResponse.pass;
 
-        // Return success with token and user information
         res.status(200).json({
             EC: 1,
             EM: "Đăng nhập thành công!",
             DT: {
-                token,
-                user: userResponse
+                ...userResponse,
+                roles,
+                accessToken
             }
         });
 
@@ -257,60 +235,60 @@ const login = async (req, res) => {
     }
 };
 
-const testBodyParser = (req, res) => {
-    console.log("==== TEST BODY PARSER ====");
-    console.log("Headers:", req.headers);
-    console.log("Body:", req.body);
-    console.log("========================");
-    
+const refreshToken = async (req, res) => {
+    try {
+        const refreshToken = req.cookies.refreshToken;
+        if (!refreshToken) {
+            return res.status(401).json({
+                EC: 0,
+                EM: "You're not authenticated!"
+            });
+        }
+
+        jwt.verify(refreshToken, JWT_REFRESH_KEY, async (err, user) => {
+            if (err) {
+                return res.status(403).json({
+                    EC: 0,
+                    EM: "Refresh token is not valid!"
+                });
+            }
+
+            // Create new access token
+            const newAccessToken = generateAccessToken(user);
+
+            res.status(200).json({
+                EC: 1,
+                EM: "Refresh token success!",
+                DT: {
+                    accessToken: newAccessToken
+                }
+            });
+        });
+    } catch (err) {
+        console.error('Refresh token error:', err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const logout = async (req, res) => {
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: false,
+        path: "/",
+        sameSite: "strict"
+    });
     return res.status(200).json({
-        message: "Test endpoint",
-        receivedBody: req.body,
-        contentType: req.headers['content-type']
+        EC: 1,
+        EM: "Logged out successfully!"
     });
 };
-//CHANGE PASSWORD
- const changePassword = async (req, res) => {
-      const userID = req.user.id;
-      const {oldpass , newpass} = req.body;
-       try {
-         if (!newpass|| newpass.length < 8) {
-            console.log('Password must be at least 8 characters');
-            
-            return res.status(400).json({ 
-                EC: 0,
-                EM: 'Password must be at least 8 characters' }); 
-            }   
-         const user = await User.findOne({ where: { id: userID } });
-         if (!user) {
-            console.log('User not found');
-            return res.status(404).json({ 
-                EC: 0,
-                EM: 'User not found' });
-            }
-        const check =   await bcrypt.compare(oldpass, user.pass);  
-        if (!check) {
-            console.log('Old password is incorrect');
-            return res.status(400).json({ 
-                EC: 0,
-                EM: 'Old password is incorrect' });
-            }
-        const hashedPassword = await bcrypt.hash(newpass, 10);
-
-        await user.update({ pass: hashedPassword }, { where: { id: userID } });
-        return res.status(200).json({
-            EC: 1,
-            EM: 'Password changed successfully'
-        });
-       } catch (error) {
-            console.error('Change password error:', error);
-            res.status(500).json({ message: 'Internal server error' });
-       }
-    };
 
 module.exports = {
     register,
     login,
-    testBodyParser,
-    changePassword
+    refreshToken,
+    logout
 };

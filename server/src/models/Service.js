@@ -1,26 +1,43 @@
-module.exports = (sequelize, DataTypes) => {
-    const Service = sequelize.define('Service', {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        type: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            unique: true
-        }
-    }, {
-        timestamps: true
-    });
+const mongoose = require('mongoose');
 
-    Service.associate = (models) => {
-        // Define the relationship
-        Service.hasMany(models.ServiceIndustry, {
-            foreignKey: 'service_id',
-            as: 'serviceIndustries'
-        });
-    };
+const ServiceSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    industry_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ServiceIndustry',
+        required: true
+    },
+    description: {
+        type: String,
+        default: null
+    },
+    status: {
+        type: Number,
+        default: 1,
+        required: true
+    }
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
-    return Service;
-}; 
+// Virtual for industry
+ServiceSchema.virtual('industry', {
+    ref: 'ServiceIndustry',
+    localField: 'industry_id',
+    foreignField: '_id',
+    justOne: true
+});
+
+// Virtual for prices
+ServiceSchema.virtual('prices', {
+    ref: 'Price',
+    localField: '_id',
+    foreignField: 'service_id'
+});
+
+module.exports = mongoose.model('Service', ServiceSchema); 

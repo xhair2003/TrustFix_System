@@ -1,30 +1,36 @@
-module.exports = (sequelize, DataTypes) => {
-    const Price = sequelize.define('Price', {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        duePrice_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            unique: true
-        },
-        priceToPay: {
-            type: DataTypes.DECIMAL(10, 2),
-            allowNull: false
-        }
-    }, {
-        timestamps: true
-    });
+const mongoose = require('mongoose');
 
-    Price.associate = (models) => {
-        // Define the relationship
-        Price.belongsTo(models.DuePrice, {
-            foreignKey: 'duePrice_id',
-            as: 'duePrice'
-        });
-    };
+const PriceSchema = new mongoose.Schema({
+    service_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Service',
+        required: true
+    },
+    price: {
+        type: Number,
+        required: true
+    },
+    description: {
+        type: String,
+        default: null
+    },
+    status: {
+        type: Number,
+        default: 1,
+        required: true
+    }
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
-    return Price;
-}; 
+// Virtual for service
+PriceSchema.virtual('service', {
+    ref: 'Service',
+    localField: 'service_id',
+    foreignField: '_id',
+    justOne: true
+});
+
+module.exports = mongoose.model('Price', PriceSchema); 

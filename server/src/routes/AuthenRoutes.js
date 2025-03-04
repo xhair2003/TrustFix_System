@@ -1,16 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const { register, login, testBodyParser } = require("../controllers/AuthenController");
-const { verifyToken, authorize } = require("../middlewares/authMiddleware");
+const AuthenController = require("../controllers/AuthenController");
+const AuthMiddleware = require("../middlewares/AuthMiddleware");
 
 // Public routes - no authentication needed
-router.post("/register", register);
-router.post("/login", login);
-router.post("/test-body", testBodyParser);
+router.post("/register", AuthenController.register);
+router.post("/login", AuthenController.login);
+router.post("/refresh-token", AuthenController.refreshToken);
+router.post("/logout", AuthMiddleware.verifyToken, AuthenController.logout);
 
 // Protected routes - require authentication
 // Example route accessible only to admins
-router.get("/admin-only", verifyToken, authorize("admin"), (req, res) => {
+router.get("/admin-only", AuthMiddleware.verifyToken, AuthMiddleware.authorize("admin"), (req, res) => {
     res.status(200).json({
         EC: 1,
         EM: "Admin access granted",
@@ -19,7 +20,7 @@ router.get("/admin-only", verifyToken, authorize("admin"), (req, res) => {
 });
 
 // Example route accessible to both repairmen and admins
-router.get("/repairman-admin", verifyToken, authorize("repairman", "admin"), (req, res) => {
+router.get("/repairman-admin", AuthMiddleware.verifyToken, AuthMiddleware.authorize("repairman", "admin"), (req, res) => {
     res.status(200).json({
         EC: 1,
         EM: "Repairman/Admin access granted",
@@ -28,7 +29,7 @@ router.get("/repairman-admin", verifyToken, authorize("repairman", "admin"), (re
 });
 
 // Example route accessible to all authenticated users (any role)
-router.get("/user-info", verifyToken, (req, res) => {
+router.get("/user-info", AuthMiddleware.verifyToken, (req, res) => {
     res.status(200).json({
         EC: 1,
         EM: "User info retrieved",

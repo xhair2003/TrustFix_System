@@ -1,32 +1,28 @@
-module.exports = (sequelize, DataTypes) => {
-    const Role = sequelize.define('Role', {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        user_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
-        type: {
-            type: DataTypes.ENUM('customer', 'repairman', 'admin'),
-            allowNull: false,
-            validate: {
-                isIn: [['customer', 'repairman', 'admin']]
-            }
-        }
-    }, {
-        timestamps: true
-    });
+const mongoose = require('mongoose');
 
-    Role.associate = (models) => {
-        // Define the relationship
-        Role.belongsTo(models.User, {
-            foreignKey: 'user_id',
-            as: 'user'
-        });
-    };
+const RoleSchema = new mongoose.Schema({
+    user_id: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User',
+        required: true 
+    },
+    type: { 
+        type: String, 
+        required: true,
+        enum: ['customer', 'repairman', 'admin']
+    }
+}, { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
-    return Role;
-}; 
+// Virtual for user
+RoleSchema.virtual('user', {
+    ref: 'User',
+    localField: 'user_id',
+    foreignField: '_id',
+    justOne: true
+});
+
+module.exports = mongoose.model('Role', RoleSchema); 

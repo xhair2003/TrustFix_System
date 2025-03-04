@@ -1,49 +1,41 @@
-module.exports = (sequelize, DataTypes) => {
-    const Transaction = sequelize.define('Transaction', {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        wallet_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
-        payCode: {
-            type: DataTypes.STRING,
-            unique: true,
-            allowNull: false
-        },
-        amount: {
-            type: DataTypes.DECIMAL(10, 2),
-            allowNull: false
-        },
-        status: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
-        transactionType: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
-        content: {
-            type: DataTypes.STRING
-        },
-        balanceAfterTransaction: {
-            type: DataTypes.STRING,
-            allowNull: false
-        }
-    }, {
-        timestamps: true
-    });
+const mongoose = require('mongoose');
 
-    Transaction.associate = (models) => {
-        // Define the relationship
-        Transaction.belongsTo(models.Wallet, {
-            foreignKey: 'wallet_id',
-            as: 'wallet'
-        });
-    };
+const TransactionSchema = new mongoose.Schema({
+    wallet_id: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Wallet',
+        required: true 
+    },
+    amount: { 
+        type: Number, 
+        required: true 
+    },
+    type: { 
+        type: String,
+        required: true,
+        enum: ['deposit', 'withdraw', 'transfer']
+    },
+    status: { 
+        type: Number,
+        required: true,
+        default: 1
+    },
+    description: { 
+        type: String,
+        default: null
+    }
+}, { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
-    return Transaction;
-}; 
+// Virtual for wallet
+TransactionSchema.virtual('wallet', {
+    ref: 'Wallet',
+    localField: 'wallet_id',
+    foreignField: '_id',
+    justOne: true
+});
+
+module.exports = mongoose.model('Transaction', TransactionSchema); 
