@@ -17,17 +17,11 @@
 .login-container {
     width: 100vw;
     height: 100vh; 
-<<<<<<< HEAD
-    background-image: url('../assets/login-bg.png');
-=======
     background-image: url('../assets/Images/login-bg.png');
->>>>>>> ae0976cc73bf8bf7d0795bd5c7b95a088c4e4963
     background-size: cover;
     background-position: center; 
     background-repeat: no-repeat;
     position: relative;
-<<<<<<< HEAD
-=======
 }
 
 @import '../style/pages/Responsive.scss';
@@ -38,5 +32,4 @@
         max-width: 25%;
         background: green;
     }
->>>>>>> ae0976cc73bf8bf7d0795bd5c7b95a088c4e4963
 }

@@ -81,11 +81,8 @@
     width: 150px; /* Chiều rộng cho logo */
     height: auto; /* Chiều cao tự động */
     margin-top: auto; /* Đặt logo ở dưới cùng của sidebar */
-<<<<<<< HEAD
-=======
     position: relative;
     bottom: 20px;
->>>>>>> ae0976cc73bf8bf7d0795bd5c7b95a088c4e4963
 }
 
 .back-button {
@@ -96,12 +93,9 @@
     margin-bottom: 20px; /* Khoảng cách dưới nút */
     display: flex; /* Sử dụng flexbox để căn giữa biểu tượng */
     align-items: center; /* Căn giữa theo chiều dọc */
-<<<<<<< HEAD
-=======
 }
 
 .only-logo {
     width: 50px; /* Đặt chiều rộng mong muốn cho onlyLogo */
     height: auto; /* Giữ tỷ lệ khung hình */
->>>>>>> ae0976cc73bf8bf7d0795bd5c7b95a088c4e4963
 }
