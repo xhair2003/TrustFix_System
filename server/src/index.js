@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { createServer } = require('http');
-const { connectDB } = require('../config/connect_db');
+const connectDB = require('../config/connect_db');
 const bodyParser = require('body-parser');
 
 // Khởi tạo express app
@@ -77,9 +77,15 @@ const startServer = async () => {
 
         // Import và đồng bộ các model sau khi kết nối thành công
         const models = require('./models');
-        await models.syncModels();
+        // await models.syncModels();
         console.log('All database tables have been created or updated');
 
+
+     
+        
+
+
+        
         // Khởi tạo server
         const port = process.env.PORT || 8080;
         const httpServer = createServer(app);
