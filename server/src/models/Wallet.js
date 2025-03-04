@@ -1,36 +1,35 @@
-module.exports = (sequelize, DataTypes) => {
-    const Wallet = sequelize.define('Wallet', {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        user_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            unique: true
-        },
-        balance: {
-            type: DataTypes.DECIMAL(10, 2),
-            allowNull: false,
-            defaultValue: 0.00
-        }
-    }, {
-        timestamps: true
-    });
+const mongoose = require('mongoose');
 
-    Wallet.associate = (models) => {
-        // Define the relationship
-        Wallet.belongsTo(models.User, {
-            foreignKey: 'user_id',
-            as: 'user'
-        });
+const WalletSchema = new mongoose.Schema({
+    user_id: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User',
+        required: true 
+    },
+    balance: { 
+        type: Number, 
+        required: true,
+        default: 0 
+    }
+}, { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
-        Wallet.hasMany(models.Transaction, {
-            foreignKey: 'wallet_id',
-            as: 'transactions'
-        });
-    };
+// Virtual for user
+WalletSchema.virtual('user', {
+    ref: 'User',
+    localField: 'user_id',
+    foreignField: '_id',
+    justOne: true
+});
 
-    return Wallet;
-}; 
+// Virtual for transactions
+WalletSchema.virtual('transactions', {
+    ref: 'Transaction',
+    localField: '_id',
+    foreignField: 'wallet_id'
+});
+
+module.exports = mongoose.model('Wallet', WalletSchema); 

@@ -1,47 +1,38 @@
-module.exports = (sequelize, DataTypes) => {
-    const VeriMail = sequelize.define('VeriMail', {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        user_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            unique: true
-        },
-        email: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
-        code: {
-            type: DataTypes.STRING(6),
-            allowNull: false
-        },
-        isVerified: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: false
-        },
-        expiresAt: {
-            type: DataTypes.DATE,
-            allowNull: false
-        }
-    }, {
-        timestamps: true,
-        indexes: [
-            {
-                fields: ['user_id']
-            }
-        ]
-    });
+const mongoose = require('mongoose');
 
-    VeriMail.associate = (models) => {
-        VeriMail.belongsTo(models.User, {
-            foreignKey: 'user_id',
-            as: 'user',
-            onDelete: 'CASCADE'
-        });
-    };
+const VeriMailSchema = new mongoose.Schema({
+    user_id: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User',
+        required: true 
+    },
+    code: { 
+        type: String, 
+        required: true 
+    },
+    expiredAt: { 
+        type: Date, 
+        required: true 
+    },
+    isVerified: { 
+        type: Boolean, 
+        default: false 
+    }
+}, { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
-    return VeriMail;
-}; 
+// Virtual for user
+VeriMailSchema.virtual('user', {
+    ref: 'User',
+    localField: 'user_id',
+    foreignField: '_id',
+    justOne: true
+});
+
+// Index for code expiration
+VeriMailSchema.index({ expiredAt: 1 }, { expireAfterSeconds: 0 });
+
+module.exports = mongoose.model('VeriMail', VeriMailSchema); 

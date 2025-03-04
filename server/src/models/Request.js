@@ -1,61 +1,97 @@
-module.exports = (sequelize, DataTypes) => {
-    const Request = sequelize.define('Request', {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        user_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
-        serviceIndustry_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
-        description: {
-            type: DataTypes.STRING
-        },
-        status: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        }
-    }, {
-        timestamps: true
-    });
+const mongoose = require('mongoose');
 
-    Request.associate = (models) => {
-        // Define the relationships
-        Request.belongsTo(models.User, {
-            foreignKey: 'user_id',
-            as: 'user'
-        });
+const RequestSchema = new mongoose.Schema({
+    user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    repairman_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    serviceIndustry_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ServiceIndustry',
+        required: true
+    },
+    address_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Address',
+        required: true
+    },
+    description: {
+        type: String,
+        required: true
+    },
+    status: {
+        type: Number,
+        default: 1,
+        required: true
+    },
+    price: {
+        type: Number,
+        required: true
+    },
+    schedule: {
+        type: Date,
+        required: true
+    },
+    completedAt: {
+        type: Date,
+        default: null
+    }
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
-        Request.belongsTo(models.ServiceIndustry, {
-            foreignKey: 'serviceIndustry_id',
-            as: 'serviceIndustry'
-        });
+// Virtual for user
+RequestSchema.virtual('user', {
+    ref: 'User',
+    localField: 'user_id',
+    foreignField: '_id',
+    justOne: true
+});
 
-        Request.hasOne(models.DuePrice, {
-            foreignKey: 'request_id',
-            as: 'duePrice'
-        });
+// Virtual for repairman
+RequestSchema.virtual('repairman', {
+    ref: 'User',
+    localField: 'repairman_id',
+    foreignField: '_id',
+    justOne: true
+});
 
-        Request.hasOne(models.Rating, {
-            foreignKey: 'request_id',
-            as: 'rating'
-        });
+// Virtual for service industry
+RequestSchema.virtual('serviceIndustry', {
+    ref: 'ServiceIndustry',
+    localField: 'serviceIndustry_id',
+    foreignField: '_id',
+    justOne: true
+});
 
-        Request.hasOne(models.Address, {
-            foreignKey: 'request_id',
-            as: 'address'
-        });
+// Virtual for address
+RequestSchema.virtual('address', {
+    ref: 'Address',
+    localField: 'address_id',
+    foreignField: '_id',
+    justOne: true
+});
 
-        Request.hasMany(models.Image, {
-            foreignKey: 'request_id',
-            as: 'images'
-        });
-    };
+// Virtual for ratings
+RequestSchema.virtual('ratings', {
+    ref: 'Rating',
+    localField: '_id',
+    foreignField: 'request_id'
+});
 
-    return Request;
-}; 
+// Virtual for images
+RequestSchema.virtual('images', {
+    ref: 'Image',
+    localField: '_id',
+    foreignField: 'request_id'
+});
+
+module.exports = mongoose.model('Request', RequestSchema); 

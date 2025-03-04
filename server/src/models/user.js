@@ -1,103 +1,100 @@
-module.exports = (sequelize, DataTypes) => {
-    const User = sequelize.define('User', {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        firstName: {
-            type: DataTypes.STRING(50),
-            allowNull: false
-        },
-        lastName: {
-            type: DataTypes.STRING(50),
-            allowNull: false
-        },
-        email: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            unique: true,
-            validate: {
-                isEmail: true
-            }
-        },
-        pass: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
-        phone: {
-            type: DataTypes.STRING(15),
-            allowNull: false,
-            unique: true
-        },
-        imgAvt: {
-            type: DataTypes.STRING,
-            allowNull: true
-        },
-        status: {
-            type: DataTypes.INTEGER,
-            defaultValue: 1,
-            allowNull: false
-        },
-        address: {
-            type: DataTypes.STRING,
-            allowNull: true
-        },
-        description: {
-            type: DataTypes.TEXT,
-            allowNull: true
-        }
-    }, {
-        timestamps: true,
-        indexes: [
-            {
-                unique: true,
-                fields: ['email']
+const mongoose = require('mongoose');
+
+const UserSchema = new mongoose.Schema({
+    firstName: { 
+        type: String, 
+        required: true 
+    },
+    lastName: { 
+        type: String, 
+        required: true 
+    },
+    email: { 
+        type: String, 
+        required: true, 
+        unique: true,
+        validate: {
+            validator: function(v) {
+                return /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(v);
             },
-            {
-                unique: true,
-                fields: ['phone']
-            }
-        ]
-    });
+            message: props => `${props.value} không phải là email hợp lệ!`
+        }
+    },
+    pass: { 
+        type: String, 
+        required: true 
+    },
+    phone: { 
+        type: String, 
+        required: true, 
+        unique: true 
+    },
+    imgAvt: { 
+        type: String,
+        default: null
+    },
+    status: { 
+        type: Number, 
+        default: 1,
+        required: true 
+    },
+    address: { 
+        type: String,
+        default: null
+    },
+    description: { 
+        type: String,
+        default: null
+    }
+}, { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
-    User.associate = (models) => {
-        User.hasMany(models.Role, { 
-            foreignKey: 'user_id',
-            as: 'roles',
-            onDelete: 'CASCADE'
-        });
-        
-        User.hasOne(models.Wallet, { 
-            foreignKey: 'user_id',
-            as: 'wallet',
-            onDelete: 'CASCADE'
-        });
-        
-        User.hasOne(models.Vip, { 
-            foreignKey: 'user_id',
-            as: 'vip',
-            onDelete: 'CASCADE'
-        });
-        
-        User.hasMany(models.Request, { 
-            foreignKey: 'user_id',
-            as: 'requests',
-            onDelete: 'CASCADE'
-        });
-        
-        User.hasMany(models.RepairmanUpgradeRequest, { 
-            foreignKey: 'user_id',
-            as: 'repairmanUpgradeRequests',
-            onDelete: 'CASCADE'
-        });
-        
-        User.hasOne(models.VeriMail, { 
-            foreignKey: 'user_id',
-            as: 'veriMail',
-            onDelete: 'CASCADE'
-        });
-    };
+// Virtual for roles
+UserSchema.virtual('roles', {
+    ref: 'Role',
+    localField: '_id',
+    foreignField: 'user_id'
+});
 
-    return User;
-};
+// Virtual for wallet
+UserSchema.virtual('wallet', {
+    ref: 'Wallet',
+    localField: '_id',
+    foreignField: 'user_id',
+    justOne: true
+});
+
+// Virtual for vip status
+UserSchema.virtual('vip', {
+    ref: 'Vip',
+    localField: '_id',
+    foreignField: 'user_id',
+    justOne: true
+});
+
+// Virtual for requests
+UserSchema.virtual('requests', {
+    ref: 'Request',
+    localField: '_id',
+    foreignField: 'user_id'
+});
+
+// Virtual for repairman upgrade requests
+UserSchema.virtual('repairmanUpgradeRequests', {
+    ref: 'RepairmanUpgradeRequest',
+    localField: '_id',
+    foreignField: 'user_id'
+});
+
+// Virtual for verification mail
+UserSchema.virtual('veriMail', {
+    ref: 'VeriMail',
+    localField: '_id',
+    foreignField: 'user_id',
+    justOne: true
+});
+
+module.exports = mongoose.model('User', UserSchema);

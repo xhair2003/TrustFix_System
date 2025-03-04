@@ -1,37 +1,45 @@
-module.exports = (sequelize, DataTypes) => {
-    const Vip = sequelize.define('Vip', {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        user_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            unique: true
-        },
-        description: {
-            type: DataTypes.STRING
-        },
-        price: {
-            type: DataTypes.DECIMAL(10, 2),
-            allowNull: false
-        },
-        status: {
-            type: DataTypes.STRING,
-            allowNull: false
-        }
-    }, {
-        timestamps: true
-    });
+const mongoose = require('mongoose');
 
-    Vip.associate = (models) => {
-        // Define the relationship
-        Vip.belongsTo(models.User, {
-            foreignKey: 'user_id',
-            as: 'user'
-        });
-    };
+const VipSchema = new mongoose.Schema({
+    user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    level: {
+        type: Number,
+        required: true,
+        default: 1
+    },
+    points: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+    status: {
+        type: Number,
+        default: 1,
+        required: true
+    },
+    expiredAt: {
+        type: Date,
+        required: true
+    }
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
-    return Vip;
-}; 
+// Virtual for user
+VipSchema.virtual('user', {
+    ref: 'User',
+    localField: 'user_id',
+    foreignField: '_id',
+    justOne: true
+});
+
+// Index for expiration
+VipSchema.index({ expiredAt: 1 });
+
+module.exports = mongoose.model('Vip', VipSchema); 

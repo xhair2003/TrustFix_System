@@ -1,40 +1,34 @@
-module.exports = (sequelize, DataTypes) => {
-    const ServiceIndustry = sequelize.define('ServiceIndustry', {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        type: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            unique: true
-        },
-        service_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        }
-    }, {
-        timestamps: true
-    });
+const mongoose = require('mongoose');
 
-    ServiceIndustry.associate = (models) => {
-        // Define the relationship
-        ServiceIndustry.belongsTo(models.Service, {
-            foreignKey: 'service_id',
-            as: 'service'
-        });
+const ServiceIndustrySchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    description: {
+        type: String,
+        default: null
+    },
+    status: {
+        type: Number,
+        default: 1,
+        required: true
+    },
+    image: {
+        type: String,
+        default: null
+    }
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
-        ServiceIndustry.hasMany(models.Request, {
-            foreignKey: 'serviceIndustry_id',
-            as: 'requests'
-        });
+// Virtual for services
+ServiceIndustrySchema.virtual('services', {
+    ref: 'Service',
+    localField: '_id',
+    foreignField: 'industry_id'
+});
 
-        ServiceIndustry.hasMany(models.RepairmanUpgradeRequest, {
-            foreignKey: 'serviceIndustry_id',
-            as: 'repairmanUpgradeRequests'
-        });
-    };
-
-    return ServiceIndustry;
-}; 
+module.exports = mongoose.model('ServiceIndustry', ServiceIndustrySchema); 

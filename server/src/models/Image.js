@@ -1,29 +1,37 @@
-module.exports = (sequelize, DataTypes) => {
-    const Image = sequelize.define('Image', {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        request_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
-        imgUrlList: {
-            type: DataTypes.STRING,
-            allowNull: false
-        }
-    }, {
-        timestamps: true
-    });
+const mongoose = require('mongoose');
 
-    Image.associate = (models) => {
-        // Define the relationship
-        Image.belongsTo(models.Request, {
-            foreignKey: 'request_id',
-            as: 'request'
-        });
-    };
+const ImageSchema = new mongoose.Schema({
+    request_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Request',
+        required: true
+    },
+    url: {
+        type: String,
+        required: true
+    },
+    type: {
+        type: String,
+        enum: ['before', 'after', 'process'],
+        required: true
+    },
+    status: {
+        type: Number,
+        default: 1,
+        required: true
+    }
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
-    return Image;
-}; 
+// Virtual for request
+ImageSchema.virtual('request', {
+    ref: 'Request',
+    localField: 'request_id',
+    foreignField: '_id',
+    justOne: true
+});
+
+module.exports = mongoose.model('Image', ImageSchema); 
