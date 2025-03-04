@@ -10,6 +10,10 @@ import ChangePassword from "../src/pages/users/ChangePassword/ChangePassword.js"
 import BookingHistory from "../src/pages/users/BookingHistory/BookingHistory.js";
 import ComplainRepairman from "../src/pages/users/ComplainRepairman/ComplainRepairman.js";
 import UpgradeRepairman from "../src/pages/users/UpgradeRepairman/UpgradeRepairman.js";
+import Wallet from "./pages/users/Payment/Wallet/Wallet.js";
+import DepositHistory from "./pages/users/Payment/DepositHistory/DepositHistory.js";
+import HistoryPayment from "./pages/users/Payment/HistoryPayment/HistoryPayment.js";
+import ServicePrice from "./pages/users/Payment/ServicePrice/ServicePrice.js";
 
 const UserROUTERS = () => {
     const routers = [
@@ -41,6 +45,26 @@ const UserROUTERS = () => {
         {
             path: ROUTERS.CUSTOMER.UPGRADE_REPAIRMAN,
             component: <UpgradeRepairman />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.WALLET,
+            component: <Wallet />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.DEPOSIT_HISTORY,
+            component: <DepositHistory />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.HISTORY_PAYMENT,
+            component: <HistoryPayment />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.REPAIRMAN.SERVICE_PRICE,
+            component: <ServicePrice />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         // Add more routes here...

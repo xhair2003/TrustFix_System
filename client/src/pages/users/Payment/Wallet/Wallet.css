@@ -1,0 +1,144 @@
+/* Container */
+.deposit-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  /* Card Styling */
+  .deposit-card {
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  
+  /* Title */
+  .deposit-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #2d3748;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    text-align: center;
+    border-bottom: 1px solid #edf2f7;
+  }
+  
+  /* Subtitle */
+  .deposit-subtitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  
+  /* Method Buttons */
+  .method-btn {
+    width: 150px;
+    height: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 10px;
+    margin: 10px;
+  }
+  
+  .method-btn:hover {
+    transform: scale(1.05);
+  }
+  
+  .method-name {
+    width: 100%;
+    padding: 8px;
+    background-color: #edf2f7;
+    text-align: center;
+    color: black;
+    font-weight: 600;
+    border-radius: 10px;
+  }
+  
+  /* Account Info Section */
+  .account-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-left: 50px;
+    padding-left: 20px;
+    border-left: 2px solid #edf2f7;
+  }
+  
+  .balance-info {
+    background-color: #f7fafc;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  
+  .balance-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #4a5568;
+  }
+  
+  .balance-amount {
+    font-size: 2rem;
+    color: #38a169;
+    font-weight: bold;
+  }
+  
+  /* Option Buttons */
+  .option-btn {
+    width: 100%;
+    background-color: #3182ce;
+    padding: 12px;
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-bottom: 10px;
+  }
+  
+  .option-btn:hover {
+    background-color: #2b6cb0;
+  }
+  
+  .options {
+    padding: 12px;
+    background-color: #f7fafc;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: block;
+  }
+  
+  .deposit-methods {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 40px;
+  }
+  
+  .deposit-method-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .deposit-flex-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
