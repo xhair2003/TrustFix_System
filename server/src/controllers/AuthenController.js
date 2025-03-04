@@ -1,6 +1,8 @@
 const { User, Role } = require("../models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const user = require("../models/user");
+const hashPassword  = require("../utils/password");
 
 // JWT configuration
 const JWT_ACCESS_KEY = process.env.JWT_ACCESS_KEY || "your_jwt_access_secret_key";
@@ -39,9 +41,11 @@ const register = async (req, res) => {
 
         // Validate required fields
         if (!firstName || !lastName || !email || !pass || !confirmPassword || !phone) {
+            console.log("Vui lòng điền đầy đủ thông tin!");
             return res.status(400).json({
                 EC: 0,
                 EM: "Vui lòng điền đầy đủ thông tin!"
+                
             });
         }
 
@@ -92,7 +96,8 @@ const register = async (req, res) => {
             phone,
             status: 1
         });
-
+        console.log(pass);
+        
         // Save user
         const savedUser = await newUser.save();
 
@@ -125,7 +130,8 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, pass } = req.body;
-
+        console.log(pass);
+        
         // Validate required fields
         if (!email || !pass) {
             return res.status(400).json({
@@ -286,9 +292,51 @@ const logout = async (req, res) => {
     });
 };
 
+
+///Change password
+const changePassword = async (req, res) => {
+    try {
+        const { email, pass, newPass, confirmNewPass } = req.body;
+
+        if (!email || !pass || !newPass || !confirmNewPass) {
+            return res.status(400).json({ EC: 0, EM: "Vui lòng nhập đầy đủ thông tin!" });
+        }
+
+        if (newPass !== confirmNewPass) {
+            return res.status(400).json({ EC: 0, EM: "Mật khẩu mới không khớp!" });
+        }
+
+        if (newPass.length < 8) {
+            return res.status(400).json({ EC: 0, EM: "Mật khẩu mới phải có ít nhất 8 ký tự!" });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ EC: 0, EM: "Email không tồn tại!" });
+        }
+
+        const validPassword = await bcrypt.compare(pass, user.pass);
+        if (!validPassword) {
+            return res.status(400).json({ EC: 0, EM: "Mật khẩu không chính xác!" });
+        }
+
+        // Đổi mật khẩu với hàm hash đúng
+        user.pass = await hashPassword(newPass);
+        await user.save();
+
+        return res.status(200).json({ EC: 1, EM: "Đổi mật khẩu thành công!" });
+
+    } catch (err) {
+        console.error("Change password error:", err);
+        res.status(500).json({ EC: 0, EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!" });
+    }
+};
+
+
 module.exports = {
     register,
     login,
     refreshToken,
-    logout
+    logout,
+    changePassword
 };
