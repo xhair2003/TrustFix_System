@@ -1,0 +1,101 @@
+.master-layout {
+    display: flex; /* Sử dụng flexbox để sắp xếp các phần tử con */
+    height: 100vh; /* Chiều cao của layout bằng chiều cao của viewport */
+}
+
+.sidebar {
+    display: flex; /* Sử dụng flexbox cho sidebar */
+    flex-direction: column; /* Sắp xếp các phần tử theo chiều dọc */
+    width: 250px; /* Chiều rộng mặc định của sidebar */
+    background-color: #FFFFFF; /* Màu nền của sidebar */
+    padding: 20px; /* Khoảng cách bên trong của sidebar */
+    transition: width 0.3s; /* Hiệu ứng chuyển tiếp khi thay đổi chiều rộng */
+    height: 100vh; /* Chiều cao của sidebar bằng chiều cao của viewport */
+}
+
+.sidebar.collapsed {
+    width: 60px; /* Chiều rộng của sidebar khi bị thu nhỏ */
+}
+
+.user-info {
+    text-align: center; /* Căn giữa nội dung trong phần thông tin người dùng */
+    margin-bottom: 20px; /* Khoảng cách dưới phần thông tin người dùng */
+}
+
+.user-image {
+    width: 80px; /* Chiều rộng của ảnh người dùng */
+    height: 80px; /* Chiều cao của ảnh người dùng */
+    border-radius: 50%; /* Tạo hình tròn cho ảnh người dùng */
+}
+
+.menu-items {
+    flex: 1; /* Chiếm không gian còn lại trong sidebar */
+    overflow-y: auto; /* Thêm cuộn dọc nếu nội dung vượt quá chiều cao */
+}
+
+.menu-item {
+    display: flex; /* Sử dụng flexbox cho các mục menu */
+    align-items: center; /* Căn giữa các mục theo chiều dọc */
+    padding: 10px; /* Khoảng cách bên trong cho mỗi mục menu */
+    cursor: pointer; /* Hiển thị con trỏ chuột khi di chuột qua mục */
+    transition: background-color 0.3s, font-weight 0.3s; /* Hiệu ứng chuyển tiếp cho màu nền và độ đậm */
+    gap: 10px; /* Khoảng cách giữa biểu tượng và văn bản */
+}
+
+.menu-item:hover {
+    background-color: #e0e0e0; /* Màu nền khi di chuột qua mục menu */
+}
+
+.menu-item.active {
+    background-color: #e0e0e0; /* Màu nền cho mục đã chọn */
+    font-weight: bold; /* Tăng độ nổi bật cho mục đã chọn */
+}
+
+.toggle-button {
+    background: none; /* Không có nền cho nút */
+    border: none; /* Không có viền cho nút */
+    cursor: pointer; /* Hiển thị con trỏ chuột khi di chuột qua nút */
+    font-size: 20px; /* Kích thước chữ cho nút */
+    position: absolute; /* Đặt vị trí tuyệt đối cho nút */
+    top: 10px; /* Khoảng cách từ trên cùng */
+    right: 20px; /* Khoảng cách từ bên phải */
+}
+
+.upper-sidebar {
+    flex: 0 0 auto; /* Chiều cao tự động cho phần trên của sidebar */
+    position: relative; /* Đặt vị trí tương đối cho phần trên */
+}
+
+.content {
+    flex: 1; /* Chiếm không gian còn lại trong layout */
+    padding: 20px; /* Khoảng cách bên trong cho nội dung */
+    background-color: #F8F9FA; /* Màu nền cho nội dung */
+    height: 100vh; /* Chiều cao của layout bằng chiều cao của viewport */
+}
+
+.sidebar.collapsed .menu-item {
+    justify-content: center; /* Căn giữa biểu tượng khi sidebar bị thu nhỏ */
+}
+
+.lower-sidebar {
+    width: 150px; /* Chiều rộng cho logo */
+    height: auto; /* Chiều cao tự động */
+    margin-top: auto; /* Đặt logo ở dưới cùng của sidebar */
+    position: relative;
+    bottom: 20px;
+}
+
+.back-button {
+    background: none; /* Không có nền cho nút */
+    border: none; /* Không có viền cho nút */
+    cursor: pointer; /* Hiển thị con trỏ chuột khi di chuột qua nút */
+    font-size: 20px; /* Kích thước chữ cho nút */
+    margin-bottom: 20px; /* Khoảng cách dưới nút */
+    display: flex; /* Sử dụng flexbox để căn giữa biểu tượng */
+    align-items: center; /* Căn giữa theo chiều dọc */
+}
+
+.only-logo {
+    width: 50px; /* Đặt chiều rộng mong muốn cho onlyLogo */
+    height: auto; /* Giữ tỷ lệ khung hình */
+}

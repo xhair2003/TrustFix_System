@@ -6,7 +6,7 @@
 
 
 .container {
-    max-width: 1200px;
+    //max-width: 1200px;
     width: 100%;
     padding-left: 10px;
     padding-right: 10px;
@@ -17,9 +17,19 @@
 .login-container {
     width: 100vw;
     height: 100vh; 
-    background-image: url('../assets/login-bg.png');
+    background-image: url('../assets/Images/login-bg.png');
     background-size: cover;
     background-position: center; 
     background-repeat: no-repeat;
     position: relative;
+}
+
+@import '../style/pages/Responsive.scss';
+
+@include Responsive($MEDIUM_DEVICE){
+    .col-lg-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+        background: green;
+    }
 }

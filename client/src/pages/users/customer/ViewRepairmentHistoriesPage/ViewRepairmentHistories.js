@@ -15,7 +15,7 @@ const ViewRepairmentHistories = () => {
     return (
       <div className="view-repairment-histories">
         <nav className="breadcrumb">
-          <span>Trang Chủ</span> <span>→</span> <span className="current">Xem lịch sử sửa chữa</span>
+          <span>Xem lịch sử sửa chữa</span>
         </nav>
         <div className="content">
           <RepairmentHistoriesSortBar onSort={handleSort} />

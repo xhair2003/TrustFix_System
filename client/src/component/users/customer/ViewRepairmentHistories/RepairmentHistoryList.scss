@@ -1,18 +1,29 @@
 
 .repairment-history-list {
-    max-width: 110vh;
+    width: 110vh;
     // margin: 80px auto;
     padding: 0 10px;
     position: relative;
-    margin-left: auto; 
-    margin-right: 0px;
-    max-height: 650px;
+    // margin-left: auto; 
+    // margin-right: 0px;
+    max-height: 580px;
     overflow-y: auto;
-    background-color: #ffffff;
     border-radius: 20px;
-    
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
     
     .repairment-history-item {
-      margin-bottom: 2px;
+      margin-bottom: 7px;
     }
+  }
+  .repairment-history-list::-webkit-scrollbar {
+    width: 3px;
+ 
+  }
+  .repairment-history-list::-webkit-scrollbar-thumb {
+    background-color: #747474;
+    border-radius: 4px;
+  }
+  
+  .repairment-history-list::-webkit-scrollbar-track {
+    background: #ffffff;
   }

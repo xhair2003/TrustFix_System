@@ -1,9 +1,9 @@
 .repairment-history-item {
     background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     padding: 12px;
-    margin-bottom: 2px;
+    margin-bottom: 10px;
     font-family: 'Arial', sans-serif;
     max-width: auto;
   }
@@ -23,7 +23,7 @@
   .status {
     padding: 4px 8px;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 12px;  
     font-weight: bold;
     padding-inline: 10px;
    

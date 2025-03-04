@@ -21,7 +21,7 @@ const LoginForm = () => {
       <form className="login-form" onSubmit={handleSubmit}>
         <p className='welcome-back'>Chào mừng quay trở lại</p>
         <p className='login-title'>Đăng nhập bằng tài khoản của bạn</p>
-        
+
         <div className="form-group">
           <label className='login-title2'>Email</label>
           <input
@@ -43,7 +43,7 @@ const LoginForm = () => {
               placeholder="Enter your password"
               required
             />
-            <span 
+            <span
               className="password-toggle"
               onClick={() => setShowPassword(!showPassword)}
             >
@@ -54,7 +54,7 @@ const LoginForm = () => {
 
         <div className="options">
           <label className="remember-me">
-            <input type="checkbox"/>
+            <input type="checkbox" />
             Ghi nhớ mật khẩu
           </label>
           <a href="/forgot-password" className="forgot-password">
@@ -67,7 +67,7 @@ const LoginForm = () => {
         </button>
 
         <p className="signup-link">
-          Bạn là người mới? <a href="/signup">ĐĂNG KÝ</a>
+          Bạn là người mới? <a href="/register">ĐĂNG KÝ</a>
         </p>
       </form>
     </div>
