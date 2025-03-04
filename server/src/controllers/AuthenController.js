@@ -1,10 +1,12 @@
-const models = require("../models");
+const {models,User }= require("../models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+
 
 // Get JWT settings from environment variables
 const JWT_SECRET = process.env.JWT_SECRET || "TrustFix_System_jwt_secret_key_2024";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+
 
 const register = async (req, res) => {
     try {
@@ -267,9 +269,48 @@ const testBodyParser = (req, res) => {
         contentType: req.headers['content-type']
     });
 };
+//CHANGE PASSWORD
+ const changePassword = async (req, res) => {
+      const userID = req.user.id;
+      const {oldpass , newpass} = req.body;
+       try {
+         if (!newpass|| newpass.length < 8) {
+            console.log('Password must be at least 8 characters');
+            
+            return res.status(400).json({ 
+                EC: 0,
+                EM: 'Password must be at least 8 characters' }); 
+            }   
+         const user = await User.findOne({ where: { id: userID } });
+         if (!user) {
+            console.log('User not found');
+            return res.status(404).json({ 
+                EC: 0,
+                EM: 'User not found' });
+            }
+        const check =   await bcrypt.compare(oldpass, user.pass);  
+        if (!check) {
+            console.log('Old password is incorrect');
+            return res.status(400).json({ 
+                EC: 0,
+                EM: 'Old password is incorrect' });
+            }
+        const hashedPassword = await bcrypt.hash(newpass, 10);
+
+        await user.update({ pass: hashedPassword }, { where: { id: userID } });
+        return res.status(200).json({
+            EC: 1,
+            EM: 'Password changed successfully'
+        });
+       } catch (error) {
+            console.error('Change password error:', error);
+            res.status(500).json({ message: 'Internal server error' });
+       }
+    };
 
 module.exports = {
     register,
     login,
-    testBodyParser
+    testBodyParser,
+    changePassword
 };
