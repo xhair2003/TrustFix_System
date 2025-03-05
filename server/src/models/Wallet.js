@@ -4,18 +4,15 @@ const WalletSchema = new mongoose.Schema({
     user_id: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User',
-        required: true 
+        required: true,
+        unique: true // Ensures one wallet per user
     },
     balance: { 
         type: Number, 
         required: true,
         default: 0 
     }
-}, { 
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
+}, { timestamps: true });
 
 // Virtual for user
 WalletSchema.virtual('user', {

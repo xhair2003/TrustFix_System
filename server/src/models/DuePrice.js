@@ -6,28 +6,15 @@ const DuePriceSchema = new mongoose.Schema({
         ref: 'Request',
         required: true
     },
-    amount: {
+    minPrice: {
         type: Number,
         required: true
     },
-    status: {
+    maxPrice: {
         type: Number,
-        default: 1,
         required: true
-    },
-    dueDate: {
-        type: Date,
-        required: true
-    },
-    paidAt: {
-        type: Date,
-        default: null
     }
-}, {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
+}, { timestamps: true });
 
 // Virtual for request
 DuePriceSchema.virtual('request', {
