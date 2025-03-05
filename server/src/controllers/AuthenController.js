@@ -5,6 +5,7 @@ const user = require("../models/user");
 const hashPassword  = require("../utils/password");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const cloudinary = require("../../config/cloudinary");
 
 // JWT configuration
 const JWT_ACCESS_KEY = process.env.JWT_ACCESS_KEY || "your_jwt_access_secret_key";
@@ -617,6 +618,68 @@ const resetPassword = async (req, res) => {
     }
 };
 
+const updateInformation = async (req, res) => {
+    try {
+        const { email, firstName, lastName, phone, address, description } = req.body;
+        
+        // Validate required fields
+        if (!email || !firstName || !lastName || !phone) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vui lòng nhập đầy đủ thông tin!"
+            });
+        }
+
+        // Tìm user theo email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Email không tồn tại trong hệ thống!"
+            });
+        }
+
+        // Upload ảnh mới nếu có
+        let imgAvt = user.imgAvt; // Mặc định giữ ảnh cũ
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: "user_avatars", // Upload vào thư mục user_avatars
+                transformation: [{ width: 500, height: 500, crop: "limit" }]
+            });
+            imgAvt = result.secure_url; // Lấy link ảnh từ Cloudinary
+        }
+
+        // Cập nhật thông tin người dùng
+        user.firstName = firstName;
+        user.lastName = lastName;
+        user.phone = phone;
+        user.imgAvt = imgAvt;
+        user.address = address || user.address;
+        user.description = description || user.description;
+
+        // Lưu cập nhật
+        await user.save();
+
+        // Xóa password trước khi trả về response
+        const userResponse = user.toObject();
+        delete userResponse.pass;
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Cập nhật thông tin thành công!",
+            DT: userResponse
+        });
+
+    } catch (err) {
+        console.error("Update information error:", err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+
 module.exports = {
     initRegister,
     verifyRegister,
@@ -626,5 +689,6 @@ module.exports = {
     changePassword,
     forgotPassword,
     verifyOTP,
-    resetPassword
+    resetPassword,
+    updateInformation
 };
