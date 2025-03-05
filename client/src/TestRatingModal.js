@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import RatingModal from "./component/users/Rating/RatingModal";
+import RatingModal from "./component/users/RatingModal/RatingModal";
 
 const ParentComponent = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
