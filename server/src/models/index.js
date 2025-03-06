@@ -16,6 +16,7 @@ const Rating = require('./Rating');
 const Address = require('./Address');
 const Image = require('./Image');
 const VeriMail = require('./VeriMail');
+const RepairmentHistory = require('./RepairmentHistory');
 
 // Collection of all models
 const models = {
@@ -33,7 +34,8 @@ const models = {
     Rating,
     Address,
     Image,
-    VeriMail
+    VeriMail,
+ 
 };
 
 // Connect to MongoDB

@@ -1,4 +1,4 @@
-const { ServiceIndustry, Service } = require("../models");
+const { ServiceIndustry, Service , RepairmentHistory, Price } = require("../models");
 
 // --- Service Industry CRUD ---
 
@@ -251,30 +251,6 @@ const updateService = async (req, res) => {
     }
 };
 
-const deleteService = async (req, res) => {
-    try {
-        const serviceId = req.params.id;
-        const deletedService = await Service.findByIdAndDelete(serviceId);
-
-        if (!deletedService) {
-            return res.status(404).json({
-                EC: 0,
-                EM: "Không tìm thấy dịch vụ để xóa!"
-            });
-        }
-
-        res.status(200).json({
-            EC: 1,
-            EM: "Xóa dịch vụ thành công!"
-        });
-    } catch (err) {
-        console.error('Delete service error:', err);
-        res.status(500).json({
-            EC: 0,
-            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
-        });
-    }
-};
 
 
 module.exports = {
