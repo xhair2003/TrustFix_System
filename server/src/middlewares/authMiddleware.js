@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const models = require('../models');
+const { User } = require('../models');
 
 // Get JWT secret from environment variables
 const JWT_ACCESS_KEY = process.env.JWT_ACCESS_KEY || "your_jwt_access_secret_key";
@@ -43,6 +44,7 @@ const authMiddleware = {
     verifyAdmin: (req, res, next) => {
         authMiddleware.verifyToken(req, res, () => {
             if (req.user.role === "admin") {
+                console.log("Admin verified");
                 next();
             } else {
                 res.status(403).json({

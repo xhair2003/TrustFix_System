@@ -1,4 +1,5 @@
-const { ServiceIndustry, Service } = require("../models");
+const { ServiceIndustry, Service, Complaint, User, Request } = require("../models");
+const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
 
 // --- Service Industry CRUD ---
 
@@ -276,6 +277,110 @@ const deleteService = async (req, res) => {
     }
 };
 
+// --- Complaint CRUD for Admin ---
+
+const getAllComplaints = async (req, res) => {
+    try {
+        const complaints = await Complaint.find()
+            .populate({ // Populate thông tin người dùng thông qua Request
+                path: 'request_id',
+                populate: { path: 'user_id', select: 'firstName lastName email' }
+            })
+            .populate('parentComplaint', 'complaintContent')
+            .populate('replies');
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy danh sách khiếu nại thành công!",
+            DT: complaints
+        });
+    } catch (error) {
+        console.error("Error getting all complaints:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const getComplaintById = async (req, res) => {
+    try {
+        const complaintId = req.params.id;
+        const complaint = await Complaint.findById(complaintId)
+            .populate({  // Populate thông tin người dùng thông qua Request
+                path: 'request_id',
+                populate: { path: 'user_id', select: 'firstName lastName email' }
+            })
+            .populate('parentComplaint', 'complaintContent')
+            .populate('replies');
+
+        if (!complaint) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy khiếu nại!"
+            });
+        }
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy thông tin khiếu nại thành công!",
+            DT: complaint
+        });
+    } catch (error) {
+        console.error("Error getting complaint by ID:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const replyToComplaint = async (req, res) => {
+    console.log("req.body:", req.body); // Log req.body ngay đầu function
+    try {
+        const parentComplaintId = req.params.id; // ID của khiếu nại gốc
+        const { complaintContent } = req.body; // Chỉ lấy complaintContent từ request body
+        const adminUserId = req.user.id; // Lấy adminUserId trực tiếp từ req.user.id
+        
+
+        if (!complaintContent) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vui lòng nhập nội dung phản hồi!"
+            });
+        }
+
+        const parentComplaint = await Complaint.findById(parentComplaintId);
+        if (!parentComplaint) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy khiếu nại gốc để phản hồi!"
+            });
+        }
+
+        const newReply = new Complaint({
+            user_id: adminUserId, // Sử dụng adminUserId trực tiếp từ req.user.id
+            complaintContent: complaintContent, // Sử dụng complaintContent từ request body
+            complaintType: parentComplaint.complaintType, // Giữ nguyên complaintType từ khiếu nại gốc
+            //image: parentComplaint.image,
+            parentComplaint: parentComplaintId // Tham chiếu đến khiếu nại gốc
+        });
+
+        await newReply.save();
+
+        res.status(201).json({
+            EC: 1,
+            EM: "Phản hồi khiếu nại thành công!",
+            DT: newReply
+        });
+
+    } catch (error) {
+        console.error("Error replying to complaint:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra khi phản hồi khiếu nại. Vui lòng thử lại sau!"
+        });
+    }
+};
 
 module.exports = {
     createServiceIndustry,
@@ -287,5 +392,8 @@ module.exports = {
     getAllServices,
     getServiceById,
     updateService,
-    deleteService
+    deleteService,
+    getAllComplaints,
+    getComplaintById,
+    replyToComplaint
 };
