@@ -1,11 +1,24 @@
-.view-repairment-histories {
+.history-container{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 
-  
+}
+.history-form {
+  background-color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  padding-top: 1rem;
+  padding-bottom: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.view-repairment-histories {
     .breadcrumb {
       color: #000000;
       font-size: 24px;
-      margin-bottom: 20px;
-  
       span {
         margin: 0 5px;
       }
@@ -15,10 +28,10 @@
       }
     }
   
-    .content {
+    .content-in {
+      max-height: 85vh;
       display: flex;
       gap: 20px;
-  
       .sort-bar {
         flex: 0 0 250px;
       }
@@ -29,3 +42,4 @@
       }
     }
   }
+

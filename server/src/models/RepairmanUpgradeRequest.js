@@ -1,46 +1,57 @@
-module.exports = (sequelize, DataTypes) => {
-    const RepairmanUpgradeRequest = sequelize.define('RepairmanUpgradeRequest', {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        user_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
-        serviceIndustry_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
-        typePaper: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
-        imgPaper: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
-        status: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        }
-    }, {
-        timestamps: true
-    });
+const mongoose = require('mongoose');
 
-    RepairmanUpgradeRequest.associate = (models) => {
-        // Define the relationships
-        RepairmanUpgradeRequest.belongsTo(models.User, {
-            foreignKey: 'user_id',
-            as: 'user'
-        });
+const RepairmanUpgradeRequestSchema = new mongoose.Schema({
+    user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    serviceIndustry_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ServiceIndustry',
+        required: true
+    },
+    description: {
+        type: String,
+        required: true
+    },
+    status: {
+        type: Number,
+        default: 1,
+        required: true
+    },
+    approvedAt: {
+        type: Date,
+        default: null
+    },
+    rejectedAt: {
+        type: Date,
+        default: null
+    },
+    rejectReason: {
+        type: String,
+        default: null
+    }
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
-        RepairmanUpgradeRequest.belongsTo(models.ServiceIndustry, {
-            foreignKey: 'serviceIndustry_id',
-            as: 'serviceIndustry'
-        });
-    };
+// Virtual for user
+RepairmanUpgradeRequestSchema.virtual('user', {
+    ref: 'User',
+    localField: 'user_id',
+    foreignField: '_id',
+    justOne: true
+});
 
-    return RepairmanUpgradeRequest;
-}; 
+// Virtual for service industry
+RepairmanUpgradeRequestSchema.virtual('serviceIndustry', {
+    ref: 'ServiceIndustry',
+    localField: 'serviceIndustry_id',
+    foreignField: '_id',
+    justOne: true
+});
+
+module.exports = mongoose.model('RepairmanUpgradeRequest', RepairmanUpgradeRequestSchema); 

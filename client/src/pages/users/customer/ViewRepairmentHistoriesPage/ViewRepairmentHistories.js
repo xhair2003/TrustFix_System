@@ -13,13 +13,15 @@ const ViewRepairmentHistories = () => {
     };
   
     return (
-      <div className="view-repairment-histories">
-        <nav className="breadcrumb">
-          <span>Xem lịch sử sửa chữa</span>
-        </nav>
-        <div className="content">
-          <RepairmentHistoriesSortBar onSort={handleSort} />
-          <RepairmentHistoryList sortBy={sortBy} /> 
+      <div className='history-container'>
+        <div className='history-form'>
+          <h2 className='complaint-title'>LỊCH SỬ THUÊ THỢ</h2>
+          <div className="view-repairment-histories">
+            <div className="content-in">
+              <RepairmentHistoriesSortBar onSort={handleSort} />
+              <RepairmentHistoryList sortBy={sortBy} /> 
+            </div>
+          </div>
         </div>
       </div>
     );

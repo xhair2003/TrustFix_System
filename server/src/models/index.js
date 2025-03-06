@@ -1,67 +1,58 @@
-// const { Sequelize, DataTypes } = require('sequelize');
-// const { sequelize } = require('../../config/connect_db');
+const mongoose = require('mongoose');
 
-// // Định nghĩa các model
-// const User = require('./user')(sequelize, DataTypes);
-// const Role = require('./Role')(sequelize, DataTypes);
-// const Wallet = require('./Wallet')(sequelize, DataTypes);
-// const Transaction = require('./Transaction')(sequelize, DataTypes);
-// const Vip = require('./Vip')(sequelize, DataTypes);
-// const Service = require('./Service')(sequelize, DataTypes);
-// const ServiceIndustry = require('./ServiceIndustry')(sequelize, DataTypes);
-// const Request = require('./Request')(sequelize, DataTypes);
-// const RepairmanUpgradeRequest = require('./RepairmanUpgradeRequest')(sequelize, DataTypes);
-// const DuePrice = require('./DuePrice')(sequelize, DataTypes);
-// const Price = require('./Price')(sequelize, DataTypes);
-// const Rating = require('./Rating')(sequelize, DataTypes);
-// const Address = require('./Address')(sequelize, DataTypes);
-// const Image = require('./Image')(sequelize, DataTypes);
-// const VeriMail = require('./VeriMail')(sequelize, DataTypes);
+// Import models
+const User = require('./user');
+const Role = require('./Role');
+const Wallet = require('./Wallet');
+const Transaction = require('./Transaction');
+const Vip = require('./Vip');
+const Service = require('./Service');
+const ServiceIndustry = require('./ServiceIndustry');
+const Request = require('./Request');
+const RepairmanUpgradeRequest = require('./RepairmanUpgradeRequest');
+const DuePrice = require('./DuePrice');
+const Price = require('./Price');
+const Rating = require('./Rating');
+const Address = require('./Address');
+const Image = require('./Image');
+const VeriMail = require('./VeriMail');
 
-// // Tập hợp tất cả các model
-// const models = {
-//     User,
-//     Role,
-//     Wallet,
-//     Transaction,
-//     Vip,
-//     Service,
-//     ServiceIndustry,
-//     Request,
-//     RepairmanUpgradeRequest,
-//     DuePrice,
-//     Price,
-//     Rating,
-//     Address,
-//     Image,
-//     VeriMail
-// };
+// Collection of all models
+const models = {
+    User,
+    Role,
+    Wallet,
+    Transaction,
+    Vip,
+    Service,
+    ServiceIndustry,
+    Request,
+    RepairmanUpgradeRequest,
+    DuePrice,
+    Price,
+    Rating,
+    Address,
+    Image,
+    VeriMail
+};
 
-// // Thiết lập các mối quan hệ (associations)
-// Object.keys(models).forEach(modelName => {
-//     if (models[modelName].associate) {
-//         models[modelName].associate(models);
-//     }
-// });
+// Connect to MongoDB
+const connectDB = async () => {
+    try {
+        const conn = await mongoose.connect(process.env.MONGODB_URL, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+        console.log('MongoDB Connected Successfully');
+        return conn;
+    } catch (error) {
+        console.error('Failed to connect to MongoDB:', error);
+        process.exit(1);
+    }
+};
 
-// // Đồng bộ tất cả các model với database
-// const syncModels = async () => {
-//     try {
-//         // Alter sync - this will update tables without dropping data
-//         await sequelize.sync({ 
-//             alter: true,
-//             logging: false 
-//         });
-//         console.log('Database synchronized successfully - tables preserved');
-//     } catch (error) {
-//         console.error('Failed to sync database:', error);
-//         throw error;
-//     }
-// };
-
-// // Thêm sequelize và Sequelize vào models để sử dụng nếu cần
-// models.sequelize = sequelize;
-// models.Sequelize = Sequelize;
-// models.syncModels = syncModels;
-
-// module.exports = models; 
+module.exports = {
+    ...models,
+    connectDB,
+    mongoose
+}; 

@@ -1,61 +1,141 @@
+/* Container chính */
 .upgrade-repairman-form {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-
-}
-
-.form-row {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    max-height: fit-content;
+  }
+  
+  /* Tiêu đề form */
+  .form-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  /* Row chứa các trường */
+  .form-row {
     display: flex;
-    justify-content: space-between;
-}
-
-.form-group {
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  /* Nhóm trường (form group) */
+  .form-group {
     flex: 1;
-    margin-right: 10px; /* Khoảng cách giữa các trường */
-}
-
-.form-group:last-child {
-    margin-right: 0; /* Không có khoảng cách cho trường cuối cùng */
-}
-
-.label-upgrade {
+    min-width: 200px; /* Đảm bảo không bị quá nhỏ trên mobile */
+  }
+  
+  /* Trường full-width (địa chỉ, mô tả) */
+  .form-group.full-width {
+    flex: 100%;
+    width: 100%; /* Đảm bảo chiếm toàn bộ chiều rộng */
+  }
+  
+  /* Nhóm trường mô tả */
+  .form-group.description {
+    flex: 100%; /* Đảm bảo độ rộng đầy đủ */
+    padding: 0 1rem; /* Thêm padding trái phải */
+  }
+  
+  /* Label */
+  .form-label {
     display: block;
-    margin-bottom: 5px;
-    text-decoration: none; /* Không có gạch chân */
-}
-
-input[type="text"],
-input[type="email"],
-input[type="tel"],
-textarea,
-select {
-    width: calc(100% - 25px); /* Giảm chiều rộng để phù hợp với padding */
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-input[type="text"].narrow,
-input[type="email"].narrow,
-input[type="tel"].narrow,
-select.narrow {
-    width: 15%; /* Giảm chiều rộng cho các input cụ thể */
-}
-
-.submit-btn {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+  }
+  
+  /* Input chung */
+  .form-input,
+  .form-select {
     width: 100%;
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    height: 40px;
+  }
+  
+  .form-input:focus,
+  .form-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  }
+  
+  /* Input readonly */
+  .form-input.readonly {
+    background-color: #f3f4f6;
+    color: #6b7280;
+  }
+  
+  /* Textarea */
+  .form-textarea {
+    width: 100%; /* Đảm bảo độ rộng đầy đủ */
+    min-height: 40px; /* Giảm chiều cao của textarea */
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  
+  .form-textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  }
+  
+  /* Nút gửi */
+  .submit-btn {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: auto ;
+    padding: 0.75rem;
+    background-color: #2563eb;
+    color: #ffffff;
     border: none;
-    border-radius: 4px;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    font-size: 1rem;
     cursor: pointer;
-}
-
-.submit-btn:hover {
-    background-color: #0056b3;
-}
+    transition: background-color 0.2s;
+  }
+  
+  .submit-btn:hover {
+    background-color: #1d4ed8;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .upgrade-repairman-form {
+      padding: 1rem;
+    }
+  
+    .form-row {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+  
+    .form-group {
+      min-width: 100%;
+    }
+  }

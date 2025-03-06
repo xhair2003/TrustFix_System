@@ -45,14 +45,14 @@ const Wallet = () => {
                             Mời bạn chọn phương thức nạp tiền
                         </h2>
                         <div className="deposit-methods">
-                            <button className="method-btn bank-transfer" onClick={() => navigate("/bank-transfer")}>
+                            <button className="method-btn bank-transfer" onClick={() => navigate("deposit", { state: { paymentMethod: 'payOS' } })}>
                                 <img alt="Bank Transfer Icon" className="method-icon" height="100" src={credit} width="100" />
                                 <div className="method-name">
                                     <p>Chuyển khoản</p>
                                 </div>
                             </button>
 
-                            <button className="method-btn momo" onClick={() => navigate("/momo")}>
+                            <button className="method-btn momo" onClick={() => navigate("deposit", { state: { paymentMethod: 'Momo' } })}>
                                 <img alt="MOMO Icon" className="method-icon" height="100" src={momo_icon} width="100" />
                                 <div className="method-name">
                                     <p>MOMO</p>

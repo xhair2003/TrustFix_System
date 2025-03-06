@@ -1,39 +1,43 @@
-module.exports = (sequelize, DataTypes) => {
-    const DuePrice = sequelize.define('DuePrice', {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        request_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            unique: true
-        },
-        minPrice: {
-            type: DataTypes.DECIMAL(10, 2),
-            allowNull: false
-        },
-        maxPrice: {
-            type: DataTypes.DECIMAL(10, 2),
-            allowNull: false
-        }
-    }, {
-        timestamps: true
-    });
+const mongoose = require('mongoose');
 
-    DuePrice.associate = (models) => {
-        // Define the relationship
-        DuePrice.belongsTo(models.Request, {
-            foreignKey: 'request_id',
-            as: 'request'
-        });
+const DuePriceSchema = new mongoose.Schema({
+    request_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Request',
+        required: true
+    },
+    amount: {
+        type: Number,
+        required: true
+    },
+    status: {
+        type: Number,
+        default: 1,
+        required: true
+    },
+    dueDate: {
+        type: Date,
+        required: true
+    },
+    paidAt: {
+        type: Date,
+        default: null
+    }
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
-        DuePrice.hasOne(models.Price, {
-            foreignKey: 'duePrice_id',
-            as: 'price'
-        });
-    };
+// Virtual for request
+DuePriceSchema.virtual('request', {
+    ref: 'Request',
+    localField: 'request_id',
+    foreignField: '_id',
+    justOne: true
+});
 
-    return DuePrice;
-}; 
+// Index for due date
+DuePriceSchema.index({ dueDate: 1 });
+
+module.exports = mongoose.model('DuePrice', DuePriceSchema); 

@@ -7,9 +7,14 @@ import Login from "./pages/users/Login.js";
 import MasterLayoutUser from "./pages/users/MasterLayoutUser/MasterLayoutUser.js";
 import PersonalInformation from "../src/pages/users/PersonalInformation/PersonalInformation.js";
 import ChangePassword from "../src/pages/users/ChangePassword/ChangePassword.js";
-import BookingHistory from "../src/pages/users/BookingHistory/BookingHistory.js";
-import ComplainRepairman from "../src/pages/users/ComplainRepairman/ComplainRepairman.js";
+// import BookingHistory from "../src/pages/users/BookingHistory/BookingHistory.js";
 import UpgradeRepairman from "../src/pages/users/UpgradeRepairman/UpgradeRepairman.js";
+import Wallet from "./pages/users/Payment/Wallet/Wallet.js";
+import DepositHistory from "./pages/users/Payment/DepositHistory/DepositHistory.js";
+import HistoryPayment from "./pages/users/Payment/HistoryPayment/HistoryPayment.js";
+import ServicePrice from "./pages/users/Payment/ServicePrice/ServicePrice.js";
+import Deposit from "./pages/users/Payment/Deposit/Deposit.js";
+import Complain from "./pages/users/Complain/Complain.js";
 import ViewRepairmentHistories from "./pages/users/customer/ViewRepairmentHistoriesPage/ViewRepairmentHistories.js";
 
 const UserROUTERS = () => {
@@ -35,13 +40,38 @@ const UserROUTERS = () => {
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
-            path: ROUTERS.CUSTOMER.COMPLAIN_REPAIRMAN,
-            component: <ComplainRepairman />,
+            path: ROUTERS.CUSTOMER.UPGRADE_REPAIRMAN,
+            component: <UpgradeRepairman />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
-            path: ROUTERS.CUSTOMER.UPGRADE_REPAIRMAN,
-            component: <UpgradeRepairman />,
+            path: ROUTERS.CUSTOMER.WALLET,
+            component: <Wallet />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.DEPOSIT,
+            component: <Deposit />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.DEPOSIT_HISTORY,
+            component: <DepositHistory />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.HISTORY_PAYMENT,
+            component: <HistoryPayment />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.COMPLAIN,
+            component: <Complain />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.REPAIRMAN.SERVICE_PRICE,
+            component: <ServicePrice />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
 
@@ -87,5 +117,4 @@ const UserROUTERS = () => {
 
 
 export default UserROUTERS;
-
 

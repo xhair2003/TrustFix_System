@@ -2,58 +2,95 @@ const jwt = require('jsonwebtoken');
 const models = require('../models');
 
 // Get JWT secret from environment variables
-const JWT_SECRET = process.env.JWT_SECRET || "TrustFix_System_jwt_secret_key_2024";
+const JWT_ACCESS_KEY = process.env.JWT_ACCESS_KEY || "your_jwt_access_secret_key";
 
-// Middleware to verify JWT token
-const verifyToken = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({
-            EC: 0,
-            EM: "Không có token xác thực!"
+const authMiddleware = {
+    verifyToken: (req, res, next) => {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(401).json({
+                EC: 0,
+                EM: "Bạn chưa đăng nhập!"
+            });
+        }
+
+        const token = authHeader.split(" ")[1];
+        if (!token) {
+            return res.status(401).json({
+                EC: 0,
+                EM: "Bạn chưa đăng nhập!"
+            });
+        }
+
+        try {
+            const decoded = jwt.verify(token, JWT_ACCESS_KEY);
+            req.user = decoded;
+            next();
+        } catch (err) {
+            if (err.name === "TokenExpiredError") {
+                return res.status(401).json({
+                    EC: 0,
+                    EM: "Token đã hết hạn!"
+                });
+            }
+            return res.status(401).json({
+                EC: 0,
+                EM: "Token không hợp lệ!"
+            });
+        }
+    },
+
+    verifyAdmin: (req, res, next) => {
+        authMiddleware.verifyToken(req, res, () => {
+            if (req.user.role === "admin") {
+                next();
+            } else {
+                res.status(403).json({
+                    EC: 0,
+                    EM: "Bạn không có quyền truy cập!"
+                });
+            }
         });
-    }
+    },
 
-    const token = authHeader.split(' ')[1];
-    
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (err) {
-        console.error('Token verification error:', err);
-        return res.status(401).json({
-            EC: 0,
-            EM: "Token không hợp lệ hoặc đã hết hạn!"
+    verifyRepairman: (req, res, next) => {
+        authMiddleware.verifyToken(req, res, () => {
+            if (req.user.role === "repairman") {
+                next();
+            } else {
+                res.status(403).json({
+                    EC: 0,
+                    EM: "Bạn không có quyền truy cập!"
+                });
+            }
+        });
+    },
+
+    verifyCustomer: (req, res, next) => {
+        authMiddleware.verifyToken(req, res, () => {
+            if (req.user.role === "customer") {
+                next();
+            } else {
+                res.status(403).json({
+                    EC: 0,
+                    EM: "Bạn không có quyền truy cập!"
+                });
+            }
+        });
+    },
+
+    verifyAdminOrRepairman: (req, res, next) => {
+        authMiddleware.verifyToken(req, res, () => {
+            if (req.user.role === "admin" || req.user.role === "repairman") {
+                next();
+            } else {
+                res.status(403).json({
+                    EC: 0,
+                    EM: "Bạn không có quyền truy cập!"
+                });
+            }
         });
     }
 };
 
-// Middleware for role-based authorization
-const authorize = (...allowedRoles) => {
-    return (req, res, next) => {
-        if (!req.user || !req.user.roles) {
-            return res.status(403).json({
-                EC: 0,
-                EM: "Không có quyền truy cập!"
-            });
-        }
-
-        const hasRole = req.user.roles.some(role => allowedRoles.includes(role));
-        
-        if (!hasRole) {
-            return res.status(403).json({
-                EC: 0,
-                EM: "Bạn không có quyền thực hiện hành động này!"
-            });
-        }
-
-        next();
-    };
-};
-
-module.exports = {
-    verifyToken,
-    authorize
-}; 
+module.exports = authMiddleware; 
