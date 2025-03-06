@@ -46,6 +46,15 @@ app.use((req, res, next) => {
 const authenRoutes = require("./routes/AuthenRoutes");
 app.use("/api/authen", authenRoutes);
 
+const repairmanRoutes = require("./routes/RepairmanRoutes");
+app.use("/api/repairman", repairmanRoutes);
+
+const adminRoutes = require("./routes/AdminRoutes");
+app.use("/api/admin", adminRoutes);
+
+
+
+
 // Test route at root level
 app.get('/', (req, res) => {
     res.json({ message: 'API is working' });

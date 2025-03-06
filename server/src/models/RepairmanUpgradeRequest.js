@@ -11,32 +11,23 @@ const RepairmanUpgradeRequestSchema = new mongoose.Schema({
         ref: 'ServiceIndustry',
         required: true
     },
-    description: {
+    typePaper: {
+        type: String,
+        required: true
+    },
+    imgPaper: {
         type: String,
         required: true
     },
     status: {
         type: Number,
-        default: 1,
-        required: true
+        default: 1
     },
-    approvedAt: {
-        type: Date,
-        default: null
-    },
-    rejectedAt: {
-        type: Date,
-        default: null
-    },
-    rejectReason: {
-        type: String,
-        default: null
+    serviceTypes: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'Service'
     }
-}, {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
+}, { timestamps: true });
 
 // Virtual for user
 RepairmanUpgradeRequestSchema.virtual('user', {

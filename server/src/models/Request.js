@@ -6,19 +6,9 @@ const RequestSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    repairman_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
     serviceIndustry_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'ServiceIndustry',
-        required: true
-    },
-    address_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Address',
         required: true
     },
     description: {
@@ -27,26 +17,9 @@ const RequestSchema = new mongoose.Schema({
     },
     status: {
         type: Number,
-        default: 1,
-        required: true
-    },
-    price: {
-        type: Number,
-        required: true
-    },
-    schedule: {
-        type: Date,
-        required: true
-    },
-    completedAt: {
-        type: Date,
-        default: null
+        default: 1
     }
-}, {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
+}, { timestamps: true });
 
 // Virtual for user
 RequestSchema.virtual('user', {
@@ -56,26 +29,10 @@ RequestSchema.virtual('user', {
     justOne: true
 });
 
-// Virtual for repairman
-RequestSchema.virtual('repairman', {
-    ref: 'User',
-    localField: 'repairman_id',
-    foreignField: '_id',
-    justOne: true
-});
-
 // Virtual for service industry
 RequestSchema.virtual('serviceIndustry', {
     ref: 'ServiceIndustry',
     localField: 'serviceIndustry_id',
-    foreignField: '_id',
-    justOne: true
-});
-
-// Virtual for address
-RequestSchema.virtual('address', {
-    ref: 'Address',
-    localField: 'address_id',
     foreignField: '_id',
     justOne: true
 });

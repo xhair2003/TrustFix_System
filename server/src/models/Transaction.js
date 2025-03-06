@@ -6,29 +6,30 @@ const TransactionSchema = new mongoose.Schema({
         ref: 'Wallet',
         required: true 
     },
+    payCode: {
+        type: String,
+        required: true
+    },
     amount: { 
         type: Number, 
         required: true 
     },
-    type: { 
-        type: String,
-        required: true,
-        enum: ['deposit', 'withdraw', 'transfer']
-    },
     status: { 
         type: Number,
-        required: true,
-        default: 1
+        required: true 
     },
-    description: { 
+    transactionType: {
         type: String,
-        default: null
+        required: true
+    },
+    content: {
+        type: String
+    },
+    balanceAfterTransact: {
+        type: Number,
+        required: true
     }
-}, { 
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
+}, { timestamps: true });
 
 // Virtual for wallet
 TransactionSchema.virtual('wallet', {

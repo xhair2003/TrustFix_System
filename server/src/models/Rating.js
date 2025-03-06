@@ -6,26 +6,16 @@ const RatingSchema = new mongoose.Schema({
         ref: 'Request',
         required: true
     },
-    rating: {
+    comment: {
+        type: String
+    },
+    rate: {
         type: Number,
         required: true,
         min: 1,
         max: 5
-    },
-    comment: {
-        type: String,
-        default: null
-    },
-    status: {
-        type: Number,
-        default: 1,
-        required: true
     }
-}, {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
+}, { timestamps: true });
 
 // Virtual for request
 RatingSchema.virtual('request', {
