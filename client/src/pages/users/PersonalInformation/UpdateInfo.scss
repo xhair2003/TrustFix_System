@@ -1,0 +1,127 @@
+.update-info-container {
+    
+    .update-info-form {
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      width: 682px;
+      margin-left:20px ;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+
+  
+      .title {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+  
+      .info-item {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        width: auto;
+  
+        .label {
+          font-weight: 600;
+          color: #333;
+          width: 120px;
+          margin-right: 10px;
+        }
+  
+        .input-field {
+          flex: 1;
+          padding: 10px;
+          border: 1px solid #e0e0e0;
+          border-radius: 4px;
+          font-size: 14px;
+          background: #f5f5f5;
+  
+          &:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+          }
+        }
+  
+        .textarea-field {
+          flex: 1;
+          padding: 10px;
+          border: 1px solid #e0e0e0;
+          border-radius: 4px;
+          font-size: 14px;
+          background: #f5f5f5;
+          min-height: 50px;
+          resize: vertical;
+  
+          &:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+          }
+        }
+      }
+      .avatar-section {
+        .avatar-preview {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+  
+          .avatar-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50px;
+            object-fit: cover;
+            border: 1px solid #e0e0e0;
+          }
+          .image-upload {
+            padding: 8px;
+            background-color: #fff;
+          }
+        
+        }
+      }
+      .deposit_bt{
+        color: #528dec;
+        background-color: #fff;
+        border-radius: 5px;
+        border-color: #528dec;
+        font-size: 14px;
+        padding: 8px;
+        margin-left: 20px;
+        margin-right: 200px;
+      }
+      .error-text{
+        color: red;
+        font-size: 14px;
+        margin-left: 20px;
+      }
+      .valid-icon{
+        color: rgb(0, 255, 4);
+        font-size: 14px;
+        margin-left: 20px;
+      }
+      .button-group {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+  
+        .save-button {
+          background: #007bff;
+          color: white;
+          padding: 10px 20px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 14px;
+  
+          &:hover {
+            background: #0056b3;
+          }
+        }
+      }
+    }
+  }
