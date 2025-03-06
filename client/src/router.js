@@ -7,7 +7,8 @@ import Login from "./pages/users/Login.js";
 import MasterLayoutUser from "./pages/users/MasterLayoutUser/MasterLayoutUser.js";
 import PersonalInformation from "../src/pages/users/PersonalInformation/PersonalInformation.js";
 import ChangePassword from "../src/pages/users/ChangePassword/ChangePassword.js";
-// import BookingHistory from "../src/pages/users/BookingHistory/BookingHistory.js";
+import BookingHistory from "../src/pages/users/BookingHistory/BookingHistory.js";
+//import ComplainRepairman from "../src/pages/users/ComplainRepairman/ComplainRepairman.js";
 import UpgradeRepairman from "../src/pages/users/UpgradeRepairman/UpgradeRepairman.js";
 import Wallet from "./pages/users/Payment/Wallet/Wallet.js";
 import DepositHistory from "./pages/users/Payment/DepositHistory/DepositHistory.js";
@@ -15,7 +16,7 @@ import HistoryPayment from "./pages/users/Payment/HistoryPayment/HistoryPayment.
 import ServicePrice from "./pages/users/Payment/ServicePrice/ServicePrice.js";
 import Deposit from "./pages/users/Payment/Deposit/Deposit.js";
 import Complain from "./pages/users/Complain/Complain.js";
-import ViewRepairmentHistories from "./pages/users/customer/ViewRepairmentHistoriesPage/ViewRepairmentHistories.js";
+import MakePayment from "./pages/users/Payment/MakePayment/MakePayment.js";
 
 const UserROUTERS = () => {
     const routers = [
@@ -36,7 +37,12 @@ const UserROUTERS = () => {
         },
         {
             path: ROUTERS.CUSTOMER.VIEW_REPAIR_BOOKING_HISTORY,
-            component: <ViewRepairmentHistories/>,
+            component: <BookingHistory />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.COMPLAIN,
+            component: <Complain />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
@@ -88,6 +94,11 @@ const UserROUTERS = () => {
             path: ROUTERS.CUSTOMER.REGISTER,
             component: <Register />,
             layout: null, // No layout for auth routes
+        },
+        {
+            path: ROUTERS.CUSTOMER.MAKE_PAYMENT,
+            component: <MakePayment />,
+            layout: null, // Routes using MasterLayout
         },
         // Add more auth routes here....
     ];
