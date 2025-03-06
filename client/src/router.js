@@ -15,6 +15,7 @@ import HistoryPayment from "./pages/users/Payment/HistoryPayment/HistoryPayment.
 import ServicePrice from "./pages/users/Payment/ServicePrice/ServicePrice.js";
 import Deposit from "./pages/users/Payment/Deposit/Deposit.js";
 import Complain from "./pages/users/Complain/Complain.js";
+import MakePayment from "./pages/users/Payment/MakePayment/MakePayment.js";
 
 const UserROUTERS = () => {
     const routers = [
@@ -73,6 +74,7 @@ const UserROUTERS = () => {
             component: <ServicePrice />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
+
         // Add more routes here...
     ];
 
@@ -86,6 +88,11 @@ const UserROUTERS = () => {
             path: ROUTERS.CUSTOMER.REGISTER,
             component: <Register />,
             layout: null, // No layout for auth routes
+        },
+        {
+            path: ROUTERS.CUSTOMER.MAKE_PAYMENT,
+            component: <MakePayment />,
+            layout: null, // Routes using MasterLayout
         },
         // Add more auth routes here....
     ];

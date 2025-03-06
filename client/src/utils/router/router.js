@@ -21,7 +21,7 @@ export const ROUTERS = {
         DEPOSIT: 'wallet/deposit',
         DEPOSIT_HISTORY: 'wallet/deposit-history',
         HISTORY_PAYMENT: 'wallet/history-payment',
-        PAY_FOR_REPAIR: '/pay-for-repair',
+        MAKE_PAYMENT: '/make-payment',
     },
 
     REPAIRMAN: {
