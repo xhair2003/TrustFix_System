@@ -6,6 +6,11 @@ const RatingSchema = new mongoose.Schema({
         ref: 'Request',
         required: true
     },
+    user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     comment: {
         type: String
     },
@@ -25,4 +30,21 @@ RatingSchema.virtual('request', {
     justOne: true
 });
 
-module.exports = mongoose.model('Rating', RatingSchema); 
+// Virtual for user
+RatingSchema.virtual('user', {
+    ref: 'User',
+    localField: 'user_id',
+    foreignField: '_id',
+    justOne: true
+});
+
+// Virtual for user role
+RatingSchema.virtual('userRole', {
+    ref: 'Role',
+    localField: 'user_id',
+    foreignField: 'user_id',
+    justOne: true,
+    match: { name: 'repairman' } // Chỉ lấy những người dùng có vai trò là repairman
+});
+
+module.exports = mongoose.model('Rating', RatingSchema);

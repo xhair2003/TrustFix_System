@@ -1,14 +1,12 @@
 /* General Container */
-.container {
-    width: 90%;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+.dh-container {
+    max-width: 1200px;
     margin: 0 auto;
+    padding: 20px;
   }
   
   /* Card Styling */
-  .card {
-    width: 100%;
+  .dh-card {
     background-color: #ffffff;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-radius: 0.5rem;
@@ -16,17 +14,17 @@
     margin-bottom: 1.5rem;
   }
 
-  .select {
+  .dh-select {
     max-width: 50px;
     margin-right: 10px;
   }
 
-  .label {
+  .dh-label {
     margin-top: 7px;
   }
   
   /* Title */
-  .title {
+  .dh-title {
     font-size: 2.5rem;
     font-weight: bold;
     color: #2d3748;
@@ -37,7 +35,7 @@
   }
   
   /* Flexbox container for table and pagination */
-  .flex-container {
+  .dh-flex-container {
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -45,57 +43,57 @@
   }
   
   /* Table Container */
-  .table-container {
+  .dh-table-container {
     overflow-x: auto;
   }
   
   /* Table Styling */
-  .table {
+  .dh-table {
     min-width: 100%;
     border-collapse: collapse;
   }
   
-  .table th, .table td {
+  .dh-table th, .dh-table td {
     padding: 12px 16px;
     text-align: center;
     border: 1px solid #e2e8f0;
   }
   
-  .table th {
+  .dh-table th {
     background-color: #f7fafc;
     font-weight: bold;
     color: #2d3748;
   }
   
   /* Pagination Controls */
-  .pagination {
+  .dh-pagination {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 20px;
   }
   
-  .items-per-page {
+  .dh-items-per-page {
     display: flex;
     align-items: center;
   }
   
-  .items-per-page label {
+  .dh-items-per-page label {
     margin-right: 8px;
   }
   
-  .items-per-page select {
+  .dh-items-per-page select {
     padding: 6px;
     border: 1px solid #ccc;
     border-radius: 5px;
   }
   
-  .pagination-controls {
+  .dh-pagination-controls {
     display: flex;
     align-items: center;
   }
   
-  .pagination-controls .button {
+  .dh-pagination-controls .dh-button {
     padding: 8px 16px;
     background-color: #f7fafc;
     border: 1px solid #ccc;
@@ -104,12 +102,12 @@
     cursor: pointer;
   }
   
-  .pagination-controls .button:disabled {
+  .dh-pagination-controls .dh-button:disabled {
     background-color: #e2e8f0;
     cursor: not-allowed;
   }
   
-  .pagination-controls span {
+  .dh-pagination-controls span {
     font-size: 16px;
     color: #4a5568;
   }

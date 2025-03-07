@@ -52,7 +52,7 @@ const MasterLayoutUser = ({ children }) => {
                     <div className={`menu-item ${selectedItem === 'view-repair-booking-history' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/view-repair-booking-history", name: 'view-repair-booking-history' })}>
                         {isCollapsed ? <FaHistory /> : <> <FaHistory /> Lịch sử đặt dịch vụ</>}
                     </div>
-                    <div className={`menu-item ${selectedItem === 'complain-repair-man' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/complain-repair-man", name: 'complain-repair-man' })}>
+                    <div className={`menu-item ${selectedItem === 'complain' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/complain", name: 'complain' })}>
                         {isCollapsed ? <FaExclamationCircle /> : <> <FaExclamationCircle /> Khiếu nại</>}
                     </div>
                     <div className={`menu-item ${selectedItem === 'wallet' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/wallet", name: 'wallet' })}>

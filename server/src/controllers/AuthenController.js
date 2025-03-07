@@ -5,7 +5,7 @@ const user = require("../models/user");
 const hashPassword  = require("../utils/password");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
-const cloudinary = require("../../config/cloudinary");
+
 
 // JWT configuration
 const JWT_ACCESS_KEY = process.env.JWT_ACCESS_KEY || "your_jwt_access_secret_key";
@@ -60,13 +60,22 @@ const generateOTP = () => {
 
 const initRegister = async (req, res) => {
     try {
-        const { firstName, lastName, email, pass, confirmPassword, phone, role = "customer" } = req.body;
+        const { firstName, lastName, email, pass, confirmPassword, phone, role } = req.body;
 
         // Validate required fields
-        if (!firstName || !lastName || !email || !pass || !confirmPassword || !phone) {
+        if (!firstName || !lastName || !email || !pass || !confirmPassword || !phone || !role) {
             return res.status(400).json({
                 EC: 0,
-                EM: "Vui lòng điền đầy đủ thông tin!"
+                EM: "Vui lòng điền đầy đủ thông tin, bao gồm vai trò!"
+            });
+        }
+
+        // Validate role
+        const validRoles = ['customer', 'repairman'];
+        if (!validRoles.includes(role)) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vai trò không hợp lệ! Vai trò phải là customer hoặc repairman"
             });
         }
 
@@ -127,6 +136,7 @@ const initRegister = async (req, res) => {
             html: `
                 <h1>Xác thực email đăng ký</h1>
                 <p>Xin chào ${firstName} ${lastName},</p>
+                <p>Cảm ơn bạn đã đăng ký tài khoản ${role} tại TrustFix.</p>
                 <p>Mã OTP của bạn là: <strong>${otp}</strong></p>
                 <p>Mã này sẽ hết hạn sau 5 phút.</p>
                 <p>Nếu bạn không yêu cầu đăng ký tài khoản, vui lòng bỏ qua email này.</p>
@@ -198,18 +208,31 @@ const verifyRegister = async (req, res) => {
             email: registration.email,
             pass: hashedPassword,
             phone: registration.phone,
-            role: registration.role
+            status: 1
         });
 
         // Save user
         const savedUser = await newUser.save();
 
+        // Create role for user
+        const newRole = new Role({
+            user_id: savedUser._id,
+            type: registration.role // Sử dụng role từ registration
+        });
+
+        // Save role
+        await newRole.save();
+
         // Remove pending registration
         pendingRegistrations.delete(email);
 
         // Generate tokens
-        const accessToken = generateAccessToken(savedUser);
-        const refreshToken = generateRefreshToken(savedUser);
+        const userWithRole = {
+            ...savedUser.toObject(),
+            role: registration.role
+        };
+        const accessToken = generateAccessToken(userWithRole);
+        const refreshToken = generateRefreshToken(userWithRole);
 
         // Set refresh token in cookie
         res.cookie("refreshToken", refreshToken, {
@@ -229,6 +252,7 @@ const verifyRegister = async (req, res) => {
             EM: "Đăng ký thành công!",
             DT: {
                 ...userResponse,
+                role: registration.role,
                 accessToken
             }
         });
@@ -618,66 +642,7 @@ const resetPassword = async (req, res) => {
     }
 };
 
-const updateInformation = async (req, res) => {
-    try {
-        const { email, firstName, lastName, phone, address, description } = req.body;
-        
-        // Validate required fields
-        if (!email || !firstName || !lastName || !phone) {
-            return res.status(400).json({
-                EC: 0,
-                EM: "Vui lòng nhập đầy đủ thông tin!"
-            });
-        }
 
-        // Tìm user theo email
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({
-                EC: 0,
-                EM: "Email không tồn tại trong hệ thống!"
-            });
-        }
-
-        // Upload ảnh mới nếu có
-        let imgAvt = user.imgAvt; // Mặc định giữ ảnh cũ
-        if (req.file) {
-            const result = await cloudinary.uploader.upload(req.file.path, {
-                folder: "user_avatars", // Upload vào thư mục user_avatars
-                transformation: [{ width: 500, height: 500, crop: "limit" }]
-            });
-            imgAvt = result.secure_url; // Lấy link ảnh từ Cloudinary
-        }
-
-        // Cập nhật thông tin người dùng
-        user.firstName = firstName;
-        user.lastName = lastName;
-        user.phone = phone;
-        user.imgAvt = imgAvt;
-        user.address = address || user.address;
-        user.description = description || user.description;
-
-        // Lưu cập nhật
-        await user.save();
-
-        // Xóa password trước khi trả về response
-        const userResponse = user.toObject();
-        delete userResponse.pass;
-
-        res.status(200).json({
-            EC: 1,
-            EM: "Cập nhật thông tin thành công!",
-            DT: userResponse
-        });
-
-    } catch (err) {
-        console.error("Update information error:", err);
-        res.status(500).json({
-            EC: 0,
-            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
-        });
-    }
-};
 
 
 module.exports = {
@@ -690,5 +655,4 @@ module.exports = {
     forgotPassword,
     verifyOTP,
     resetPassword,
-    updateInformation
 };
