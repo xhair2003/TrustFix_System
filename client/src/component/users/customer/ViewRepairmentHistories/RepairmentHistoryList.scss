@@ -1,0 +1,26 @@
+
+.repairment-history-list {
+    width: 110vh;
+    padding: 0 10px;
+    position: relative;
+    max-height: auto;
+    overflow-y: auto;
+    border-radius: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    
+    .repairment-history-item {
+      margin-bottom: 7px;
+    }
+  }
+  .repairment-history-list::-webkit-scrollbar {
+    width: 3px;
+ 
+  }
+  .repairment-history-list::-webkit-scrollbar-thumb {
+    background-color: #747474;
+    border-radius: 4px;
+  }
+  
+  .repairment-history-list::-webkit-scrollbar-track {
+    background: #ffffff;
+  }

@@ -1,7 +1,8 @@
 const initialState = {
-    token: null,
-    isAuthenticated: false,
-    error: null
+    token: null || localStorage.getItem('token'),
+    isAuthenticated: false || localStorage.getItem('isAuthenticated'),
+    error: null,
+    user: null,
 };
 
 const authReducer = (state = initialState, action) => {
@@ -11,7 +12,8 @@ const authReducer = (state = initialState, action) => {
                 ...state,
                 token: action.payload.accessToken,
                 isAuthenticated: action.payload.isAuthenticated,
-                error: null
+                error: null,
+                user: action.payload.user
             };
         case "LOGIN_FAIL":
             return {
@@ -20,7 +22,8 @@ const authReducer = (state = initialState, action) => {
             };
         case "LOGOUT":
             return {
-                ...initialState
+                ...state,
+                isAuthenticated: action.payload.isAuthenticated,
             };
         default:
             return state;

@@ -7,7 +7,7 @@ import Login from "./pages/users/Login.js";
 import MasterLayoutUser from "./pages/users/MasterLayoutUser/MasterLayoutUser.js";
 import PersonalInformation from "../src/pages/users/PersonalInformation/PersonalInformation.js";
 import ChangePassword from "../src/pages/users/ChangePassword/ChangePassword.js";
-import BookingHistory from "../src/pages/users/BookingHistory/BookingHistory.js";
+// import BookingHistory from "../src/pages/users/BookingHistory/BookingHistory.js";
 import UpgradeRepairman from "../src/pages/users/UpgradeRepairman/UpgradeRepairman.js";
 import Wallet from "./pages/users/Payment/Wallet/Wallet.js";
 import DepositHistory from "./pages/users/Payment/DepositHistory/DepositHistory.js";
@@ -16,6 +16,8 @@ import ServicePrice from "./pages/users/Payment/ServicePrice/ServicePrice.js";
 import Deposit from "./pages/users/Payment/Deposit/Deposit.js";
 import Complain from "./pages/users/Complain/Complain.js";
 import MakePayment from "./pages/users/Payment/MakePayment/MakePayment.js";
+import ViewRepairmentHistories from "./pages/users/customer/ViewRepairmentHistoriesPage/ViewRepairmentHistories.js";
+
 
 const UserROUTERS = () => {
     const routers = [
@@ -36,7 +38,7 @@ const UserROUTERS = () => {
         },
         {
             path: ROUTERS.CUSTOMER.VIEW_REPAIR_BOOKING_HISTORY,
-            component: <BookingHistory />,
+            component: <ViewRepairmentHistories />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {

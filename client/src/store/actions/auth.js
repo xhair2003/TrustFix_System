@@ -8,12 +8,13 @@ export const login = (email, pass) => {
             const { accessToken } = response.data.DT;
 
             // Lưu token vào localStorage, không cần
-            //localStorage.setItem('token', accessToken);
+            localStorage.setItem('token', accessToken);
+            localStorage.setItem('isAuthenticated', true);
 
             // Đẩy action vào Redux
             dispatch({
                 type: "LOGIN_SUCCESS",
-                payload: { accessToken, isAuthenticated: true }
+                payload: { accessToken, isAuthenticated: true, user: response.data.DT }
             });
         } catch (error) {
             dispatch({
@@ -28,10 +29,11 @@ export const logout = () => {
     return (dispatch) => {
         // Xóa token khỏi localStorage
         localStorage.removeItem('token');
-
+        localStorage.removeItem('isAuthenticated');
         // Đẩy action logout vào Redux
         dispatch({
-            type: "LOGOUT"
+            type: "LOGOUT",
+            payload: { isAuthenticated: false }
         });
     };
 };

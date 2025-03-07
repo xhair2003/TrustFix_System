@@ -12,8 +12,10 @@ const Header = () => {
     const [activeIndex, setActiveIndex] = useState(null);
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { isAuthenticated } = useSelector(state => state.auth);
-
+    const { user } = useSelector(state => state.auth);
+    const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
+    console.log(isAuthenticated);
+    console.log(user);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const toggleDropdown = () => {
