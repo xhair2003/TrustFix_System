@@ -6,25 +6,11 @@ const ImageSchema = new mongoose.Schema({
         ref: 'Request',
         required: true
     },
-    url: {
+    imgUrlList: {
         type: String,
-        required: true
-    },
-    type: {
-        type: String,
-        enum: ['before', 'after', 'process'],
-        required: true
-    },
-    status: {
-        type: Number,
-        default: 1,
         required: true
     }
-}, {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
+}, { timestamps: true });
 
 // Virtual for request
 ImageSchema.virtual('request', {

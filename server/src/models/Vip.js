@@ -6,30 +6,18 @@ const VipSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    level: {
-        type: Number,
-        required: true,
-        default: 1
+    description: {
+        type: String
     },
-    points: {
+    price: {
         type: Number,
-        required: true,
-        default: 0
+        required: true
     },
     status: {
         type: Number,
-        default: 1,
-        required: true
-    },
-    expiredAt: {
-        type: Date,
-        required: true
+        default: 1
     }
-}, {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
+}, { timestamps: true });
 
 // Virtual for user
 VipSchema.virtual('user', {

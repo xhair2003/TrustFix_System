@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const AuthenController = require("../controllers/AuthenController");
 const AuthMiddleware = require("../middlewares/authMiddleware");
-
+const upload = require("../middlewares/upload_IMG");
 // Public routes - no authentication needed
 router.post("/register", AuthenController.initRegister);
 router.post("/verify-register", AuthenController.verifyRegister);
@@ -48,4 +48,7 @@ router.get("/user-info", AuthMiddleware.verifyToken, (req, res) => {
     });
 });
 
+
+
+router.post("/update-profile",upload.single("image") , AuthenController.updateInformation);
 module.exports = router;
