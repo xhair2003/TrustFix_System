@@ -23,5 +23,6 @@ router.delete("/services/:id", AuthMiddleware.verifyAdmin, AdminController.delet
 router.get("/complaints", AuthMiddleware.verifyAdmin, AdminController.getAllComplaints);
 router.get("/complaints/:id", AuthMiddleware.verifyAdmin, AdminController.getComplaintById);
 router.post("/complaints/:id/replies", AuthMiddleware.verifyAdmin, AdminController.replyToComplaint);
+router.get("/transactions/history", AuthMiddleware.verifyAdmin, AdminController.viewHistoryPayment);
 
 module.exports = router;

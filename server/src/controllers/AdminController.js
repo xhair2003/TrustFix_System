@@ -1,4 +1,4 @@
-const { ServiceIndustry, Service, Complaint, User, Request } = require("../models");
+const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
 
 // --- Service Industry CRUD ---
@@ -382,6 +382,41 @@ const replyToComplaint = async (req, res) => {
     }
 };
 
+// View history payment with transactionType = payment
+const viewHistoryPayment = async (req, res) => {
+    try {
+        const { limit, search = "", transactionType } = req.query;
+
+        const limitNumber = limit ? parseInt(limit) : undefined;
+
+        const searchFilter = search ? { payCode: { $regex: search, $options: "i" } } : {};
+        const transactionFilter = transactionType ? { transactionType } : {};
+
+        const transactions = await Transaction.find({
+            ...transactionFilter,
+            ...searchFilter,
+        })
+            .populate({
+                path: "wallet_id",
+                select: "balance", 
+            })
+            .limit(limitNumber)
+            .sort({ createdAt: -1 }); 
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy lịch sử thanh toán thành công!",
+            DT: transactions,
+        });
+    } catch (err) {
+        console.error("Get payment history error:", err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+        });
+    }
+};
+
 module.exports = {
     createServiceIndustry,
     getAllServiceIndustries,
@@ -395,5 +430,6 @@ module.exports = {
     deleteService,
     getAllComplaints,
     getComplaintById,
-    replyToComplaint
+    replyToComplaint,
+    viewHistoryPayment,
 };
