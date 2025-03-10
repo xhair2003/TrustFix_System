@@ -435,8 +435,10 @@ const logout = async (req, res) => {
 ///Change password
 const changePassword = async (req, res) => {
     try {
-        const { pass, newPass, confirmNewPass } = req.body;
-        const user_id = req.user.id; // Assuming this is the user ID from the verified token
+        const { pass , newPass , confirmNewPass } = req.body;
+
+
+        const user_id = req.user.id;
 
         if (!pass || !newPass || !confirmNewPass) {
             return res.status(400).json({ EC: 0, EM: "Vui lòng nhập đầy đủ thông tin!" });
@@ -445,24 +447,15 @@ const changePassword = async (req, res) => {
         if (newPass !== confirmNewPass) {
             return res.status(400).json({ EC: 0, EM: "Mật khẩu mới không khớp!" });
         }
-
         if (newPass.length < 8) {
             return res.status(400).json({ EC: 0, EM: "Mật khẩu mới phải có ít nhất 8 ký tự!" });
         }
+        // Mã hóa mật khẩu mới
+        const hashedPassword = await hashPassword(newPass);
 
-        // Use findById to find the user by their _id
-        const user = await User.findById(user_id);
-        if (!user) {
-            return res.status(400).json({ EC: 0, EM: "Người dùng không tồn tại" });
-        }
-
-        const validPassword = await bcrypt.compare(pass, user.pass);
-        if (!validPassword) {
-            return res.status(400).json({ EC: 0, EM: "Mật khẩu không chính xác!" });
-        }
-
-        // Đổi mật khẩu với hàm hash đúng
-        user.pass = await hashPassword(newPass);
+        // Lưu mật khẩu đã mã hóa vào cơ sở dữ liệu
+        const user = await User.findById(req.user.id);
+        user.pass = hashedPassword;
         await user.save();
 
         return res.status(200).json({ EC: 1, EM: "Đổi mật khẩu thành công!" });
@@ -472,6 +465,9 @@ const changePassword = async (req, res) => {
         res.status(500).json({ EC: 0, EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!" });
     }
 };
+
+
+
 
 
 const forgotPassword = async (req, res) => {
