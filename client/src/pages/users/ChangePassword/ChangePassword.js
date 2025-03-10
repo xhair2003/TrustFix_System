@@ -32,64 +32,56 @@ const ChangePassword = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
+    // Xóa lỗi khi người dùng bắt đầu nhập
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" });
+    }
   };
 
-  // Hàm kiểm tra tính hợp lệ của mật khẩu
-  const validatePasswords = () => {
-    let errors = {};
+  // Hàm validate form
+  const validateForm = () => {
+    let tempErrors = {};
+    
     if (!form.currentPassword) {
-      errors.currentPassword = "Vui lòng nhập mật khẩu hiện tại";
+      tempErrors.currentPassword = "Vui lòng nhập mật khẩu hiện tại";
     }
-    if (form.newPassword.length < 6) {
-      errors.newPassword = "Mật khẩu mới phải có ít nhất 6 ký tự";
+    
+    if (!form.newPassword) {
+      tempErrors.newPassword = "Vui lòng nhập mật khẩu mới";
+    } else if (form.newPassword.length < 8) {
+      tempErrors.newPassword = "Mật khẩu mới phải dài ít nhất 8 ký tự";
     }
-    if (form.newPassword !== form.confirmPassword) {
-      errors.confirmPassword = "Xác nhận mật khẩu không khớp";
+    
+    if (!form.confirmPassword) {
+      tempErrors.confirmPassword = "Vui lòng xác nhận mật khẩu mới";
+    } else if (form.confirmPassword !== form.newPassword) {
+      tempErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
     }
-    if (!otpSent) {
-      errors.otp = "Vui lòng nhập mã OTP đã gửi";
-    } else if (form.otp !== generatedOtp) {
-      errors.otp = "Mã OTP không chính xác";
-    }
-    setErrors(errors);
-    return Object.keys(errors).length === 0;
+
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0;
   };
 
-  // Hàm xử lý khi nhấn nút đổi mật khẩu
+  // Hàm xử lý submit form
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validatePasswords()) {
-      alert("Mật khẩu đã được thay đổi thành công!");
-      setForm({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-        otp: "",
+    
+    if (validateForm()) {
+      // Logic xử lý đổi mật khẩu
+      console.log("Form submitted:", {
+        ...form,
+        authMethod,
       });
-      setOtpSent(false);
-      setGeneratedOtp("");
+      
+      // Ví dụ: Gửi request API ở đây
+      // api.changePassword(form)
+      //   .then(response => {
+      //     // Xử lý thành công
+      //   })
+      //   .catch(error => {
+      //     // Xử lý lỗi
+      //   });
     }
-  };
-
-  // Hàm gửi mã OTP có thời gian chờ 60s
-  const sendOtp = () => {
-    if (otpCooldown > 0) return;
-
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedOtp(otpCode);
-    setOtpSent(true);
-    alert(`Mã OTP của bạn là: ${otpCode}`); // Thực tế nên gửi qua email/SMS
-
-    setOtpCooldown(60);
-    const countdown = setInterval(() => {
-      setOtpCooldown((prev) => {
-        if (prev === 1) {
-          clearInterval(countdown);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
   };
 
   return (
@@ -165,59 +157,6 @@ const ChangePassword = () => {
             </div>
             {errors.confirmPassword && <p className="error-text">{errors.confirmPassword}</p>}
           </div>
-
-          {/* Chọn phương thức xác thực */}
-          <div className="input-group">
-            <label>Xác thực bằng</label>
-            <div className="auth-method">
-              <label>
-                <input
-                  type="radio"
-                  name="authMethod"
-                  value="email"
-                  checked={authMethod === "email"}
-                  onChange={() => setAuthMethod("email")}
-                  className="textotp"
-                />
-                Email ({personalInfo.email})
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="authMethod"
-                  value="phone"
-                  checked={authMethod === "phone"}
-                  onChange={() => setAuthMethod("phone")}
-                  className="textotp"
-                />
-                Số điện thoại ({personalInfo.phone})
-              </label>
-            </div>
-            <button
-              type="button"
-              className="send-otp-button"
-              onClick={sendOtp}
-              disabled={otpCooldown > 0}
-            >
-              {otpCooldown > 0 ? `Gửi lại sau ${otpCooldown}s` : "Gửi mã xác nhận"}
-            </button>
-          </div>
-
-          {/* Nhập mã OTP */}
-          {otpSent && (
-            <div className="input-group">
-              <label>Nhập mã OTP</label>
-              <input
-                type="text"
-                name="otp"
-                value={form.otp}
-                onChange={handleChange}
-                placeholder="Nhập mã OTP"
-                className={errors.otp ? "error-input" : ""}
-              />
-              {errors.otp && <p className="error-text">{errors.otp}</p>}
-            </div>
-          )}
 
           {/* Nút đổi mật khẩu */}
           <button type="submit" className="change-pass-button">

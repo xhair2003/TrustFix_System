@@ -52,7 +52,7 @@ const LoginForm = () => {
           </div>
         </div>
 
-        <div className="options">
+        <div className="login-options">
           <label className="remember-me">
             <input type="checkbox" />
             Ghi nhớ mật khẩu

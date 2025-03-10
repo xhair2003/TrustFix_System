@@ -16,6 +16,8 @@ import ServicePrice from "./pages/users/Payment/ServicePrice/ServicePrice.js";
 import Deposit from "./pages/users/Payment/Deposit/Deposit.js";
 import Complain from "./pages/users/Complain/Complain.js";
 import ViewRepairmentHistories from "./pages/users/customer/ViewRepairmentHistoriesPage/ViewRepairmentHistories.js";
+import ForgotPassword from "./pages/users/ForgotPassword.js";
+import ResetPasswordForm from "./pages/users/ResetPassword.js";
 
 const UserROUTERS = () => {
     const routers = [
@@ -74,8 +76,9 @@ const UserROUTERS = () => {
             component: <ServicePrice />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
+        
 
-        // Add more routes here...
+
     ];
 
     const authRoutes = [
@@ -89,6 +92,18 @@ const UserROUTERS = () => {
             component: <Register />,
             layout: null, // No layout for auth routes
         },
+        {
+            path: ROUTERS.CUSTOMER.FORGOT_PASSWORD,
+            component: <ForgotPassword/>,
+            layout: null, // No layout for auth routes
+        },
+        {
+            path: ROUTERS.CUSTOMER.RESET_PASSWORD,
+            component: <ResetPasswordForm/>,
+            layout: null, // No layout for auth routes
+        },
+        
+        
         // Add more auth routes here....
     ];
 
