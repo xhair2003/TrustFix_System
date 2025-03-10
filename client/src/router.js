@@ -42,6 +42,11 @@ const UserROUTERS = () => {
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
+            path: ROUTERS.CUSTOMER.COMPLAIN,
+            component: <Complain />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
             path: ROUTERS.CUSTOMER.UPGRADE_REPAIRMAN,
             component: <UpgradeRepairman />,
             layout: MasterLayoutUser, // Routes using MasterLayout

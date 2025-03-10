@@ -52,7 +52,8 @@ app.use("/api/repairman", repairmanRoutes);
 const adminRoutes = require("./routes/AdminRoutes");
 app.use("/api/admin", adminRoutes);
 
-
+const customerRoutes = require("./routes/CustomerRoutes");
+app.use("/api/customer", customerRoutes);
 
 
 // Test route at root level

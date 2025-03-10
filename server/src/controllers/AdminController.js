@@ -1,4 +1,5 @@
-const { ServiceIndustry, Service } = require("../models");
+const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, } = require("../models");
+const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
 
 // --- Service Industry CRUD ---
 
@@ -36,7 +37,7 @@ const createServiceIndustry = async (req, res) => {
 
 const getAllServiceIndustries = async (req, res) => {
     try {
-        const serviceIndustries = await ServiceIndustry.find().populate( 'type'); // Populate service details
+        const serviceIndustries = await ServiceIndustry.find()
 
         res.status(200).json({
             EC: 1,
@@ -55,7 +56,7 @@ const getAllServiceIndustries = async (req, res) => {
 const getServiceIndustryById = async (req, res) => {
     try {
         const serviceIndustryId = req.params.id;
-        const serviceIndustry = await ServiceIndustry.findById(serviceIndustryId).populate( 'type'); // Populate service details
+        const serviceIndustry = await ServiceIndustry.findById(serviceIndustryId)
 
         if (!serviceIndustry) {
             return res.status(404).json({
@@ -174,7 +175,7 @@ const createService = async (req, res) => {
 
 const getAllServices = async (req, res) => {
     try {
-        const services = await Service.find().populate( 'type'); // Populate serviceIndustry details
+        const services = await Service.find().populate( 'serviceIndustry_id'); // Populate serviceIndustry details
 
         res.status(200).json({
             EC: 1,
@@ -193,7 +194,7 @@ const getAllServices = async (req, res) => {
 const getServiceById = async (req, res) => {
     try {
         const serviceId = req.params.id;
-        const service = await Service.findById(serviceId).populate('type'); // Populate serviceIndustry details
+        const service = await Service.findById(serviceId).populate('serviceIndustry_id'); // Populate serviceIndustry details
 
         if (!service) {
             return res.status(404).json({
@@ -228,7 +229,7 @@ const updateService = async (req, res) => {
                 
             },
             { new: true } // Return updated document
-        ).populate('type'); // Populate serviceIndustry details
+        ).populate('serviceIndustry_id'); // Populate serviceIndustry details
 
         if (!updatedService) {
             return res.status(404).json({
@@ -276,6 +277,147 @@ const deleteService = async (req, res) => {
     }
 };
 
+// --- Complaint CRUD for Admin ---
+
+const getAllComplaints = async (req, res) => {
+    try {
+        const complaints = await Complaint.find()
+            .populate({ // Populate thông tin người dùng thông qua Request
+                path: 'request_id',
+                populate: { path: 'user_id', select: 'firstName lastName email' }
+            })
+            .populate('parentComplaint', 'complaintContent')
+            .populate('replies');
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy danh sách khiếu nại thành công!",
+            DT: complaints
+        });
+    } catch (error) {
+        console.error("Error getting all complaints:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const getComplaintById = async (req, res) => {
+    try {
+        const complaintId = req.params.id;
+        const complaint = await Complaint.findById(complaintId)
+            .populate({  // Populate thông tin người dùng thông qua Request
+                path: 'request_id',
+                populate: { path: 'user_id', select: 'firstName lastName email' }
+            })
+            .populate('parentComplaint', 'complaintContent')
+            .populate('replies');
+
+        if (!complaint) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy khiếu nại!"
+            });
+        }
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy thông tin khiếu nại thành công!",
+            DT: complaint
+        });
+    } catch (error) {
+        console.error("Error getting complaint by ID:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const replyToComplaint = async (req, res) => {
+    console.log("req.body:", req.body); // Log req.body ngay đầu function
+    try {
+        const parentComplaintId = req.params.id; // ID của khiếu nại gốc
+        const { complaintContent } = req.body; // Chỉ lấy complaintContent từ request body
+        const adminUserId = req.user.id; // Lấy adminUserId trực tiếp từ req.user.id
+        
+
+        if (!complaintContent) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vui lòng nhập nội dung phản hồi!"
+            });
+        }
+
+        const parentComplaint = await Complaint.findById(parentComplaintId);
+        if (!parentComplaint) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy khiếu nại gốc để phản hồi!"
+            });
+        }
+
+        const newReply = new Complaint({
+            user_id: adminUserId,
+            complaintContent: complaintContent,
+            complaintType: parentComplaint.complaintType,
+            request_id: parentComplaint.request_id,
+            parentComplaint: parentComplaintId
+        });
+
+        console.log("newReply object:", newReply); // <-- Thêm dòng log này
+
+        await newReply.save();
+
+        res.status(201).json({
+            EC: 1,
+            EM: "Phản hồi khiếu nại thành công!",
+            DT: newReply
+        });
+
+    } catch (error) {
+        console.error("Error replying to complaint:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra khi phản hồi khiếu nại. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+// View history payment with transactionType = payment
+const viewHistoryPayment = async (req, res) => {
+    try {
+        const { limit, search = "", transactionType } = req.query;
+
+        const limitNumber = limit ? parseInt(limit) : undefined;
+
+        const searchFilter = search ? { payCode: { $regex: search, $options: "i" } } : {};
+        const transactionFilter = transactionType ? { transactionType } : {};
+
+        const transactions = await Transaction.find({
+            ...transactionFilter,
+            ...searchFilter,
+        })
+            .populate({
+                path: "wallet_id",
+                select: "balance", 
+            })
+            .limit(limitNumber)
+            .sort({ createdAt: -1 }); 
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy lịch sử thanh toán thành công!",
+            DT: transactions,
+        });
+    } catch (err) {
+        console.error("Get payment history error:", err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+        });
+    }
+};
 
 module.exports = {
     createServiceIndustry,
@@ -287,5 +429,9 @@ module.exports = {
     getAllServices,
     getServiceById,
     updateService,
-    deleteService
+    deleteService,
+    getAllComplaints,
+    getComplaintById,
+    replyToComplaint,
+    viewHistoryPayment,
 };

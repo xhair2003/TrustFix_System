@@ -18,9 +18,24 @@ const RequestSchema = new mongoose.Schema({
     status: {
         type: Number,
         default: 1
-    }
+    },
+    repairman_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'RepairmanUpgradeRequest',
+        default: null
+    },
+    parentRequest: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Request',
+        default: null
+    },
 }, { timestamps: true });
 
+RequestSchema.virtual('ID', {
+    ref: 'Request',
+    localField: '_id',
+    foreignField: 'parentRequest'
+});
 // Virtual for user
 RequestSchema.virtual('user', {
     ref: 'User',
@@ -49,6 +64,14 @@ RequestSchema.virtual('images', {
     ref: 'Image',
     localField: '_id',
     foreignField: 'request_id'
+});
+
+// Virtual for repairman
+RequestSchema.virtual('repairman', {
+    ref: 'RepairmanUpgradeRequest',
+    localField: 'repairman_id',
+    foreignField: '_id',
+    //justOne: true
 });
 
 module.exports = mongoose.model('Request', RequestSchema); 
