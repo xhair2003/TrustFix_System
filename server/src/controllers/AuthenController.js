@@ -435,10 +435,10 @@ const logout = async (req, res) => {
 ///Change password
 const changePassword = async (req, res) => {
     try {
-        const {  pass, newPass, confirmNewPass } = req.body;
-        const user_id = req.user.id;
+        const { pass, newPass, confirmNewPass } = req.body;
+        const user_id = req.user.id; // Assuming this is the user ID from the verified token
 
-        if ( !pass || !newPass || !confirmNewPass) {
+        if (!pass || !newPass || !confirmNewPass) {
             return res.status(400).json({ EC: 0, EM: "Vui lòng nhập đầy đủ thông tin!" });
         }
 
@@ -450,7 +450,8 @@ const changePassword = async (req, res) => {
             return res.status(400).json({ EC: 0, EM: "Mật khẩu mới phải có ít nhất 8 ký tự!" });
         }
 
-        const user = await User.findOne({ user_id });
+        // Use findById to find the user by their _id
+        const user = await User.findById(user_id);
         if (!user) {
             return res.status(400).json({ EC: 0, EM: "Người dùng không tồn tại" });
         }
@@ -471,6 +472,7 @@ const changePassword = async (req, res) => {
         res.status(500).json({ EC: 0, EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!" });
     }
 };
+
 
 const forgotPassword = async (req, res) => {
     try {
