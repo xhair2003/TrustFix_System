@@ -435,9 +435,10 @@ const logout = async (req, res) => {
 ///Change password
 const changePassword = async (req, res) => {
     try {
-        const { email, pass, newPass, confirmNewPass } = req.body;
+        const {  pass, newPass, confirmNewPass } = req.body;
+        const user_id = req.user.id;
 
-        if (!email || !pass || !newPass || !confirmNewPass) {
+        if ( !pass || !newPass || !confirmNewPass) {
             return res.status(400).json({ EC: 0, EM: "Vui lòng nhập đầy đủ thông tin!" });
         }
 
@@ -449,9 +450,9 @@ const changePassword = async (req, res) => {
             return res.status(400).json({ EC: 0, EM: "Mật khẩu mới phải có ít nhất 8 ký tự!" });
         }
 
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ user_id });
         if (!user) {
-            return res.status(400).json({ EC: 0, EM: "Email không tồn tại!" });
+            return res.status(400).json({ EC: 0, EM: "Người dùng không tồn tại" });
         }
 
         const validPassword = await bcrypt.compare(pass, user.pass);
