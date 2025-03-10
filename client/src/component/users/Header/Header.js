@@ -4,17 +4,26 @@ import logo from "../../../assets/Images/logo.png";
 import { FaBell, FaUser, FaLock, FaHistory, FaExclamationCircle, FaSignOutAlt, FaStar, FaWallet } from 'react-icons/fa';
 import userImage from '../../../assets/Images/user.jpg';
 import './Header.css';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../../../store/actions/auth';
+
 
 const Header = () => {
     const [activeIndex, setActiveIndex] = useState(null);
     const navigate = useNavigate();
-
-    const { isLogin, setIsLogin } = useState(true);
-
+    const dispatch = useDispatch();
+    const { user } = useSelector(state => state.auth);
+    const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
+    console.log(isAuthenticated);
+    console.log(user);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
+    };
+
+    const handleLogout = () => {
+        dispatch(logout());
     };
 
     const handleButtonClick = (index, path) => {
@@ -46,7 +55,7 @@ const Header = () => {
                         </button>
                     ))}
                 </nav>
-                {!isLogin ? (
+                {isAuthenticated ? (
                     <div className="header-buttons">
                         <FaBell className="icon" />
                         <div className="divider"></div>
@@ -84,7 +93,7 @@ const Header = () => {
                                 <div className="dropdown-item" onClick={() => navigate("/upgrade-repair-man")}>
                                     <FaStar className="dropdown-icon" /> Nâng cấp lên thợ
                                 </div>
-                                <div className="dropdown-item" onClick={() => setIsLogin(false)}>
+                                <div className="dropdown-item" onClick={handleLogout}>
                                     <FaSignOutAlt className="dropdown-icon" /> Đăng xuất
                                 </div>
                             </div>

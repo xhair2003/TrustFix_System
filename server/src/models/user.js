@@ -12,13 +12,7 @@ const UserSchema = new mongoose.Schema({
     email: { 
         type: String, 
         required: true, 
-        unique: true,
-        validate: {
-            validator: function(v) {
-                return /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(v);
-            },
-            message: props => `${props.value} không phải là email hợp lệ!`
-        }
+        unique: true 
     },
     pass: { 
         type: String, 
@@ -35,8 +29,7 @@ const UserSchema = new mongoose.Schema({
     },
     status: { 
         type: Number, 
-        default: 1,
-        required: true 
+        default: 1 
     },
     address: { 
         type: String,
@@ -46,11 +39,7 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: null
     }
-}, { 
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
+}, { timestamps: true });
 
 // Virtual for roles
 UserSchema.virtual('roles', {

@@ -3,7 +3,7 @@ import './PersonalInfomation.scss';
 import BusinessCard from './BusinessCard';
 import UpdateInfo from './UpdateInfo';
 const PersonalInfomation = () => {
-  const [personalInfo,setPersonalInfo] = useState({
+  const [personalInfo, setPersonalInfo] = useState({
     firstName: 'Dew',
     lastName: 'Nguyen',
     balance: '99.999 VND',
@@ -13,9 +13,7 @@ const PersonalInfomation = () => {
     status: 1, // Default to Normal (1 là khách hàng)
     address: '123 Ho Chi Minh City, Vietnam',
     description: 'Không có gì ở đây hết heheheheeheheeh :))',
-   
-  });   
-
+  });
   const getStatusText = (status) => {
     return status === 0 ? 'Thợ' : 'Khách hàng';
   };
@@ -25,27 +23,27 @@ const PersonalInfomation = () => {
   };
 
 
-  const username = `${personalInfo.firstName}${' '}${personalInfo.lastName}`; 
+  const username = `${personalInfo.firstName}${' '}${personalInfo.lastName}`;
 
   return (
     <div className='history-container'>
       <div className='history-form'>
         <h2 className='complaint-title'>THÔNG TIN CÁ NHÂN</h2>
         <div className='personalInfomation-form'>
-        <BusinessCard 
-          username={username}
-          balance={personalInfo.balance}
-          email={personalInfo.email}
-          phone={personalInfo.phone}
-          status={getStatusText(personalInfo.status)}
-          avatar={personalInfo.imgAvt}
-          address={personalInfo.address}
-          description={personalInfo.description}
-        />
-        <UpdateInfo 
-          initialData={personalInfo} 
-          onSave={handleSave} 
-        />
+          <BusinessCard
+            username={username}
+            balance={personalInfo.balance}
+            email={personalInfo.email}
+            phone={personalInfo.phone}
+            status={getStatusText(personalInfo.status)}
+            avatar={personalInfo.imgAvt}
+            address={personalInfo.address}
+            description={personalInfo.description}
+          />
+          <UpdateInfo
+            initialData={personalInfo}
+            onSave={handleSave}
+          />
         </div>
       </div>
     </div>

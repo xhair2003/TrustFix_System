@@ -15,9 +15,11 @@ import HistoryPayment from "./pages/users/Payment/HistoryPayment/HistoryPayment.
 import ServicePrice from "./pages/users/Payment/ServicePrice/ServicePrice.js";
 import Deposit from "./pages/users/Payment/Deposit/Deposit.js";
 import Complain from "./pages/users/Complain/Complain.js";
+import MakePayment from "./pages/users/Payment/MakePayment/MakePayment.js";
 import ViewRepairmentHistories from "./pages/users/customer/ViewRepairmentHistoriesPage/ViewRepairmentHistories.js";
 import ForgotPassword from "./pages/users/ForgotPassword.js";
 import ResetPasswordForm from "./pages/users/ResetPassword.js";
+
 
 const UserROUTERS = () => {
     const routers = [
@@ -38,7 +40,12 @@ const UserROUTERS = () => {
         },
         {
             path: ROUTERS.CUSTOMER.VIEW_REPAIR_BOOKING_HISTORY,
-            component: <ViewRepairmentHistories/>,
+            component: <ViewRepairmentHistories />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.COMPLAIN,
+            component: <Complain />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
@@ -69,7 +76,7 @@ const UserROUTERS = () => {
         {
             path: ROUTERS.CUSTOMER.COMPLAIN,
             component: <Complain />,
-            layout: MasterLayoutUser, // Routes using MasterLayout
+            layout: MasterLayoutUser, // Routes using MasterLayoutdsf
         },
         {
             path: ROUTERS.REPAIRMAN.SERVICE_PRICE,
