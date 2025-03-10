@@ -22,7 +22,6 @@ const RequestSchema = new mongoose.Schema({
     repairman_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'RepairmanUpgradeRequest',
-        unique: true,
         default: null
     },
     parentRequest: {

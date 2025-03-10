@@ -37,7 +37,7 @@ const createServiceIndustry = async (req, res) => {
 
 const getAllServiceIndustries = async (req, res) => {
     try {
-        const serviceIndustries = await ServiceIndustry.find().populate( 'type'); // Populate service details
+        const serviceIndustries = await ServiceIndustry.find()
 
         res.status(200).json({
             EC: 1,
@@ -56,7 +56,7 @@ const getAllServiceIndustries = async (req, res) => {
 const getServiceIndustryById = async (req, res) => {
     try {
         const serviceIndustryId = req.params.id;
-        const serviceIndustry = await ServiceIndustry.findById(serviceIndustryId).populate( 'type'); // Populate service details
+        const serviceIndustry = await ServiceIndustry.findById(serviceIndustryId)
 
         if (!serviceIndustry) {
             return res.status(404).json({
@@ -175,7 +175,7 @@ const createService = async (req, res) => {
 
 const getAllServices = async (req, res) => {
     try {
-        const services = await Service.find().populate( 'type'); // Populate serviceIndustry details
+        const services = await Service.find().populate( 'serviceIndustry_id'); // Populate serviceIndustry details
 
         res.status(200).json({
             EC: 1,
@@ -194,7 +194,7 @@ const getAllServices = async (req, res) => {
 const getServiceById = async (req, res) => {
     try {
         const serviceId = req.params.id;
-        const service = await Service.findById(serviceId).populate('type'); // Populate serviceIndustry details
+        const service = await Service.findById(serviceId).populate('serviceIndustry_id'); // Populate serviceIndustry details
 
         if (!service) {
             return res.status(404).json({
@@ -229,7 +229,7 @@ const updateService = async (req, res) => {
                 
             },
             { new: true } // Return updated document
-        ).populate('type'); // Populate serviceIndustry details
+        ).populate('serviceIndustry_id'); // Populate serviceIndustry details
 
         if (!updatedService) {
             return res.status(404).json({
@@ -358,12 +358,14 @@ const replyToComplaint = async (req, res) => {
         }
 
         const newReply = new Complaint({
-            user_id: adminUserId, // Sử dụng adminUserId trực tiếp từ req.user.id
-            complaintContent: complaintContent, // Sử dụng complaintContent từ request body
-            complaintType: parentComplaint.complaintType, // Giữ nguyên complaintType từ khiếu nại gốc
-            //image: parentComplaint.image,
-            parentComplaint: parentComplaintId // Tham chiếu đến khiếu nại gốc
+            user_id: adminUserId,
+            complaintContent: complaintContent,
+            complaintType: parentComplaint.complaintType,
+            request_id: parentComplaint.request_id,
+            parentComplaint: parentComplaintId
         });
+
+        console.log("newReply object:", newReply); // <-- Thêm dòng log này
 
         await newReply.save();
 
