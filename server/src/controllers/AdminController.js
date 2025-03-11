@@ -439,7 +439,7 @@ const getAllUsers = async (req, res) => {
             .sort({ [sortBy]: orderBy })
             .skip((page - 1) * limit)
             .limit(limit)
-            .select('-password')
+            .select('-pass')
             .populate({
                 path: "roles",
                 select: "type"
