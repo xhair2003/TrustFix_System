@@ -13,7 +13,7 @@ const authMiddleware = {
                 EC: 0,
                 EM: "Bạn chưa đăng nhập!"
             });
-        } gfv
+        }
 
         const token = authHeader.split(" ")[1];
         if (!token) {

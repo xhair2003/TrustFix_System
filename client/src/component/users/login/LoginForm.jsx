@@ -1,10 +1,10 @@
 // LoginForm.js
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './LoginForm.scss';
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
-import { login } from '../../store/actions/auth';
+import { login } from '../../../store/actions/auth';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,32 +13,28 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const dispatch = useDispatch();
-  const { error, user } = useSelector(state => state.auth);
+  const { errorLogin } = useSelector(state => state.auth);
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(login(email, password));
-    console.log('Login attempted with:', { email, password });
-    console.log(user);
-    navigate('/');
-  };
-
-  // Hiển thị thông báo lỗi nếu có
-  useEffect(() => {
-    if (error) {
+    if (errorLogin) {
       // Hiển thị thông báo lỗi khi có lỗi
       Swal.fire({
         icon: 'error',
         title: 'Lỗi!',
-        text: error,
+        text: errorLogin,
         timer: 5000,
         timerProgressBar: true,
         showCloseButton: true,
         showConfirmButton: false,
       });
     }
-  }, [error]);
+    else {
+      navigate('/');
+    }
+  };
 
   return (
     <div className="login-container">

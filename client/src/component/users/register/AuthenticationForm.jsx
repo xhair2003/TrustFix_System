@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { verifyRegister, registerUser } from "../../../store/actions/auth";
+import Swal from "sweetalert2";
 import "./RegisterForm.scss";
 
-const AuthenticationForm = ({ email, onSuccess }) => {
+const AuthenticationForm = ({ email, userData }) => {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef([]);
+  const dispatch = useDispatch();
+  const { loading, errorVerifyRegister } = useSelector((state) => state.auth);
 
   useEffect(() => {
     inputRefs.current[0]?.focus(); // Tự động focus vào ô đầu tiên
@@ -18,7 +22,7 @@ const AuthenticationForm = ({ email, onSuccess }) => {
       const countdown = setInterval(() => {
         setTimer((prev) => prev - 1);
       }, 1000);
-      return () => clearInterval(countdown);
+      return () => clearInterval(countdown); // Dọn dẹp interval khi component unmount
     } else {
       setCanResend(true);
     }
@@ -53,55 +57,63 @@ const AuthenticationForm = ({ email, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     const fullCode = code.join("");
 
     if (fullCode.length !== 6 || isNaN(fullCode)) {
       setError("Vui lòng nhập mã OTP 6 số hợp lệ");
-      setIsLoading(false);
       return;
     }
 
     try {
-      // Giả lập API xác thực
-      const response = await fakeVerifyApi(fullCode);
+      await dispatch(verifyRegister(email, fullCode));
       setError("");
-      onSuccess();
+
+      if (errorVerifyRegister) {
+        Swal.fire({
+          title: "Error",
+          text: errorVerifyRegister || "Registration failed. Please try again.",
+          icon: "error",
+          timer: 5000,
+          showConfirmButton: false,
+        });
+      }
+      else {
+        Swal.fire({
+          title: "Success",
+          text: "Đăng ký thành công !",
+          icon: "success",
+          timer: 5000,
+          showConfirmButton: false,
+        });
+
+        window.location.href('/login');
+      }
+
     } catch (err) {
-      setError("Mã OTP không đúng. Vui lòng thử lại.");
-    } finally {
-      setIsLoading(false);
+      Swal.fire({
+        title: "Error",
+        text: err.response?.data?.EM || "Registration failed. Please try again.",
+        icon: "error",
+        timer: 5000,
+        showConfirmButton: false,
+      });
     }
   };
 
   const handleResend = async () => {
-    if (canResend && !isLoading) {
-      setIsLoading(true);
+    if (canResend && !loading) {
       try {
-        await fakeResendApi(email);
-        setTimer(60);
-        setCanResend(false);
-        setCode(["", "", "", "", "", ""]);
-
-        inputRefs.current[0].focus();
-        setError("");
+        await dispatch(registerUser(userData)); // Sử dụng userData từ props
+        setTimer(60); // Reset timer
+        setCanResend(false); // Không cho phép gửi lại mã ngay lập tức
+        setCode(["", "", "", "", "", ""]); // Reset mã OTP
+        inputRefs.current[0].focus(); // Focus vào ô đầu tiên
+        setError(""); // Reset lỗi
       } catch (err) {
         setError("Gửi lại mã thất bại. Vui lòng thử lại.");
-      } finally {
-        setIsLoading(false);
       }
     }
   };
-
-  // Giả lập API
-  const fakeVerifyApi = (code) =>
-    new Promise((resolve) =>
-      setTimeout(() => resolve({ success: true }), 1000)
-    );
-  const fakeResendApi = (email) =>
-    new Promise((resolve) =>
-      setTimeout(() => resolve({ success: true }), 1000)
-    );
 
   return (
     <div className="register-container">
@@ -124,14 +136,13 @@ const AuthenticationForm = ({ email, onSuccess }) => {
               maxLength="1"
               className="otp-input"
               required
-              disabled={isLoading}
+              disabled={loading}
             />
           ))}
-          
         </div>
         {error && <p className="error-message">{error}</p>}
-        <button type="submit" className="signup-button" disabled={isLoading}>
-          {isLoading ? "ĐANG XÁC THỰC..." : "XÁC NHẬN"}
+        <button type="submit" className="signup-button" disabled={loading}>
+          {loading || loading ? "ĐANG XÁC THỰC..." : "XÁC NHẬN"}
         </button>
 
         <p className="signin-link">
@@ -140,8 +151,8 @@ const AuthenticationForm = ({ email, onSuccess }) => {
             href="#"
             onClick={handleResend}
             style={{
-              color: canResend && !isLoading ? "#1a73e8" : "#666",
-              pointerEvents: isLoading ? "none" : "auto",
+              color: canResend && !loading ? "#1a73e8" : "#666",
+              pointerEvents: loading ? "none" : "auto",
             }}
           >
             Gửi lại {timer > 0 && `(${timer}s)`}

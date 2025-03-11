@@ -17,8 +17,8 @@ import Deposit from "./pages/users/Payment/Deposit/Deposit.js";
 import Complain from "./pages/users/Complain/Complain.js";
 import MakePayment from "./pages/users/Payment/MakePayment/MakePayment.js";
 import ViewRepairmentHistories from "./pages/users/customer/ViewRepairmentHistoriesPage/ViewRepairmentHistories.js";
-import ForgotPassword from "./pages/users/ForgotPassword.js";
-import ResetPasswordForm from "./pages/users/ResetPassword.js";
+import ForgotPassword from "./pages/users/ForgotPassword/ForgotPassword.js";
+import ResetPasswordForm from "./component/users/ForgotPassword/ResetPassword.js";
 
 
 const UserROUTERS = () => {
@@ -83,7 +83,7 @@ const UserROUTERS = () => {
             component: <ServicePrice />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
-        
+
 
 
     ];
@@ -101,16 +101,16 @@ const UserROUTERS = () => {
         },
         {
             path: ROUTERS.CUSTOMER.FORGOT_PASSWORD,
-            component: <ForgotPassword/>,
+            component: <ForgotPassword />,
             layout: null, // No layout for auth routes
         },
         {
             path: ROUTERS.CUSTOMER.RESET_PASSWORD,
-            component: <ResetPasswordForm/>,
+            component: <ResetPasswordForm />,
             layout: null, // No layout for auth routes
         },
-        
-        
+
+
         // Add more auth routes here....
     ];
 

@@ -1,15 +1,63 @@
-// ResetPassword.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { resetPassword } from '../../../store/actions/auth';
+import Loading from '../../Loading/Loading';
+import Swal from 'sweetalert2';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useNavigate } from 'react-router-dom';
 
-const ResetPasswordForm = ({ email }) => {
+const ResetPasswordForm = () => {
+  const navigate = useNavigate();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [errors, setErrors] = useState('');
+  const dispatch = useDispatch();
+  const { loading, successResetPassword, errorResetPassword, resetToken } = useSelector((state) => state.auth);
+  //console.log(resetToken);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    try {
+      await dispatch(resetPassword(resetToken, newPassword, confirmPassword));
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      setErrors(err);
+    }
+  };
+
+  // Hiển thị thông báo khi có thay đổi về successMessage hoặc errorMessage
+  useEffect(() => {
+    if (successResetPassword) {
+      Swal.fire({
+        title: "Thành công",
+        text: successResetPassword,
+        icon: "success",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+      navigate('/login');
+    }
+
+    if (errorResetPassword) {
+      Swal.fire({
+        title: "Lỗi",
+        text: errorResetPassword,
+        icon: "error",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+      setErrors(errorResetPassword); // Cập nhật lỗi nếu có
+    }
+  }, [successResetPassword, errorResetPassword, navigate]);
+
   const [showPassword, setShowPassword] = useState({
     new: false,
     confirm: false,
   });
-  const [errors, setErrors] = useState({});
+
 
   // Hàm kiểm tra form
   const validateForm = () => {
@@ -31,19 +79,6 @@ const ResetPasswordForm = ({ email }) => {
     return Object.keys(tempErrors).length === 0;
   };
 
-  // Hàm xử lý submit
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validateForm()) {
-      // Logic gửi request reset password
-      console.log('Reset password submitted:', { email, newPassword });
-      // Ví dụ: Gọi API
-      // api.resetPassword(email, newPassword)
-      //   .then(() => alert('Đặt lại mật khẩu thành công'))
-      //   .catch(err => setErrors({ submit: 'Có lỗi xảy ra, vui lòng thử lại' }));
-    }
-  };
-
   // Hàm xử lý thay đổi input
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -60,6 +95,7 @@ const ResetPasswordForm = ({ email }) => {
 
   return (
     <div className="login-container">
+      {loading && <Loading />}
       <form className="login-form" onSubmit={handleSubmit}>
         <p className="welcome-back">ĐẶT LẠI MẬT KHẨU</p>
         <p className="login-title">Tạo mật khẩu mới cho tài khoản của bạn</p>
@@ -108,8 +144,8 @@ const ResetPasswordForm = ({ email }) => {
           {errors.confirmPassword && <p style={{ color: 'red', fontSize: '12px' }}>{errors.confirmPassword}</p>}
         </div>
 
-        <button type="submit" className="login-button">
-          ĐẶT LẠI MẬT KHẨU
+        <button type="submit" className="login-button" disabled={loading}>
+          {loading ? "ĐANG XỬ LÝ..." : "ĐẶT LẠI MẬT KHẨU"}
         </button>
 
         <p className="signup-link">
@@ -121,3 +157,7 @@ const ResetPasswordForm = ({ email }) => {
 };
 
 export default ResetPasswordForm;
+
+
+
+

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 //import axios from 'axios';
 //import { useSelector } from 'react-redux';
-import Loading from "../../../../component/Loading";
+import Loading from "../../../../component/Loading/Loading";
 import './HistoryPayment.css'; // Import CSS
 
 const HistoryPayment = () => {

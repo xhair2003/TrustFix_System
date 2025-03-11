@@ -1,19 +1,19 @@
-import { useState } from "react";
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { changePassword } from "../../../store/actions/auth"; // Import action
+import Swal from "sweetalert2";
 import "./ChangePassword.scss";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
+import Loading from "../../../component/Loading/Loading";
 
 const ChangePassword = () => {
-  const [personalInfo] = useState({
-    email: "nguyen@example.com",
-    phone: "0987654321",
-  });
+  const dispatch = useDispatch();
+  const { loading, errorChangePassword, successChangePassword } = useSelector((state) => state.auth);
 
   const [form, setForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
-    otp: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -22,11 +22,6 @@ const ChangePassword = () => {
     new: false,
     confirm: false,
   });
-
-  const [authMethod, setAuthMethod] = useState("email");
-  const [otpSent, setOtpSent] = useState(false);
-  const [generatedOtp, setGeneratedOtp] = useState("");
-  const [otpCooldown, setOtpCooldown] = useState(0);
 
   // Hàm xử lý thay đổi input
   const handleChange = (e) => {
@@ -41,17 +36,17 @@ const ChangePassword = () => {
   // Hàm validate form
   const validateForm = () => {
     let tempErrors = {};
-    
+
     if (!form.currentPassword) {
       tempErrors.currentPassword = "Vui lòng nhập mật khẩu hiện tại";
     }
-    
+
     if (!form.newPassword) {
       tempErrors.newPassword = "Vui lòng nhập mật khẩu mới";
     } else if (form.newPassword.length < 8) {
       tempErrors.newPassword = "Mật khẩu mới phải dài ít nhất 8 ký tự";
     }
-    
+
     if (!form.confirmPassword) {
       tempErrors.confirmPassword = "Vui lòng xác nhận mật khẩu mới";
     } else if (form.confirmPassword !== form.newPassword) {
@@ -63,29 +58,49 @@ const ChangePassword = () => {
   };
 
   // Hàm xử lý submit form
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
-      // Logic xử lý đổi mật khẩu
-      console.log("Form submitted:", {
-        ...form,
-        authMethod,
-      });
-      
-      // Ví dụ: Gửi request API ở đây
-      // api.changePassword(form)
-      //   .then(response => {
-      //     // Xử lý thành công
-      //   })
-      //   .catch(error => {
-      //     // Xử lý lỗi
-      //   });
+      const { currentPassword, newPassword, confirmPassword } = form;
+      dispatch(changePassword(currentPassword, newPassword, confirmPassword)); // Gọi action changePassword
     }
   };
 
+  // Hiển thị thông báo khi có thay đổi về successMessage hoặc errorMessage
+  useEffect(() => {
+    if (successChangePassword) {
+      Swal.fire({
+        title: "Thành công",
+        text: successChangePassword,
+        icon: "success",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+
+      // Reset dữ liệu các ô thành rỗng
+      setForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setErrors({}); // Reset lỗi
+    }
+
+    if (errorChangePassword) {
+      Swal.fire({
+        title: "Lỗi",
+        text: errorChangePassword,
+        icon: "error",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+    }
+  }, [successChangePassword, errorChangePassword]);
+
   return (
     <div className="history-container">
+      {loading && <Loading />}
       <div className="history-form">
         <h2 className="complaint-title">THAY ĐỔI MẬT KHẨU</h2>
         <form className="changePass-container" onSubmit={handleSubmit}>
@@ -159,8 +174,8 @@ const ChangePassword = () => {
           </div>
 
           {/* Nút đổi mật khẩu */}
-          <button type="submit" className="change-pass-button">
-            Đổi Mật Khẩu
+          <button type="submit" className="change-pass-button" disabled={loading}>
+            {loading ? "ĐANG THAY ĐỔI..." : "ĐỔI MẬT KHẨU"}
           </button>
         </form>
       </div>

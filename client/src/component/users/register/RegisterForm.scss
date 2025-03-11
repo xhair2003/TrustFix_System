@@ -112,11 +112,11 @@
   color: #5395ec;
 }
 
-.error-message {
+.error-text {
   color: red;
   font-size: 12px;
   margin-top: 0.5rem;
-  text-align:center;
+  text-align: left;
 }
 
 .otp-group {
@@ -138,4 +138,18 @@
     border-color: #1a73e8;
     box-shadow: 0 0 5px rgba(26, 115, 232, 0.5);
   }
+}
+
+.name-inputs {
+  display: flex;
+  justify-content: space-between;
+}
+
+.name-input {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.name-input:last-child {
+  margin-right: 0;
 }
