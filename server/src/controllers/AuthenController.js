@@ -5,7 +5,7 @@ const user = require("../models/user");
 const hashPassword = require("../utils/password");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
-const cloudinary = require("../../config/cloudinary");
+
 
 // JWT configuration
 const JWT_ACCESS_KEY = process.env.JWT_ACCESS_KEY || "your_jwt_access_secret_key";
@@ -435,33 +435,42 @@ const logout = async (req, res) => {
 ///Change password
 const changePassword = async (req, res) => {
     try {
-        const { email, pass, newPass, confirmNewPass } = req.body;
-        const id = req.user._id;
+        const { pass, newPass, confirmNewPass } = req.body;
+        const user_id = req.user.id;
 
-        if (!email || !pass || !newPass || !confirmNewPass) {
+        // Kiểm tra các trường dữ liệu yêu cầu
+        if (!pass || !newPass || !confirmNewPass) {
             return res.status(400).json({ EC: 0, EM: "Vui lòng nhập đầy đủ thông tin!" });
         }
 
+        // Kiểm tra sự khớp giữa mật khẩu mới và xác nhận mật khẩu mới
         if (newPass !== confirmNewPass) {
             return res.status(400).json({ EC: 0, EM: "Mật khẩu mới không khớp!" });
         }
 
+        // Kiểm tra độ dài mật khẩu mới
         if (newPass.length < 8) {
             return res.status(400).json({ EC: 0, EM: "Mật khẩu mới phải có ít nhất 8 ký tự!" });
         }
 
-        const user = await User.findOne({ _id: id });
+        // Lấy thông tin người dùng từ database
+        const user = await User.findById(user_id);
+
         if (!user) {
-            return res.status(400).json({ EC: 0, EM: "Email không tồn tại!" });
+            return res.status(400).json({ EC: 0, EM: "Người dùng không tồn tại" });
         }
 
+        // So sánh mật khẩu cũ với mật khẩu trong cơ sở dữ liệu
         const validPassword = await bcrypt.compare(pass, user.pass);
         if (!validPassword) {
-            return res.status(400).json({ EC: 0, EM: "Mật khẩu không chính xác!" });
+            return res.status(400).json({ EC: 0, EM: "Mật khẩu cũ không chính xác!" });
         }
 
-        // Đổi mật khẩu với hàm hash đúng
-        user.pass = await hashPassword(newPass);
+        // Mã hóa mật khẩu mới
+        const hashedPassword = await hashPassword(newPass);
+
+        // Cập nhật mật khẩu mới vào cơ sở dữ liệu
+        user.pass = hashedPassword;
         await user.save();
 
         return res.status(200).json({ EC: 1, EM: "Đổi mật khẩu thành công!" });
@@ -471,6 +480,7 @@ const changePassword = async (req, res) => {
         res.status(500).json({ EC: 0, EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!" });
     }
 };
+
 
 const forgotPassword = async (req, res) => {
     try {
@@ -643,68 +653,6 @@ const resetPassword = async (req, res) => {
     }
 };
 
-const updateInformation = async (req, res) => {
-    try {
-        const { email, firstName, lastName, phone, address, description } = req.body;
-
-        // Validate required fields
-        if (!email || !firstName || !lastName || !phone) {
-            return res.status(400).json({
-                EC: 0,
-                EM: "Vui lòng nhập đầy đủ thông tin!"
-            });
-        }
-
-        // Tìm user theo email
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({
-                EC: 0,
-                EM: "Email không tồn tại trong hệ thống!"
-            });
-        }
-
-        // Upload ảnh mới nếu có
-        let imgAvt = user.imgAvt; // Mặc định giữ ảnh cũ
-        if (req.file) {
-            const result = await cloudinary.uploader.upload(req.file.path, {
-                folder: "user_avatars", // Upload vào thư mục user_avatars
-                transformation: [{ width: 500, height: 500, crop: "limit" }]
-            });
-            imgAvt = result.secure_url; // Lấy link ảnh từ Cloudinary
-        }
-
-        // Cập nhật thông tin người dùng
-        user.firstName = firstName;
-        user.lastName = lastName;
-        user.phone = phone;
-        user.imgAvt = imgAvt;
-        user.address = address || user.address;
-        user.description = description || user.description;
-
-        // Lưu cập nhật
-        await user.save();
-
-        // Xóa password trước khi trả về response
-        const userResponse = user.toObject();
-        delete userResponse.pass;
-
-        res.status(200).json({
-            EC: 1,
-            EM: "Cập nhật thông tin thành công!",
-            DT: userResponse
-        });
-
-    } catch (err) {
-        console.error("Update information error:", err);
-        res.status(500).json({
-            EC: 0,
-            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
-        });
-    }
-};
-
-
 module.exports = {
     initRegister,
     verifyRegister,
@@ -715,5 +663,4 @@ module.exports = {
     forgotPassword,
     verifyOTP,
     resetPassword,
-    updateInformation
 };
