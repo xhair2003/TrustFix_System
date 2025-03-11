@@ -2,7 +2,7 @@ const { User, Role } = require("../models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const user = require("../models/user");
-const hashPassword  = require("../utils/password");
+const hashPassword = require("../utils/password");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const cloudinary = require("../../config/cloudinary");
@@ -115,7 +115,7 @@ const initRegister = async (req, res) => {
 
         // Generate OTP
         const otp = generateOTP();
-        
+
         // Store registration data temporarily
         pendingRegistrations.set(email, {
             firstName,
@@ -270,7 +270,7 @@ const login = async (req, res) => {
     try {
         const { email, pass } = req.body;
         console.log(pass);
-        
+
         // Validate required fields
         if (!email || !pass) {
             return res.status(400).json({
@@ -436,6 +436,7 @@ const logout = async (req, res) => {
 const changePassword = async (req, res) => {
     try {
         const { email, pass, newPass, confirmNewPass } = req.body;
+        const id = req.user._id;
 
         if (!email || !pass || !newPass || !confirmNewPass) {
             return res.status(400).json({ EC: 0, EM: "Vui lòng nhập đầy đủ thông tin!" });
@@ -449,7 +450,7 @@ const changePassword = async (req, res) => {
             return res.status(400).json({ EC: 0, EM: "Mật khẩu mới phải có ít nhất 8 ký tự!" });
         }
 
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ _id: id });
         if (!user) {
             return res.status(400).json({ EC: 0, EM: "Email không tồn tại!" });
         }
@@ -494,7 +495,7 @@ const forgotPassword = async (req, res) => {
 
         // Generate OTP
         const otp = generateOTP();
-        
+
         // Store OTP with expiration (5 minutes)
         otpStore.set(email, {
             code: otp,
@@ -645,7 +646,7 @@ const resetPassword = async (req, res) => {
 const updateInformation = async (req, res) => {
     try {
         const { email, firstName, lastName, phone, address, description } = req.body;
-        
+
         // Validate required fields
         if (!email || !firstName || !lastName || !phone) {
             return res.status(400).json({

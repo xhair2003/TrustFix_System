@@ -48,7 +48,5 @@ router.get("/user-info", AuthMiddleware.verifyToken, (req, res) => {
     });
 });
 
-
-
-router.post("/update-profile",upload.single("image") , AuthenController.updateInformation);
-module.exports = router;
+router.post("/update-profile", upload.single("image"), AuthenController.updateInformation);
+module.exports = router; z
