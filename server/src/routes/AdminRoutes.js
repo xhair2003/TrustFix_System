@@ -25,4 +25,9 @@ router.get("/complaints/:id", AuthMiddleware.verifyAdmin, AdminController.getCom
 router.post("/complaints/:id/replies", AuthMiddleware.verifyAdmin, AdminController.replyToComplaint);
 router.get("/transactions/history", AuthMiddleware.verifyAdmin, AdminController.viewHistoryPayment);
 
+
+// User routes for Admin
+router.get("/users", AuthMiddleware.verifyAdmin, AdminController.getAllUsers);
+router.delete("/users/:userId", AuthMiddleware.verifyAdmin, AdminController.deleteUserById);
+
 module.exports = router;

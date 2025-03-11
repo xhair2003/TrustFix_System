@@ -1,4 +1,4 @@
-const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, } = require("../models");
+const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
 
 // --- Service Industry CRUD ---
@@ -226,7 +226,7 @@ const updateService = async (req, res) => {
             serviceId,
             {
                 type: type,
-                
+
             },
             { new: true } // Return updated document
         ).populate('type'); // Populate serviceIndustry details
@@ -340,7 +340,7 @@ const replyToComplaint = async (req, res) => {
         const parentComplaintId = req.params.id; // ID của khiếu nại gốc
         const { complaintContent } = req.body; // Chỉ lấy complaintContent từ request body
         const adminUserId = req.user.id; // Lấy adminUserId trực tiếp từ req.user.id
-        
+
 
         if (!complaintContent) {
             return res.status(400).json({
@@ -398,10 +398,10 @@ const viewHistoryPayment = async (req, res) => {
         })
             .populate({
                 path: "wallet_id",
-                select: "balance", 
+                select: "balance",
             })
             .limit(limitNumber)
-            .sort({ createdAt: -1 }); 
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             EC: 1,
@@ -413,6 +413,86 @@ const viewHistoryPayment = async (req, res) => {
         res.status(500).json({
             EC: 0,
             EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+        });
+    }
+}
+
+const getAllUsers = async (req, res) => {
+    try {
+        let { search = "", page = 1, limit = 10, sortBy = "createdAt", orderBy = "desc" } = req.query;
+
+        page = parseInt(page);
+        limit = parseInt(limit);
+        orderBy = orderBy === "desc" ? -1 : 1;
+
+        const adminUserIds = await Role.find({ type: "admin" }).distinct("user_id");
+
+        let filter = {
+            _id: { $nin: adminUserIds },
+            $or: [
+                { firstName: new RegExp(search, "i") },
+                { lastName: new RegExp(search, "i") },
+                { email: new RegExp(search, "i") },
+                { phone: new RegExp(search, "i") }
+            ]
+        };
+
+        const users = await User.find(filter)
+            .sort({ [sortBy]: orderBy })
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .select('-password')
+            .populate({
+                path: "roles",
+                select: "type"
+            })
+            .lean();
+
+        const totalCount = await User.countDocuments(filter);
+        const totalPages = Math.ceil(totalCount / limit);
+
+        return res.status(200).json({
+            EC: 1,
+            EM: "Lấy danh sách tài khoản thành công!",
+            data: {
+                page,
+                limit,
+                totalPages,
+                totalCount,
+                users,
+            }
+        });
+    } catch (err) {
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const deleteUserById = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            return res.status(400).json({ EC: 0, EM: "Vui lòng cung cấp userId!" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ EC: 0, EM: "Không tìm thấy người dùng!" });
+        }
+
+        await User.findByIdAndDelete(userId);
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Xóa tài khoản thành công!"
+        });
+    } catch (err) {
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
         });
     }
 };
@@ -432,4 +512,6 @@ module.exports = {
     getComplaintById,
     replyToComplaint,
     viewHistoryPayment,
+    getAllUsers,
+    deleteUserById
 };
