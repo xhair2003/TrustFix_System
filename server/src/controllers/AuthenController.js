@@ -435,26 +435,40 @@ const logout = async (req, res) => {
 ///Change password
 const changePassword = async (req, res) => {
     try {
-        const { pass , newPass , confirmNewPass } = req.body;
-
-
+        const { pass, newPass, confirmNewPass } = req.body;
         const user_id = req.user.id;
 
+        // Kiểm tra các trường dữ liệu yêu cầu
         if (!pass || !newPass || !confirmNewPass) {
             return res.status(400).json({ EC: 0, EM: "Vui lòng nhập đầy đủ thông tin!" });
         }
 
+        // Kiểm tra sự khớp giữa mật khẩu mới và xác nhận mật khẩu mới
         if (newPass !== confirmNewPass) {
             return res.status(400).json({ EC: 0, EM: "Mật khẩu mới không khớp!" });
         }
+
+        // Kiểm tra độ dài mật khẩu mới
         if (newPass.length < 8) {
             return res.status(400).json({ EC: 0, EM: "Mật khẩu mới phải có ít nhất 8 ký tự!" });
         }
+
+        // Lấy thông tin người dùng từ database
+        const user = await User.findById(user_id);
+        if (!user) {
+            return res.status(400).json({ EC: 0, EM: "Người dùng không tồn tại" });
+        }
+
+        // So sánh mật khẩu cũ với mật khẩu trong cơ sở dữ liệu
+        const validPassword = await bcrypt.compare(pass, user.pass);
+        if (!validPassword) {
+            return res.status(400).json({ EC: 0, EM: "Mật khẩu cũ không chính xác!" });
+        }
+
         // Mã hóa mật khẩu mới
         const hashedPassword = await hashPassword(newPass);
 
-        // Lưu mật khẩu đã mã hóa vào cơ sở dữ liệu
-        const user = await User.findById(req.user.id);
+        // Cập nhật mật khẩu mới vào cơ sở dữ liệu
         user.pass = hashedPassword;
         await user.save();
 
