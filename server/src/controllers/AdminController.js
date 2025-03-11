@@ -226,7 +226,6 @@ const updateService = async (req, res) => {
             serviceId,
             {
                 type: type,
-
             },
             { new: true } // Return updated document
         ).populate('type'); // Populate serviceIndustry details
@@ -341,7 +340,6 @@ const replyToComplaint = async (req, res) => {
         const { complaintContent } = req.body; // Chỉ lấy complaintContent từ request body
         const adminUserId = req.user.id; // Lấy adminUserId trực tiếp từ req.user.id
 
-
         if (!complaintContent) {
             return res.status(400).json({
                 EC: 0,
@@ -398,10 +396,10 @@ const viewHistoryPayment = async (req, res) => {
         })
             .populate({
                 path: "wallet_id",
-                select: "balance",
+                select: "balance", 
             })
             .limit(limitNumber)
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 }); 
 
         res.status(200).json({
             EC: 1,
