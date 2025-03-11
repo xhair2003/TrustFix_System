@@ -1,0 +1,210 @@
+/* Overlay bao phủ toàn màn hình */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  /* Container của modal */
+  .modal-container {
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    padding: 1.5rem;
+    animation: fadeInScale 0.3s ease forwards;
+  }
+  
+  /* Animation cho modal */
+  @keyframes fadeInScale {
+    0% {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  /* Header của modal */
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    position: relative;
+    left: 150px;
+  }
+  
+  .modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #6b7280;
+    cursor: pointer;
+  }
+  
+  .modal-close-btn:hover {
+    color: #374151;
+  }
+  
+  /* Nội dung modal */
+  .modal-body {
+    max-height: 450px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+  }
+  
+  /* Khối thông tin */
+  .info-block {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #f9fafb;
+    border-radius: 0.375rem;
+    border: 1px solid #e5e7eb;
+  }
+  
+  .block-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.5rem;
+  }
+  
+  /* Section thông tin */
+  .info-section {
+    margin-bottom: 1rem;
+  }
+  
+  .info-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+  }
+  
+  .info-value {
+    font-size: 0.875rem;
+    color: #1f2937;
+    line-height: 1.5;
+  }
+  
+  /* Row cho Mức giá và Số lần được đặt */
+  .info-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .info-row .info-section {
+    flex: 1;
+    min-width: 150px;
+  }
+  
+  /* Ảnh thợ */
+  .profile-image {
+    width: 100%;
+    max-width: 150px;
+    height: auto;
+    border-radius: 0.375rem;
+    margin-top: 0.5rem;
+  }
+  
+  /* Ảnh chứng chỉ */
+  .certification-image {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    border-radius: 0.375rem;
+    margin-top: 0.5rem;
+  }
+  
+  /* Danh sách đánh giá */
+  .reviews-list {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  
+  .review-item {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .review-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+  }
+  
+  .reviewer-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1f2937;
+  }
+  
+  .review-date {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+  
+  .review-stars {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .star {
+    font-size: 1rem;
+    color: #d1d5db;
+  }
+  
+  .star.filled {
+    color: #facc15;
+  }
+  
+  .review-comment {
+    font-size: 0.875rem;
+    color: #374151;
+    line-height: 1.5;
+  }
+  
+  /* Footer của modal */
+  .modal-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+  
+  .book-btn {
+    background-color: #2563eb;
+    color: #ffffff;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .book-btn:hover {
+    background-color: #1d4ed8;
+  }

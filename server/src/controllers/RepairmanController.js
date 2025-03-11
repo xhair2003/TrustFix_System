@@ -1,4 +1,4 @@
-const { User, Role, RepairmanUpgradeRequest, ServiceIndustry, Service } = require("../models");
+const { User, Role, RepairmanUpgradeRequest, ServiceIndustry, Service, Vip } = require("../models");
 
 const requestRepairmanUpgrade = async (req, res) => {
     try {
@@ -153,13 +153,69 @@ const verifyRepairmanUpgradeRequest = async (req, res) => {
         console.error('Verify repairman upgrade request error:', err);
         res.status(500).json({
             EC: 0,
-            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
         });
     }
 };
 
+const getAllVips = async (req, res) => {
+    try {
+      let { page = 1, limit = 10, search } = req.query;
+      page = parseInt(page);
+      limit = parseInt(limit);
+  
+      if (isNaN(page) || isNaN(limit) || page < 1 || limit < 1) {
+        return res.status(400).json({
+          EC: 1,
+          EM: "Giá trị page hoặc limit không hợp lệ!",
+          data: [],
+        });
+      }
+  
+      let filter = {};
+      if (search) {
+        filter.$or = [
+          { description: { $regex: search, $options: "i" } },
+          { price: isNaN(search) ? null : parseFloat(search) },
+        ];
+      }
+  
+      const vips = await Vip.find(filter)
+        .populate({
+          path: "user_id",
+          model: User,
+          select: "firstName lastName email phone",
+        })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 });
+  
+      const totalVips = await Vip.countDocuments(filter);
+      const totalPages = Math.ceil(totalVips / limit);
+  
+      return res.status(200).json({
+        EC: 0,
+        EM: "Lấy danh sách VIP thành công!",
+        data: {
+          currentPage: page,
+          totalPages,
+          totalRecords: totalVips,
+          vips,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        EC: 1,
+        EM: "Lỗi server, vui lòng thử lại sau!",
+        data: [],
+      });
+    }
+  };
+
 module.exports = {
     requestRepairmanUpgrade,
     getPendingUpgradeRequests,
-    verifyRepairmanUpgradeRequest
+    verifyRepairmanUpgradeRequest,
+    getAllVips
 };

@@ -22,11 +22,20 @@ const RequestSchema = new mongoose.Schema({
     repairman_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'RepairmanUpgradeRequest',
-        unique: true,
         default: null
-    }
+    },
+    parentRequest: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Request',
+        default: null
+    },
 }, { timestamps: true });
 
+RequestSchema.virtual('ID', {
+    ref: 'Request',
+    localField: '_id',
+    foreignField: 'parentRequest'
+});
 // Virtual for user
 RequestSchema.virtual('user', {
     ref: 'User',

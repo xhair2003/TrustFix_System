@@ -5,7 +5,6 @@ const ComplaintSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Request', // Tham chiếu đến model Request
         required: true,
-        unique: true // Đảm bảo quan hệ 1-1, mỗi request chỉ có một complaint
     }, // ID của Request liên quan, từ đó lấy user_id
     complaintContent: {
         type: String,
@@ -19,7 +18,7 @@ const ComplaintSchema = new mongoose.Schema({
     requestResolution: {
         type: String,
         enum: ['Hoàn tiền', 'Kiểm tra lại', 'Báo công an', 'Khác'],
-        required: true
+        // required: true
     }, // Yêu cầu giải quyết khiếu nại
     image: {
         type: String, // Hoặc có thể dùng Array [String] nếu muốn cho phép nhiều ảnh
