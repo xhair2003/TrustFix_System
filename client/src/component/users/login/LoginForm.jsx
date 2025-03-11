@@ -3,17 +3,37 @@ import React, { useState } from 'react';
 import './LoginForm.scss';
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
-
+import { useDispatch, useSelector } from 'react-redux';
+import { login } from '../../../store/actions/auth';
+import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
-  const [email, setEmail] = useState();
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const dispatch = useDispatch();
+  const { errorLogin } = useSelector(state => state.auth);
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Add your login logic here
-    console.log('Login attempted with:', { email, password });
+    dispatch(login(email, password));
+    if (errorLogin) {
+      // Hiển thị thông báo lỗi khi có lỗi
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: errorLogin,
+        timer: 5000,
+        timerProgressBar: true,
+        showCloseButton: true,
+        showConfirmButton: false,
+      });
+    }
+    else {
+      navigate('/');
+    }
   };
 
   return (
@@ -52,7 +72,7 @@ const LoginForm = () => {
           </div>
         </div>
 
-        <div className="options">
+        <div className="login-options">
           <label className="remember-me">
             <input type="checkbox" />
             Ghi nhớ mật khẩu
