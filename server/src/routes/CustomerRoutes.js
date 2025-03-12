@@ -25,4 +25,7 @@ router.post("/manage-infor",authMiddleware.verifyToken,upload.single("image"),Cu
 router.post("/rating",authMiddleware.verifyToken,CustomerController.addRating);
 router.put("/edit-rating",authMiddleware.verifyToken,CustomerController.editRating);
 router.delete("/delete-rating/:id",authMiddleware.verifyToken,CustomerController.deleteRating);
+
+router.post('/repairmen/nearby',authMiddleware.verifyToken, CustomerController.findNearbyRepairmen);
+
 module.exports = router;

@@ -24,8 +24,8 @@ const RequestSchema = new mongoose.Schema({
         required: true
     },
     status: {
-        type: Number,
-        default: 1
+        type: String,
+        default: null
     },
     repairman_id: {
         type: mongoose.Schema.Types.ObjectId,
