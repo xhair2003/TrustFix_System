@@ -1,6 +1,71 @@
 const { User, Role, Wallet, Transaction, Complaint, Request, Rating } = require("../models");
 const cloudinary = require("../../config/cloudinary");
 
+const getBalance = async (req, res) => {
+    try {
+        const userId = req.user.id; // Lấy user ID từ token đã xác thực
+
+        // Tìm wallet dựa trên user_id
+        const wallet = await Wallet.findOne({ user_id: userId });
+
+        if (!wallet) {
+            return res.status(404).json({
+                EC: 1,
+                EM: "Không tìm thấy ví cho người dùng này!",
+                balance: 0,
+            });
+        }
+
+        return res.status(200).json({
+            EC: 0,
+            EM: "Lấy số dư thành công!",
+            DT: wallet.balance, // Trả về số dư
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            EC: 1,
+            EM: "Lỗi server, vui lòng thử lại sau!",
+        });
+    }
+};
+
+const getAllHistoryPayment = async (req, res) => {
+    try {
+        const userId = req.user.id; // Get user ID from verified token
+
+        // Find the user's wallet
+        const wallet = await Wallet.findOne({ user_id: userId });
+        if (!wallet) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy ví của người dùng!"
+            });
+        }
+
+        // Find all transactions for the user's wallet with transactionType as 'deposite'
+        const transactions = await Transaction.find({ wallet_id: wallet._id, transactionType: 'payment' })
+            .populate({
+                path: 'wallet_id',
+                populate: { path: 'user_id', select: 'firstName lastName email' } // Populate user info in wallet
+            })
+            .sort({ createdAt: -1 }); // Sort by createdAt in descending order ( mới nhất trước)
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy lịch sử giao dịch thành công!",
+            DT: transactions
+        });
+
+    } catch (error) {
+        console.error("Error getting user transaction history:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+
+}
 
 const getAllDepositeHistory = async (req, res) => {
     try {
@@ -15,8 +80,8 @@ const getAllDepositeHistory = async (req, res) => {
             });
         }
 
-        // Find all transactions for the user's wallet
-        const transactions = await Transaction.find({ wallet_id: wallet._id })
+        // Find all transactions for the user's wallet with transactionType as 'deposite'
+        const transactions = await Transaction.find({ wallet_id: wallet._id, transactionType: 'deposite' })
             .populate({
                 path: 'wallet_id',
                 populate: { path: 'user_id', select: 'firstName lastName email' } // Populate user info in wallet
@@ -42,8 +107,9 @@ const getAllDepositeHistory = async (req, res) => {
 const createComplaint = async (req, res) => {
     try {
         const userId = req.user.id; // Lấy user ID từ token
-        const { request_id, complaintContent, complaintType, requestResolution, image } = req.body;
+        const { request_id, complaintContent, complaintType, requestResolution } = req.body;
 
+        // Kiểm tra các trường bắt buộc
         if (!request_id || !complaintContent || !complaintType || !requestResolution) {
             return res.status(400).json({
                 EC: 0,
@@ -51,6 +117,7 @@ const createComplaint = async (req, res) => {
             });
         }
 
+        // Kiểm tra mã yêu cầu
         const request = await Request.findOne({ _id: request_id, user_id: userId });
         if (!request) {
             return res.status(400).json({
@@ -59,12 +126,24 @@ const createComplaint = async (req, res) => {
             });
         }
 
+        // Upload ảnh mới nếu có
+        let image = null; // Mặc định không có ảnh
+        console.log(req.file); // Kiểm tra xem file có được upload không
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: "complaint_images", // Upload vào thư mục complaint_images
+                transformation: [{ width: 500, height: 500, crop: "limit" }]
+            });
+            image = result.secure_url; // Lấy link ảnh từ Cloudinary
+        }
+
+        // Tạo mới khiếu nại
         const newComplaint = new Complaint({
             request_id: request_id,
             complaintContent: complaintContent,
             complaintType: complaintType,
             requestResolution: requestResolution,
-            image: image,
+            image: image, // Lưu đường dẫn ảnh
         });
 
         await newComplaint.save();
@@ -157,7 +236,7 @@ const getRatingById = async (req, res) => {
     }
 };
 
-const addRating = async (req, res) => { 
+const addRating = async (req, res) => {
     try {
         const { request_id, rate, comment } = req.body;
         const user_id = req.user.id;
@@ -215,50 +294,51 @@ const addRating = async (req, res) => {
 
 const editRating = async (req, res) => {
     try {
-     const {rating_id, comment } = req.body;
-     const user_email = req.user.email;
-        if(!comment || comment.trim().length === 0){
+        const { rating_id, comment } = req.body;
+        const user_email = req.user.email;
+        if (!comment || comment.trim().length === 0) {
             return res.status(400).json({
                 EC: 0,
                 EM: "Vui lòng nhập bình luận!"
             });
         }
-        const rating = await Rating.findByIdAndUpdate(rating_id, {comment}, {new: true});
-        console.log("Rating edited :",rating);
-        console.log("Edit by :" ,user_email);
-        
+        const rating = await Rating.findByIdAndUpdate(rating_id, { comment }, { new: true });
+        console.log("Rating edited :", rating);
+        console.log("Edit by :", user_email);
+
         res.status(200).json({
             EC: 1,
             EM: "Cập nhật đánh giá thành công!",
             DT: rating
         });
     } catch (error) {
-        console.log("Error editing rating:",error);
+        console.log("Error editing rating:", error);
         res.status(500).json({
             EC: 0,
             EM: "Đã có lỗi xảy ra khi cập nhật đánh giá. Vui lòng thử lại sau!"
         });
     }
 }
-const deleteRating = async (req , res) => { 
+const deleteRating = async (req, res) => {
     try {
-        const {rating_id} = req.params;
+        const { rating_id } = req.params;
         const user_email = req.user.email;
         const rating = await Rating.findByIdAndDelete(rating_id);
-        console.log("Rating deleted :",rating);
-        console.log("Deleted by : ",user_email);
+        console.log("Rating deleted :", rating);
+        console.log("Deleted by : ", user_email);
         res.status(200).json({
             EC: 1,
             EM: "Xóa đánh giá thành công!",
         });
     } catch (error) {
-        console.log("Error deleting rating:",error);
+        console.log("Error deleting rating:", error);
         res.status(500).json({
             EC: 0,
             EM: "Đã có lỗi xảy ra khi xóa đánh giá. Vui lòng thử lại sau!"
         });
     }
 }
+
 const updateInformation = async (req, res) => {
     try {
         const { email, firstName, lastName, phone, address, description } = req.body;
@@ -275,6 +355,7 @@ const updateInformation = async (req, res) => {
 
         // Upload ảnh mới nếu có
         let imgAvt = user.imgAvt; // Mặc định giữ ảnh cũ
+        console.log(req.file);
         if (req.file) {
             const result = await cloudinary.uploader.upload(req.file.path, {
                 folder: "user_avatars", // Upload vào thư mục user_avatars
@@ -313,7 +394,55 @@ const updateInformation = async (req, res) => {
         });
     }
 };
+
+// Controller để lấy thông tin người dùng
+const getUserInfo = async (req, res) => {
+    try {
+        const userId = req.user.id; // Lấy ID người dùng từ req.user
+
+        // Truy vấn dữ liệu người dùng từ bảng User
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Người dùng không tồn tại!",
+            });
+        }
+
+        // Truy vấn các vai trò của người dùng từ bảng Role
+        const roles = await Role.find({ user_id: userId }); // Lấy các vai trò có user_id bằng userId
+
+        // Lấy thuộc tính type từ vai trò đầu tiên (nếu có)
+        const type = roles.length > 0 ? roles[0].type : null; // Nếu không có vai trò, trả về null
+
+        // Truy vấn balance từ bảng Wallet
+        const wallets = await Wallet.find({ user_id: userId }); // Lấy các vai trò có user_id bằng userId
+
+        // Lấy thuộc tính type từ vai trò đầu tiên (nếu có)
+        const balance = wallets.length > 0 ? wallets[0].balance : 0; // Nếu không có vai trò, trả về 0
+
+        // Trả về thông tin người dùng
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy thông tin người dùng thành công",
+            DT: {
+                ...user.toObject(), // Chuyển đổi user thành object
+                type, // Thêm thông tin type
+                balance // Thêm thông tin số dư
+            },
+        });
+    } catch (error) {
+        res.status(500).json({
+            EC: 0,
+            EM: "Có lỗi xảy ra khi lấy thông tin người dùng",
+        });
+    }
+};
+
 module.exports = {
+    getBalance,
+    getAllHistoryPayment,
     getAllDepositeHistory,
     createComplaint,
     getRequestsByUserId,
@@ -322,5 +451,6 @@ module.exports = {
     addRating,
     editRating,
     deleteRating,
-    updateInformation
+    updateInformation,
+    getUserInfo,
 }

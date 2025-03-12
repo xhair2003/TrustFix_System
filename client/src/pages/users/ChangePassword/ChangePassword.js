@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { changePassword } from "../../../store/actions/auth"; // Import action
+import { changePassword, resetError } from "../../../store/actions/auth"; // Import action
 import Swal from "sweetalert2";
 import "./ChangePassword.scss";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
@@ -60,6 +60,8 @@ const ChangePassword = () => {
   // Hàm xử lý submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    dispatch(resetError()); // Đặt lại lỗi trước khi gọi 
 
     if (validateForm()) {
       const { currentPassword, newPassword, confirmPassword } = form;

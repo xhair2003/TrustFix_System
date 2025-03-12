@@ -12,12 +12,12 @@ const ComplaintSchema = new mongoose.Schema({
     }, // Nội dung khiếu nại
     complaintType: {
         type: String,
-        enum: ['Dịch vụ kém', 'Phí không rõ ràng', 'Nhân viên không chuyên nghiệp', 'Khác'],
+        enum: ['Chất lượng sửa chữa không đạt', 'Thợ đến muộn/không đến', 'Thái độ không chuyên nghiệp', 'Khác'],
         required: true
     }, // Loại khiếu nại
     requestResolution: {
         type: String,
-        enum: ['Hoàn tiền', 'Kiểm tra lại', 'Báo công an', 'Khác'],
+        enum: ['Hoàn tiền', 'Sửa chữa lại', 'Đền bù thiệt hại', 'Khác'],
         // required: true
     }, // Yêu cầu giải quyết khiếu nại
     image: {

@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchBalance } from '../../../../store/actions/userActions';
 import { useNavigate } from 'react-router-dom';
-//import { apiGetWalletBalance } from '../../../services/Wallet'; 
 import './Wallet.css';
-import bankTransfer from "../../../../assets/Images/bankTransfer.png";
 import momo_icon from "../../../../assets/Images/momo_icon.svg";
-import momo from "../../../../assets/Images/momo.png";
 import credit from "../../../../assets/Images/credit.svg";
+import Loading from '../../../../component/Loading/Loading';
 
 const Wallet = () => {
+    const dispatch = useDispatch();
     const navigate = useNavigate();
-    const [balance, setBalance] = useState(null);
+    const { balance, loading, error } = useSelector((state) => state.user);
 
     const convertToWords = (amount) => {
         if (!amount) return '';
@@ -17,19 +18,17 @@ const Wallet = () => {
         return number.toLocaleString('vi-VN') + ' đồng';
     };
 
-    // useEffect(() => {
-    //     const fetchBalance = async () => {
-    //         try {
-    //             const res = await apiGetWalletBalance(); // Gọi API để lấy số dư
-    //             if (res.status === 200) {
-    //                 setBalance(res.data.balance);
-    //             }
-    //         } catch (error) {
-    //             console.error('Error fetching wallet balance:', error);
-    //         }
-    //     };
-    //     fetchBalance();
-    // }, []);
+    useEffect(() => {
+        dispatch(fetchBalance());
+    }, [dispatch]);
+
+    if (loading) {
+        return <Loading />;
+    }
+
+    if (error) {
+        return <p style={{ color: 'red' }}>{error}</p>;
+    }
 
     return (
         <div className="deposit-container">
@@ -66,7 +65,7 @@ const Wallet = () => {
                         <div className="balance-info">
                             <p className="balance-title">Số dư tài khoản</p>
                             <p className="balance-amount">
-                                {convertToWords(500000)}
+                                {convertToWords(balance)}
                             </p>
                         </div>
                         <div className="options">
@@ -86,6 +85,5 @@ const Wallet = () => {
         </div>
     );
 };
-
 
 export default Wallet;

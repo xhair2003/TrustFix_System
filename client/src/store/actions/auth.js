@@ -16,7 +16,7 @@ export const login = (email, pass) => {
                 // Đẩy action vào Redux
                 dispatch({
                     type: "LOGIN_SUCCESS",
-                    payload: { accessToken, isAuthenticated: true, user: response.data.DT }
+                    payload: { accessToken, isAuthenticated: true, user: response.data.DT, successLogin: response.data.EM }
                 });
             } else {
                 dispatch({
@@ -41,7 +41,6 @@ export const logout = () => {
         // Đẩy action logout vào Redux
         dispatch({
             type: "LOGOUT",
-            payload: { isAuthenticated: false }
         });
     };
 };
@@ -184,5 +183,18 @@ export const resetPassword = (resetToken, newPassword, confirmPassword) => async
     }
 };
 
+// Action để reset lỗi
+export const resetError = () => {
+    return {
+        type: "RESET_ERROR",
+    };
+};
+
+// Action để reset thành công
+export const resetSuccess = () => {
+    return {
+        type: "RESET_SUCCESS",
+    };
+};
 
 
