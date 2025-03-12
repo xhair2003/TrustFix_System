@@ -6,7 +6,7 @@ const RepairmanController = require("../controllers/RepairmanController");
 
 // Repairman upgrade request route - requires authentication
 router.post("/repairman-upgrade-request", AuthMiddleware.verifyToken, RepairmanController.requestRepairmanUpgrade);
-router.get("/list-vips",  AuthMiddleware.verifyToken, RepairmanController.getAllVips);
+router.get("/list-vips", AuthMiddleware.verifyRepairman, RepairmanController.getAllVips);
 
 // Admin routes - require admin authentication
 router.get("/admin/repairman-upgrade-requests/pending", AuthMiddleware.verifyAdmin, RepairmanController.getPendingUpgradeRequests);

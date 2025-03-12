@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { resetPassword } from '../../../store/actions/auth';
+import { resetPassword, resetError } from '../../../store/actions/auth';
 import Loading from '../../Loading/Loading';
 import Swal from 'sweetalert2';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -18,6 +18,8 @@ const ResetPasswordForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+
+    dispatch(resetError()); // Đặt lại lỗi trước khi gọi 
 
     try {
       await dispatch(resetPassword(resetToken, newPassword, confirmPassword));

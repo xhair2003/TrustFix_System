@@ -1,68 +1,20 @@
 import React, { useState, useEffect } from "react";
-//import axios from 'axios';
-//import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux'; // Import useDispatch và useSelector
+import { fetchtHistoryPayment } from '../../../../store/actions/userActions'; // Import action
 import Loading from "../../../../component/Loading/Loading";
 import './HistoryPayment.css'; // Import CSS
 
 const HistoryPayment = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
-    const [transactions, setTransactions] = useState([]);
-    const [loading, setLoading] = useState(true);
-    //const token = useSelector(state => state.auth.token);
-    const breadcrumbItems = []
-
-    // Dữ liệu giả cho transactions
-    const mockTransactions = [
-        {
-            createdAt: '2023-10-01T12:00:00Z',
-            paycode: 'TX123456',
-            amount: 1000000,
-            content: 'Nạp tiền qua MoMo',
-            balance: 2000000,
-            status: 'Thành công'
-        },
-        {
-            createdAt: '2023-10-02T12:00:00Z',
-            paycode: 'TX123457',
-            amount: 500000,
-            content: 'Nạp tiền qua chuyển khoản',
-            balance: 2500000,
-            status: 'Thành công'
-        },
-        {
-            createdAt: '2023-10-03T12:00:00Z',
-            paycode: 'TX123458',
-            amount: 750000,
-            content: 'Nạp tiền qua thẻ tín dụng',
-            balance: 1750000,
-            status: 'Thất bại'
-        },
-        {
-            createdAt: '2023-10-04T12:00:00Z',
-            paycode: 'TX123459',
-            amount: 2000000,
-            content: 'Nạp tiền qua MoMo',
-            balance: 3750000,
-            status: 'Thành công'
-        },
-        {
-            createdAt: '2023-10-05T12:00:00Z',
-            paycode: 'TX123460',
-            amount: 1500000,
-            content: 'Nạp tiền qua chuyển khoản',
-            balance: 5250000,
-            status: 'Thành công'
-        },
-    ];
+    const dispatch = useDispatch(); // Khởi tạo dispatch
+    const { loading, paymentTransactions, error } = useSelector(state => state.user); // Lấy thông tin từ Redux
 
     useEffect(() => {
-        // Thay thế việc gọi API bằng dữ liệu giả
-        setTransactions(mockTransactions);
-        setLoading(false); // Đặt loading thành false sau khi dữ liệu được gán
-    }, []);
+        dispatch(fetchtHistoryPayment()); // Gọi action để lấy lịch sử thanh toán
+    }, [dispatch]);
 
-    const totalPages = Math.ceil(transactions.length / itemsPerPage);
+    const totalPages = Math.ceil(paymentTransactions.length / itemsPerPage);
 
     const handlePreviousPage = () => {
         if (currentPage > 1) {
@@ -76,34 +28,11 @@ const HistoryPayment = () => {
         }
     };
 
-    // Fetch deposit history from the API
-    // useEffect(() => {
-    //     const fetchDepositHistory = async () => {
-    //         try {
-    //             const res = await axios.get('http://localhost:5000/api/v1/user/depositHistory', {
-    //                 headers: {
-    //                     'token': `${token}`,
-    //                 }
-    //             });
-    //             //console.log(res)
-    //             if (res.data.err === 0) {
-    //                 setTransactions(res.data.transactions);
-    //             }
-    //         } catch (error) {
-    //             console.error('Error fetching deposit history:', error);
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
-    //     fetchDepositHistory();
-    // }, [token]);
-
     // Calculate the data to display on the current page
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = transactions.slice(indexOfFirstItem, indexOfLastItem);
-    //console.log(currentItems);
-    //console.log(transactions);
+    const currentItems = paymentTransactions.slice(indexOfFirstItem, indexOfLastItem);
+
     // Function to format date
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -114,9 +43,12 @@ const HistoryPayment = () => {
         return <Loading />;
     }
 
+    if (error) {
+        return <p style={{ color: 'red' }}>{error}</p>; // Hiển thị lỗi nếu có
+    }
+
     return (
         <div>
-            {/* <Breadcrumb items={breadcrumbItems} /> */}
             <div className='hp-container'>
                 <div className='hp-card'>
                     <h1 className='hp-title'>
@@ -127,10 +59,10 @@ const HistoryPayment = () => {
                             <table className="hp-table">
                                 <thead>
                                     <tr>
-                                        <th>Ngày nạp</th>
+                                        <th>Ngày thanh toán</th>
                                         <th>Mã giao dịch</th>
                                         <th>Số tiền</th>
-                                        <th >Nội dung thanh toán</th>
+                                        <th>Nội dung thanh toán</th>
                                         <th>Số dư</th>
                                         <th>Trạng thái</th>
                                     </tr>
@@ -139,11 +71,11 @@ const HistoryPayment = () => {
                                     {currentItems.map((item, index) => (
                                         <tr key={index}>
                                             <td>{formatDate(item.createdAt)}</td>
-                                            <td>{item.paycode}</td>
+                                            <td>{item.payCode}</td>
                                             <td>{parseInt(item.amount).toLocaleString('vi-VN')}</td>
                                             <td>{item.content}</td>
-                                            <td>{parseInt(item.balance).toLocaleString('vi-VN')}</td>
-                                            <td>{item.status}</td>
+                                            <td>{parseInt(item.balanceAfterTransact).toLocaleString('vi-VN')}</td>
+                                            <td>{item.status === 1 ? 'Thành công' : 'Thất bại'}</td>
                                         </tr>
                                     ))}
                                 </tbody>

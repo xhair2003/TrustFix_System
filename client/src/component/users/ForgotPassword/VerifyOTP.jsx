@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import ResetPasswordForm from "./ResetPassword";
 import Loading from "../../Loading/Loading";
 import "../register/RegisterForm.scss";
-import { forgotPassword } from '../../../store/actions/auth';
+import { forgotPassword, resetError } from '../../../store/actions/auth';
 
 const VerifyOTP = ({ email }) => {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
@@ -34,6 +34,9 @@ const VerifyOTP = ({ email }) => {
   const handleResend = async () => {
     if (canResend && !isLoading) {
       setIsLoading(true);
+
+      dispatch(resetError()); // Đặt lại lỗi trước khi gọi 
+
       try {
         await dispatch(forgotPassword(email)); // Gọi action forgotPassword
         setTimer(60); // Reset timer
@@ -97,6 +100,8 @@ const VerifyOTP = ({ email }) => {
       setIsLoading(false);
       return;
     }
+
+    dispatch(resetError()); // Đặt lại lỗi trước khi gọi 
 
     // Gọi action verifyOtp
     dispatch(verifyOtp(email, fullCode));

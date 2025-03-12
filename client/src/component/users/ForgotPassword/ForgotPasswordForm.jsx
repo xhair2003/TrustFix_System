@@ -1,7 +1,7 @@
 // ForgotPassword.js
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { forgotPassword } from '../../../store/actions/auth';
+import { forgotPassword, resetError } from '../../../store/actions/auth';
 import VerifyOTP from './VerifyOTP';
 import Swal from 'sweetalert2';
 import Loading from '../../Loading/Loading';
@@ -45,6 +45,8 @@ const ForgotPasswordForm = () => {
       setErrors('Vui lòng nhập email hợp lệ');
       return;
     }
+
+    dispatch(resetError()); // Đặt lại lỗi trước khi gọi 
 
     // Gọi action forgotPassword
     dispatch(forgotPassword(email));

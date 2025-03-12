@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { verifyRegister, registerUser } from "../../../store/actions/auth";
+import { verifyRegister, registerUser, resetError } from "../../../store/actions/auth";
 import Swal from "sweetalert2";
 import "./RegisterForm.scss";
 
@@ -64,6 +64,8 @@ const AuthenticationForm = ({ email, userData }) => {
       return;
     }
 
+    dispatch(resetError()); // Đặt lại lỗi trước khi gọi 
+
     try {
       await dispatch(verifyRegister(email, fullCode));
       setError("");
@@ -101,6 +103,8 @@ const AuthenticationForm = ({ email, userData }) => {
   };
 
   const handleResend = async () => {
+    dispatch(resetError()); // Đặt lại lỗi trước khi gọi 
+
     if (canResend && !loading) {
       try {
         await dispatch(registerUser(userData)); // Sử dụng userData từ props

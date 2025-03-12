@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser } from "../../../store/actions/auth";
+import { registerUser, resetError } from "../../../store/actions/auth";
 import Swal from "sweetalert2";
 import "./RegisterForm.scss";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -49,6 +49,8 @@ const RegisterForm = ({ onRegisterSuccess }) => {
       setErrors(validationErrors);
       return;
     }
+
+    dispatch(resetError()); // Đặt lại lỗi trước khi gọi 
 
     try {
       const newUserData = {

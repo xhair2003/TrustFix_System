@@ -1,24 +1,23 @@
 // LoginForm.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './LoginForm.scss';
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
-import { login } from '../../../store/actions/auth';
+import { login, resetError, resetSuccess } from '../../../store/actions/auth';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
+import Loading from '../../Loading/Loading';
 
 const LoginForm = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const dispatch = useDispatch();
-  const { errorLogin } = useSelector(state => state.auth);
+  const { loading, errorLogin, successLogin } = useSelector(state => state.auth);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    dispatch(login(email, password));
+  useEffect(() => {
     if (errorLogin) {
       // Hiển thị thông báo lỗi khi có lỗi
       Swal.fire({
@@ -31,13 +30,21 @@ const LoginForm = () => {
         showConfirmButton: false,
       });
     }
-    else {
+
+    if (successLogin) {
       navigate('/');
     }
+  }, [errorLogin, navigate, successLogin]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    dispatch(resetError()); // Đặt lại lỗi trước khi gọi đăng nhập
+    dispatch(login(email, password));
   };
 
   return (
     <div className="login-container">
+      {loading && <Loading />}
       <form className="login-form" onSubmit={handleSubmit}>
         <p className='welcome-back'>Chào mừng quay trở lại</p>
         <p className='login-title'>Đăng nhập bằng tài khoản của bạn</p>
@@ -82,8 +89,8 @@ const LoginForm = () => {
           </a>
         </div>
 
-        <button type="submit" className="login-button">
-          ĐĂNG NHẬP
+        <button type="submit" className="login-button" disabled={loading}>
+          {loading ? 'ĐANG XỬ LÝ...' : 'ĐĂNG NHẬP'}
         </button>
 
         <p className="signup-link">

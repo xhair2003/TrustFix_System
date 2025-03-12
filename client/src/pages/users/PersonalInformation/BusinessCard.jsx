@@ -2,13 +2,11 @@ import React from 'react';
 import './BusinessCard.scss';
 
 const BusinessCard = ({
-  firstName,
-  lastName,
-  balance,
+  username,
   email,
   phone,
-  status,
-  imgAvt,
+  type,
+  avatar,
   address,
   description,
 
@@ -16,10 +14,9 @@ const BusinessCard = ({
   return (
     <div className="business-card">
       <div className="card-header">
-        <img src={imgAvt} alt="Avatar" className="avatar" />
+        <img src={avatar} alt="Avatar" className="avatar" />
         <div className="name-section">
-          <h2>{firstName} {lastName}</h2>
-          <p>{balance}</p>
+          <h2>{username}</h2>
         </div>
       </div>
       <div className="card-body">
@@ -35,8 +32,8 @@ const BusinessCard = ({
             </div>
           )}
           <div className="info-item">
-            <span className="icon role">{status === 'Khách hàng' ? "🙋" : "🧑‍🔧"}</span>
-            <span>{status}</span>
+            <span className="icon role">{type === 'customer' ? "🙋" : "🧑‍🔧"}</span>
+            <span>{type}</span>
           </div>
           <div className="info-item">
             <span className="icon verified">📍</span>

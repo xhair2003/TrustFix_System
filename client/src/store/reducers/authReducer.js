@@ -18,6 +18,7 @@ const initialState = {
     successChangePassword: null,
     successRegister: null,
     successVerifyOTP: null,
+    successLogin: null,
 };
 
 const authReducer = (state = initialState, action) => {
@@ -39,13 +40,12 @@ const authReducer = (state = initialState, action) => {
                 errorLogin: null,
                 user: action.payload.user,
                 loading: false,
+                successLogin: action.payload.successLogin,
             };
 
         case "LOGOUT":
             return {
-                ...state,
-                isAuthenticated: action.payload.isAuthenticated,
-                user: null,
+                ...initialState,
             };
 
         case "VERIFY_REGISTER_SUCCESS":
@@ -78,7 +78,7 @@ const authReducer = (state = initialState, action) => {
 
 
         case "LOGIN_FAIL":
-            return { ...state, loading: false, errorLogin: action.payload.EM };
+            return { ...state, loading: false, errorLogin: action.payload.EM, successLogin: null };
         case "FORGOT_PASSWORD_FAIL":
             return { ...state, loading: false, errorForgotPassword: action.payload.EM, successForgotPassword: null };
         case "VERIFY_OTP_FAIL":
@@ -91,6 +91,28 @@ const authReducer = (state = initialState, action) => {
             return { ...state, loading: false, errorVerifyRegister: action.payload.EM };
         case "REGISTER_FAIL":
             return { ...state, loading: false, errorRegister: action.payload.EM, successRegister: null };
+
+
+        case "RESET_ERROR":
+            return {
+                ...state,
+                errorRegister: null,
+                errorVerifyRegister: null,
+                errorChangePassword: null,
+                errorResetPassword: null,
+                errorVerifyOTP: null,
+                errorForgotPassword: null,
+                errorLogin: null,
+            };
+        case "RESET_SUCCESS":
+            return {
+                ...state,
+                successRegister: null,
+                successChangePassword: null,
+                successForgotPassword: null,
+                successResetPassword: null,
+                successVerifyOTP: null,
+            };
 
         default:
             return state;
