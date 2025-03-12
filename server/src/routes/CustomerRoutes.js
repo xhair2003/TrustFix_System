@@ -12,20 +12,37 @@ router.get(
   CustomerController.getAllDepositeHistory
 );
 
+router.get(
+  "/historyPayment",
+  AuthMiddleware.verifyToken,
+  CustomerController.getAllHistoryPayment
+);
+
+router.get(
+  "/getBalance",
+  AuthMiddleware.verifyToken,
+  CustomerController.getBalance
+);
+
 router.post(
   "/complaints",
   AuthMiddleware.verifyToken,
+  upload.single("image"), // Sử dụng middleware upload để xử lý file
   CustomerController.createComplaint
 );
 
-router.post("/manage-infor",authMiddleware.verifyToken,upload.single("image"),CustomerController.updateInformation);
+router.post("/manage-infor", authMiddleware.verifyToken, upload.single("image"), CustomerController.updateInformation);
 
 //rating
 // router.get("/rating-by-id/:id",CustomerController.getRatingById);
-router.post("/rating",authMiddleware.verifyToken,CustomerController.addRating);
-router.put("/edit-rating",authMiddleware.verifyToken,CustomerController.editRating);
-router.delete("/delete-rating/:id",authMiddleware.verifyToken,CustomerController.deleteRating);
 
-router.post('/repairmen/nearby',authMiddleware.verifyToken, CustomerController.findNearbyRepairmen);
+router.post("/rating", authMiddleware.verifyToken, CustomerController.addRating);
+router.put("/edit-rating", authMiddleware.verifyToken, CustomerController.editRating);
+router.delete("/delete-rating/:id", authMiddleware.verifyToken, CustomerController.deleteRating);
+
+router.post('/repairmen/nearby', authMiddleware.verifyToken, CustomerController.findNearbyRepairmen);
+//user-information
+router.get('/user-info', authMiddleware.verifyToken, CustomerController.getUserInfo);
 
 module.exports = router;
+

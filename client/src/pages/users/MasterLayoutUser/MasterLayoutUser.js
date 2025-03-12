@@ -5,11 +5,14 @@ import { FaUser, FaLock, FaHistory, FaExclamationCircle, FaStar, FaSignOutAlt, F
 import { useNavigate } from 'react-router-dom';
 import logo from "../../../assets/Images/logo.png";
 import onlyLogo from "../../../assets/Images/onlyLogo.jpg";
+import { logout } from '../../../store/actions/auth';
+import { useDispatch } from 'react-redux';
 
 const MasterLayoutUser = ({ children }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const toggleSidebar = () => {
         setIsCollapsed(!isCollapsed);
@@ -18,6 +21,11 @@ const MasterLayoutUser = ({ children }) => {
     const handleItemClick = (item) => {
         setSelectedItem(item.name);
         navigate(item.path);
+    };
+
+    const handleLogout = () => {
+        dispatch(logout());
+        navigate('/');
     };
 
     return (
@@ -61,7 +69,7 @@ const MasterLayoutUser = ({ children }) => {
                     <div className={`menu-item ${selectedItem === 'upgrade-repair-man' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/upgrade-repair-man", name: 'upgrade-repair-man' })}>
                         {isCollapsed ? <FaStar /> : <> <FaStar /> Nâng cấp lên thợ</>}
                     </div>
-                    <div className={`menu-item ${selectedItem === 'logout' ? 'active' : ''}`} onClick={() => {/* Handle logout */ }}>
+                    <div className={`menu-item ${selectedItem === 'logout' ? 'active' : ''}`} onClick={handleLogout}>
                         {isCollapsed ? <FaSignOutAlt /> : <> <FaSignOutAlt /> Đăng xuất</>}
                     </div>
                 </div>

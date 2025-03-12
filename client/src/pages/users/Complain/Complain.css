@@ -28,6 +28,7 @@
     display: flex;
     gap: 1rem;
     margin-bottom: 1.5rem;
+    width: 97%;
   }
   
   /* Các trường input chung */
@@ -107,7 +108,7 @@
   
   /* Section */
   .section {
-    margin-bottom: 2.2rem;
+    margin-bottom: 1.9rem;
   }
   
   /* Xác nhận */
