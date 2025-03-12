@@ -23,25 +23,25 @@ const BusinessCard = ({
       </div>
       <div className="card-body">
         <div className="contact-info">
-          <div className="info-item">
+          <div className="bussiness-info-item">
             <span className="icon email">✉️</span>
             <span>{email}</span>
           </div>
           {phone && (
-            <div className="info-item">
+            <div className="bussiness-info-item">
               <span className="icon phone">📞</span>
               <span>{phone}</span>
             </div>
           )}
-          <div className="info-item">
+          <div className="bussiness-info-item">
             <span className="icon role">{status === 'Khách hàng' ? "🙋" : "🧑‍🔧"}</span>
             <span>{status}</span>
           </div>
-          <div className="info-item">
+          <div className="bussiness-info-item">
             <span className="icon verified">📍</span>
             <span>{address}</span>
           </div>
-          <div className="info-item">
+          <div className="bussiness-info-item">
             <span className="icon verified">ℹ️</span>
             <span>{description}</span>
           </div>
