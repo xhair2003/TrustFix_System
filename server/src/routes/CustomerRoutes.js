@@ -35,7 +35,6 @@ router.post("/manage-infor", authMiddleware.verifyToken, upload.single("image"),
 
 //rating
 // router.get("/rating-by-id/:id",CustomerController.getRatingById);
-
 router.post("/rating", authMiddleware.verifyToken, CustomerController.addRating);
 router.put("/edit-rating", authMiddleware.verifyToken, CustomerController.editRating);
 router.delete("/delete-rating/:id", authMiddleware.verifyToken, CustomerController.deleteRating);
@@ -43,6 +42,5 @@ router.delete("/delete-rating/:id", authMiddleware.verifyToken, CustomerControll
 router.post('/repairmen/nearby', authMiddleware.verifyToken, CustomerController.findNearbyRepairmen);
 //user-information
 router.get('/user-info', authMiddleware.verifyToken, CustomerController.getUserInfo);
-
+router.get("/get-request",authMiddleware.verifyToken,CustomerController.getAllRequests);
 module.exports = router;
-

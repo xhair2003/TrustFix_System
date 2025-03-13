@@ -164,34 +164,24 @@ const createComplaint = async (req, res) => {
     }
 };
 
-const getRequestsByUserId = async (req, res) => {
-    try {
-        const userId = req.params.userId;
 
-        const requests = await Request.find({ user_id: userId })
-            .populate('user', 'firstName lastName email phone')
-            .populate('serviceIndustry', 'name description')
-            .populate('ratings', 'rating comment')
-            .populate('images', 'url')
-            .populate('repairman', 'name');
-
-        res.status(200).json({
-            EC: 1,
-            EM: "Lấy thông tin yêu cầu của người dùng thành công!",
-            DT: requests
-        });
-    } catch (err) {
-        console.error("Get requests by user ID error:", err);
-        res.status(500).json({
-            EC: 0,
-            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
-        });
-    }
-};
 
 const getAllRequests = async (req, res) => {
+    const userId = req.user.id;
+    const user_email = req.user.email;
+    console.log("Email: ", user_email); 
+    
     try {
-        const requests = await Request.find()
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Người dùng không tồn tại trong hệ thống!"
+            });
+        }
+
+        // Lấy tất cả các yêu cầu của người dùng
+        const requests = await Request.find({ user_id: userId })
             .populate('user', 'firstName lastName email phone')
             .populate('serviceIndustry', 'name description')
             .populate('ratings', 'rating comment')
@@ -533,7 +523,6 @@ module.exports = {
     getAllHistoryPayment,
     getAllDepositeHistory,
     createComplaint,
-    getRequestsByUserId,
     getAllRequests,
     getRatingById,
     addRating,
