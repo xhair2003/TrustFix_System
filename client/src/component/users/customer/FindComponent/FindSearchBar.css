@@ -1,0 +1,41 @@
+.find-search-bar {
+    max-width: 130vh;
+    margin: auto;
+    padding: 20px;
+    background-color: #c1c0c0;
+    border-radius: 20px;
+    border: 2px solid #1f1f1f;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .search-form {
+    flex: 1;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    justify-items: center;
+    border-radius: 10px;
+  }
+  
+  .Find-form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .Find-button {
+    flex: 1;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: rgb(255, 255, 255);
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .Find-button:hover {
+    background-color: #0056b3;
+  }

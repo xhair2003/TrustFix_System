@@ -12,13 +12,26 @@ router.get(
   CustomerController.getAllDepositeHistory
 );
 
+router.get(
+  "/historyPayment",
+  AuthMiddleware.verifyToken,
+  CustomerController.getAllHistoryPayment
+);
+
+router.get(
+  "/getBalance",
+  AuthMiddleware.verifyToken,
+  CustomerController.getBalance
+);
+
 router.post(
   "/complaints",
   AuthMiddleware.verifyToken,
+  upload.single("image"), // Sử dụng middleware upload để xử lý file
   CustomerController.createComplaint
 );
 
-router.post("/manage-infor",authMiddleware.verifyToken,upload.single("image"),CustomerController.updateInformation);
+router.post("/manage-infor", authMiddleware.verifyToken, upload.single("image"), CustomerController.updateInformation);
 
 //rating
 // router.get("/rating-by-id/:id",CustomerController.getRatingById);
@@ -28,4 +41,10 @@ router.delete("/delete-rating/:id",authMiddleware.verifyToken,CustomerController
 //history repair
 
 router.get("/get-request",authMiddleware.verifyToken,CustomerController.getAllRequests);
+module.exports = router;
+
+
+//user-information
+router.get('/user-info', authMiddleware.verifyToken, CustomerController.getUserInfo);
+
 module.exports = router;
