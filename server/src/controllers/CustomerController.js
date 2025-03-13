@@ -1,5 +1,6 @@
 const { User, Role, Wallet, Transaction, Complaint, Request, Rating, ServiceIndustry } = require("../models");
 const cloudinary = require("../../config/cloudinary");
+const fetch = require('node-fetch');
 
 const getBalance = async (req, res) => {
     try {
@@ -146,6 +147,8 @@ const createComplaint = async (req, res) => {
             image: image, // Lưu đường dẫn ảnh
         });
 
+        console.log(image);
+
         await newComplaint.save();
 
         res.status(201).json({
@@ -163,34 +166,24 @@ const createComplaint = async (req, res) => {
     }
 };
 
-const getRequestsByUserId = async (req, res) => {
-    try {
-        const userId = req.params.userId;
 
-        const requests = await Request.find({ user_id: userId })
-            .populate('user', 'firstName lastName email phone')
-            .populate('serviceIndustry', 'name description')
-            .populate('ratings', 'rating comment')
-            .populate('images', 'url')
-            .populate('repairman', 'name');
-
-        res.status(200).json({
-            EC: 1,
-            EM: "Lấy thông tin yêu cầu của người dùng thành công!",
-            DT: requests
-        });
-    } catch (err) {
-        console.error("Get requests by user ID error:", err);
-        res.status(500).json({
-            EC: 0,
-            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
-        });
-    }
-};
 
 const getAllRequests = async (req, res) => {
+    const userId = req.user.id;
+    const user_email = req.user.email;
+    console.log("Email: ", user_email);
+
     try {
-        const requests = await Request.find()
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Người dùng không tồn tại trong hệ thống!"
+            });
+        }
+
+        // Lấy tất cả các yêu cầu của người dùng
+        const requests = await Request.find({ user_id: userId })
             .populate('user', 'firstName lastName email phone')
             .populate('serviceIndustry', 'name description')
             .populate('ratings', 'rating comment')
@@ -395,6 +388,93 @@ const updateInformation = async (req, res) => {
     }
 };
 
+const findNearbyRepairmen = async (req, res) => {
+    try {
+        const { address, radius } = req.body;
+        const gomapApiKey = "AlzaSyhy1S40EaAbIPht2S-okkBnsuuhmpr5VOo";
+
+        if (!address || !radius) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vui lòng cung cấp địa chỉ và bán kính tìm kiếm!"
+            });
+        }
+
+        const searchRadius = parseFloat(radius);
+        if (isNaN(searchRadius) || searchRadius <= 0) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Bán kính tìm kiếm không hợp lệ!"
+            });
+        }
+
+        const repairmanRole = await Role.findOne({ type: 'repairman' });
+        if (!repairmanRole) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy vai trò thợ sửa chữa!"
+            });
+        }
+        const repairmenUsers = await User.find({ _id: { $in: await Role.find({ type: 'repairman' }).distinct('user_id') } });
+
+        if (!repairmenUsers || repairmenUsers.length === 0) {
+            return res.status(200).json({
+                EC: 1,
+                EM: "Không tìm thấy thợ sửa chữa nào!",
+                DT: []
+            });
+        }
+
+        const nearbyRepairmen = [];
+
+        for (const repairman of repairmenUsers) {
+            if (repairman.address) {
+                const gomapApiUrl = `https://maps.gomaps.pro/maps/api/distancematrix/json?destinations=${encodeURIComponent(repairman.address)}&origins=${encodeURIComponent(address)}&key=${gomapApiKey}`;
+
+                try {
+                    const gomapResponse = await fetch(gomapApiUrl);
+                    const gomapData = await gomapResponse.json();
+
+                    if (gomapData.status === 'OK' && gomapData.rows[0].elements[0].status === 'OK') {
+                        const distanceValue = gomapData.rows[0].elements[0].distance.value;
+
+                        if (distanceValue <= searchRadius * 1000) {
+                            nearbyRepairmen.push({
+                                _id: repairman._id,
+                                firstName: repairman.firstName,
+                                lastName: repairman.lastName,
+                                email: repairman.email,
+                                phone: repairman.phone,
+                                address: repairman.address,
+                                distance: gomapData.rows[0].elements[0].distance.text,
+                                duration: gomapData.rows[0].elements[0].duration.text
+                            });
+                        }
+                    } else {
+                        console.warn(`GoMap API error for repairman ${repairman._id}: ${gomapData.status} - ${gomapData.error_message || gomapData.rows[0].elements[0].status}`);
+                    }
+                } catch (error) {
+                    console.error(`Error calling GoMap API for repairman ${repairman._id}:`, error);
+                }
+            }
+        }
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Tìm kiếm thợ sửa chữa gần đây thành công!",
+            DT: nearbyRepairmen
+        });
+
+    } catch (error) {
+        console.error("Error finding nearby repairmen:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+
 // Controller để lấy thông tin người dùng
 const getUserInfo = async (req, res) => {
     try {
@@ -483,7 +563,6 @@ module.exports = {
     getAllHistoryPayment,
     getAllDepositeHistory,
     createComplaint,
-    getRequestsByUserId,
     getAllRequests,
     getRatingById,
     addRating,
@@ -491,5 +570,6 @@ module.exports = {
     deleteRating,
     updateInformation,
     getUserInfo,
-    viewRepairHistory
+    viewRepairHistory,
+    findNearbyRepairmen,
 }

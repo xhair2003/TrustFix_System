@@ -25,4 +25,10 @@ router.get("/complaints/:id", AuthMiddleware.verifyAdmin, AdminController.getCom
 router.post("/complaints/:id/replies", AuthMiddleware.verifyAdmin, AdminController.replyToComplaint);
 router.get("/transactions/history", AuthMiddleware.verifyAdmin, AdminController.viewHistoryPayment);
 
-module.exports = router;
+//Service Price routes
+router.post("/service/add-price", AuthMiddleware.verifyAdmin, AdminController.addServicePrice);
+router.put("/service/update", AuthMiddleware.verifyAdmin, AdminController.updateServicePrice);
+router.delete("/service/delete-price/:id",AuthMiddleware.verifyAdmin,AdminController.deleteServicePrice);
+router.get("/service/all-price",AuthMiddleware.verifyAdmin,AdminController.getAllServicePrice)
+
+module.exports = router;    

@@ -39,11 +39,12 @@ router.post("/rating", authMiddleware.verifyToken, CustomerController.addRating)
 router.put("/edit-rating", authMiddleware.verifyToken, CustomerController.editRating);
 router.delete("/delete-rating/:id", authMiddleware.verifyToken, CustomerController.deleteRating);
 
-
+router.post('/repairmen/nearby', authMiddleware.verifyToken, CustomerController.findNearbyRepairmen);
 //user-information
 router.get('/user-info', authMiddleware.verifyToken, CustomerController.getUserInfo);
 
 //view-repair-history
 router.get('/view-repair-history', authMiddleware.verifyToken, CustomerController.viewRepairHistory);
+router.get("/get-request", authMiddleware.verifyToken, CustomerController.getAllRequests);
 
 module.exports = router;

@@ -4,12 +4,12 @@ import RepairmentHistoryItem from './RepairmentHistoryItem';
 import './RepairmentHistoryList.scss';
 import RepairmentDetailModal from './RepairmentDetailModal';
 import { useDispatch, useSelector } from 'react-redux';
-import { getRepairHistory } from '../../../../store/actions/userActions';
+import { getRepairHistory, resetError, resetSuccess } from '../../../../store/actions/userActions';
 import Loading from '../../../Loading/Loading';
 
 const RepairmentHistoryList = () => {
   const dispatch = useDispatch();
-  const { repairHistory, loading, error } = useSelector((state) => state.user);
+  const { repairHistory, loading, errorRepairHistory } = useSelector((state) => state.user);
   const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ const RepairmentHistoryList = () => {
           </div>
         ))
       ) : (
-        <p style={{ color: 'red', justifyContent: 'center', display: 'flex' }}>{error}</p>
+        <p style={{ color: 'red', justifyContent: 'center', display: 'flex' }}>{errorRepairHistory}</p>
       )}
       {selectedItem && (
         <RepairmentDetailModal

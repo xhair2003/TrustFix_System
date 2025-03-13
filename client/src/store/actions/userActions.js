@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_URL_CUSTOMER = 'http://localhost:8080/api/customer'; // Địa chỉ API
+const API_URL_REPAIRMAN = 'http://localhost:8080/api/repairman'; // Địa chỉ API
 
 export const getUserInfo = () => async (dispatch, getState) => {
     dispatch({ type: "GET_USER_INFO_REQUEST" }); // Bắt đầu loading
@@ -70,7 +71,7 @@ export const submitComplaint = (complaintData) => async (dispatch, getState) => 
             },
         });
 
-        if (response.data.EC === 0) {
+        if (response.data.EC === 1) {
             dispatch({
                 type: "SUBMIT_COMPLAINT_SUCCESS",
                 payload: response.data.EM, // Thông báo thành công
@@ -232,7 +233,7 @@ export const fetchAllVips = () => async (dispatch, getState) => {
             },
         });
 
-        if (response.data.EC === 0) {
+        if (response.data.EC === 1) {
             dispatch({
                 type: "FETCH_VIPS_SUCCESS",
                 payload: response.data.DT, // Dữ liệu VIP
@@ -264,7 +265,7 @@ export const fetchBalance = () => async (dispatch, getState) => {
             },
         });
 
-        if (response.data.EC === 0) {
+        if (response.data.EC === 1) {
             dispatch({
                 type: "FETCH_BALANCE_SUCCESS",
                 payload: response.data.DT, // Dữ liệu số dư
@@ -296,10 +297,17 @@ export const getRepairHistory = () => async (dispatch, getState) => {
             },
         });
 
-        dispatch({
-            type: "GET_REPAIR_HISTORY_SUCCESS",
-            payload: response.data.DT, // Assuming the data is in DT
-        });
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "GET_REPAIR_HISTORY_SUCCESS",
+                payload: response.data.DT, // Assuming the data is in DT
+            });
+        } else {
+            dispatch({
+                type: "GET_REPAIR_HISTORY_FAIL",
+                payload: response.data.EM,
+            });
+        }
     } catch (error) {
         dispatch({
             type: "GET_REPAIR_HISTORY_FAIL",
@@ -308,5 +316,70 @@ export const getRepairHistory = () => async (dispatch, getState) => {
     }
 };
 
+export const requestRepairmanUpgrade = (formData) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: 'REPAIRMAN_UPGRADE_REQUEST' });
 
+        const { auth } = getState();
+        const token = auth.token;
 
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`, // Thêm token vào header
+                'Content-Type': 'multipart/form-data', // Gửi file
+            },
+        };
+
+        // Gửi yêu cầu lên API
+        const response = await axios.post(`${API_URL_REPAIRMAN}/repairman-upgrade-request`, formData, config);
+
+        if (response.data.EC === 1) {
+            dispatch({
+                type: 'REPAIRMAN_UPGRADE_SUCCESS',
+                payload: response.data.EM,
+            });
+        } else {
+            dispatch({
+                type: "GET_REPAIR_HISTORY_FAIL",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: 'REPAIRMAN_UPGRADE_FAIL',
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+export const getServiceIndustryTypes = () => async (dispatch, getState) => {
+    const { auth } = getState();
+    const token = auth.token; // Lấy token từ Redux store
+
+    try {
+        dispatch({ type: 'SERVICE_INDUSTRY_TYPE_REQUEST' });
+
+        const response = await axios.get(`${API_URL_REPAIRMAN}/get-type-service-industry`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (response.data.EC === 1) {
+            dispatch({
+                type: 'SERVICE_INDUSTRY_TYPE_SUCCESS',
+                payload: response.data.DT, // DT trả về là mảng các loại dịch vụ
+            });
+        } else {
+            dispatch({
+                type: 'SERVICE_INDUSTRY_TYPE_FAIL',
+                payload: response.data.EM, // Lỗi từ API
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: 'SERVICE_INDUSTRY_TYPE_FAIL',
+            payload: error.response ? error.response.data.EM : 'Có lỗi xảy ra.',
+        });
+    }
+};
