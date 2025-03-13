@@ -4,10 +4,10 @@ const requestRepairmanUpgrade = async (req, res) => {
     try {
         const userId = req.user.id; // User ID from verified token
         //const serviceIndustryId = req.body.serviceIndustry_Id;
-        const { serviceIndustry_Id, typePaper, imgPaper, description } = req.body;
+        const { serviceIndustry_Id, imgCertificatePractice, imgCCCD, address, description } = req.body;
 
         // Validate required fields
-        if (!serviceIndustry_Id || !typePaper || !imgPaper || !description) {
+        if (!serviceIndustry_Id || !imgCertificatePractice || !imgCCCD ||!address ||!description) {
             return res.status(400).json({
                 EC: 0,
                 EM: "Vui lòng điền đầy đủ thông tin yêu cầu nâng cấp!"
@@ -32,15 +32,17 @@ const requestRepairmanUpgrade = async (req, res) => {
             });
         }
 
+        // Update user's address
+        await User.findByIdAndUpdate(userId, { address: address });
+
         // Create new Repairman Upgrade Request
         const newRequest = new RepairmanUpgradeRequest({
             user_id: userId,
             serviceIndustry_id: serviceIndustry._id,
-            typePaper: typePaper,
-            imgPaper: imgPaper,
+            imgCertificatePractice: imgCertificatePractice,
+            imgCCCD: imgCCCD,
             description: description,
-            status: 1, // Default status: Pending
-
+            status: 'Pending', // Default status: Pending
         });
 
         await newRequest.save();
@@ -61,7 +63,7 @@ const requestRepairmanUpgrade = async (req, res) => {
 
 const getPendingUpgradeRequests = async (req, res) => {
     try {
-        const pendingRequests = await RepairmanUpgradeRequest.find({ status: 1 })
+        const pendingRequests = await RepairmanUpgradeRequest.find({ status: 'Pending' })
             .populate('user', 'firstName lastName email') // Populate user details
             .populate('serviceIndustry', 'type'); // Populate service industry type
 

@@ -539,5 +539,7 @@ module.exports = {
     addRating,
     editRating,
     deleteRating,
-    updateInformation
+    updateInformation,
+    findNearbyRepairmen,
+    getUserInfo
 }
