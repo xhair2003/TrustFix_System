@@ -283,7 +283,30 @@ export const fetchBalance = () => async (dispatch, getState) => {
     }
 };
 
+export const getRepairHistory = () => async (dispatch, getState) => {
+    const { auth } = getState();
+    const token = auth.token;
 
+    dispatch({ type: "GET_REPAIR_HISTORY_REQUEST" });
+
+    try {
+        const response = await axios.get(`${API_URL_CUSTOMER}/view-repair-history`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        dispatch({
+            type: "GET_REPAIR_HISTORY_SUCCESS",
+            payload: response.data.DT, // Assuming the data is in DT
+        });
+    } catch (error) {
+        dispatch({
+            type: "GET_REPAIR_HISTORY_FAIL",
+            payload: error.response?.data?.EM || 'Failed to fetch repair history',
+        });
+    }
+};
 
 
 

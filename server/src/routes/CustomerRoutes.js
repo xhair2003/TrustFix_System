@@ -43,4 +43,7 @@ router.delete("/delete-rating/:id", authMiddleware.verifyToken, CustomerControll
 //user-information
 router.get('/user-info', authMiddleware.verifyToken, CustomerController.getUserInfo);
 
+//view-repair-history
+router.get('/view-repair-history', authMiddleware.verifyToken, CustomerController.viewRepairHistory);
+
 module.exports = router;

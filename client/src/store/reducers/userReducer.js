@@ -9,6 +9,7 @@ const initialState = {
     vips: [],
     balance: null,
     complaintMessage: null,
+    repairHistory: null,
 };
 
 const userReducer = (state = initialState, action) => {
@@ -153,6 +154,14 @@ const userReducer = (state = initialState, action) => {
                 complaintError: action.payload,
                 complaintMessage: null,
             };
+
+        // Add these cases to your reducer
+        case 'GET_REPAIR_HISTORY_REQUEST':
+            return { ...state, loading: true, error: null, repairHistory: null };
+        case 'GET_REPAIR_HISTORY_SUCCESS':
+            return { ...state, loading: false, repairHistory: action.payload };
+        case 'GET_REPAIR_HISTORY_FAIL':
+            return { ...state, loading: false, error: action.payload };
 
 
         default:

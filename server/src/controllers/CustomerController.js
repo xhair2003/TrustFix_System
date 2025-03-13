@@ -1,4 +1,4 @@
-const { User, Role, Wallet, Transaction, Complaint, Request, Rating } = require("../models");
+const { User, Role, Wallet, Transaction, Complaint, Request, Rating, ServiceIndustry } = require("../models");
 const cloudinary = require("../../config/cloudinary");
 
 const getBalance = async (req, res) => {
@@ -440,6 +440,44 @@ const getUserInfo = async (req, res) => {
     }
 };
 
+const viewRepairHistory = async (req, res) => {
+    try {
+        const userId = req.user.id; // Get user ID from the token
+
+        // Fetch all requests for the user
+        const requests = await Request.find({ user_id: userId }).populate({
+            path: 'serviceIndustry_id', // Populate the serviceIndustry_id field
+            select: 'type' // Select only the type field from ServiceIndustry
+        });
+
+        // Check if requests exist
+        if (!requests || requests.length === 0) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy lịch sử sửa chữa cho người dùng này."
+            });
+        }
+
+        // Map through requests to include service type
+        const repairHistory = requests.map(request => ({
+            ...request.toObject(), // Convert Mongoose document to plain object
+            serviceType: request.serviceIndustry_id ? request.serviceIndustry_id.type : null // Add service type
+        }));
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy lịch sử sửa chữa thành công!",
+            DT: repairHistory
+        });
+    } catch (error) {
+        console.error("Error fetching repair history:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra khi lấy lịch sử sửa chữa. Vui lòng thử lại sau!"
+        });
+    }
+};
+
 module.exports = {
     getBalance,
     getAllHistoryPayment,
@@ -453,4 +491,5 @@ module.exports = {
     deleteRating,
     updateInformation,
     getUserInfo,
+    viewRepairHistory
 }
