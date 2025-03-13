@@ -381,9 +381,9 @@ const replyToComplaint = async (req, res) => {
 };
 
 // View history payment with transactionType = payment
-const viewHistoryPayment = async (req, res) => {
+const viewHistoryPaymentType = async (req, res) => {
     try {
-        const { limit, search = "", transactionType } = req.query;
+        const { limit, search = "", transactionType = "payment" } = req.query;
 
         const limitNumber = limit ? parseInt(limit) : undefined;
 
@@ -396,10 +396,95 @@ const viewHistoryPayment = async (req, res) => {
         })
             .populate({
                 path: "wallet_id",
-                select: "balance", 
+                select: "balance",
             })
             .limit(limitNumber)
-            .sort({ createdAt: -1 }); 
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy lịch sử thanh toán thành công!",
+            DT: transactions,
+        });
+    } catch (err) {
+        console.error("Get payment history error:", err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+        });
+    }
+}
+
+//View all history payment have limit, page, search
+const viewAllTransactions = async (req, res) => {
+    try {
+        const { page = 1, limit = 10, search = "" } = req.query;
+
+        const pageNumber = parseInt(page) || 1;
+        const limitNumber = parseInt(limit) || 10;
+        const skip = (pageNumber - 1) * limitNumber;
+
+        const searchFilter = search
+            ? {
+                  $or: [
+                      { payCode: { $regex: search, $options: "i" } },
+                      { content: { $regex: search, $options: "i" } },
+                  ],
+              }
+            : {};
+
+        const transactions = await Transaction.find({ ...searchFilter })
+            .populate({
+                path: "wallet_id",
+                select: "balance",
+            })
+            .skip(skip)
+            .limit(limitNumber)
+            .sort({ createdAt: -1 });
+
+        const totalRecords = await Transaction.countDocuments({ ...searchFilter });
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy danh sách giao dịch thành công!",
+            DT: {
+                transactions,
+                pagination: {
+                    currentPage: pageNumber,
+                    totalPages: Math.ceil(totalRecords / limitNumber),
+                    totalRecords,
+                },
+            },
+        });
+    } catch (err) {
+        console.error("Lấy danh sách giao dịch thất bại!", err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+        });
+    }
+}
+
+// View history payment with transactionType = deposite
+const viewDepositeHistory = async (req, res) => {
+    try {
+        const { limit, search = "", transactionType = "deposite" } = req.query;
+
+        const limitNumber = limit ? parseInt(limit) : undefined;
+
+        const searchFilter = search ? { payCode: { $regex: search, $options: "i" } } : {};
+        const transactionFilter = transactionType ? { transactionType } : {};
+
+        const transactions = await Transaction.find({
+            ...transactionFilter,
+            ...searchFilter,
+        })
+            .populate({
+                path: "wallet_id",
+                select: "balance",
+            })
+            .limit(limitNumber)
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             EC: 1,
@@ -509,7 +594,9 @@ module.exports = {
     getAllComplaints,
     getComplaintById,
     replyToComplaint,
-    viewHistoryPayment,
+    viewHistoryPaymentType,
     getAllUsers,
-    deleteUserById
+    deleteUserById,
+    viewAllTransactions,
+    viewDepositeHistory
 };

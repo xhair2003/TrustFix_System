@@ -23,7 +23,9 @@ router.delete("/services/:id", AuthMiddleware.verifyAdmin, AdminController.delet
 router.get("/complaints", AuthMiddleware.verifyAdmin, AdminController.getAllComplaints);
 router.get("/complaints/:id", AuthMiddleware.verifyAdmin, AdminController.getComplaintById);
 router.post("/complaints/:id/replies", AuthMiddleware.verifyAdmin, AdminController.replyToComplaint);
-router.get("/transactions/history", AuthMiddleware.verifyAdmin, AdminController.viewHistoryPayment);
+router.get("/transactions/history", AuthMiddleware.verifyAdmin, AdminController.viewHistoryPaymentType);
+router.get("/list-transaction", AuthMiddleware.verifyAdmin, AdminController.viewAllTransactions);
+router.get("/deposite-history", AuthMiddleware.verifyAdmin, AdminController.viewDepositeHistory);
 
 
 // User routes for Admin
