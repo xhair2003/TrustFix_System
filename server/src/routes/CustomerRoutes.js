@@ -35,12 +35,16 @@ router.post("/manage-infor", authMiddleware.verifyToken, upload.single("image"),
 
 //rating
 // router.get("/rating-by-id/:id",CustomerController.getRatingById);
-router.post("/rating", authMiddleware.verifyToken, CustomerController.addRating);
-router.put("/edit-rating", authMiddleware.verifyToken, CustomerController.editRating);
-router.delete("/delete-rating/:id", authMiddleware.verifyToken, CustomerController.deleteRating);
 
 
 //user-information
 router.get('/user-info', authMiddleware.verifyToken, CustomerController.getUserInfo);
 
+module.exports = router;
+router.post("/rating",authMiddleware.verifyToken,CustomerController.addRating);
+router.put("/edit-rating",authMiddleware.verifyToken,CustomerController.editRating);
+router.delete("/delete-rating/:id",authMiddleware.verifyToken,CustomerController.deleteRating);
+//history repair
+
+router.get("/get-request",authMiddleware.verifyToken,CustomerController.getAllRequests);
 module.exports = router;
