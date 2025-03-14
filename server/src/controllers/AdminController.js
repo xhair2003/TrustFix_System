@@ -1,4 +1,4 @@
-const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, ServicePrice, Role } = require("../models");
+const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, ServicePrice, Role, Rating} = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
 const { transporter } = require("./AuthenController");
 
@@ -775,6 +775,51 @@ const unlockUserByUserId = async (req, res) => {
     }
 };
 
+const viewRepairBookingHistory = async (req, res) => {
+    try {
+        const { page = 1, limit = 10, search = "" } = req.query;
+
+        const pageNumber = parseInt(page);
+        const limitNumber = parseInt(limit);
+
+        const searchFilter = search
+            ? { description: { $regex: search, $options: "i" } }
+            : {};
+
+        const requests = await Request.find(searchFilter)
+            .populate({
+                path: "serviceIndustry_id",
+                select: "type",
+                model: ServiceIndustry,
+            })
+            .populate({
+                path: "user_id",
+                select: "firstName lastName",
+                model: User,
+            })
+            .populate({
+                path: "ratings",
+                select: "rate comment",
+                model: Rating,
+            })
+            .skip((pageNumber - 1) * limitNumber)
+            .limit(limitNumber)
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy lịch sử đặt sửa chữa thành công!",
+            DT: requests,
+        });
+    } catch (err) {
+        console.error("Lỗi khi lấy lịch sử đặt sửa chữa:", err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+        });
+    }
+};
+
 module.exports = {
     createServiceIndustry,
     getAllServiceIndustries,
@@ -799,5 +844,6 @@ module.exports = {
     viewAllTransactions,
     viewDepositeHistory,
     lockUserByUserId,
-    unlockUserByUserId
+    unlockUserByUserId,
+    viewRepairBookingHistory,
 };
