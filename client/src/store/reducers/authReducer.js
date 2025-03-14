@@ -114,6 +114,7 @@ const authReducer = (state = initialState, action) => {
                 successVerifyOTP: null,
             };
 
+
         default:
             return state;
     }

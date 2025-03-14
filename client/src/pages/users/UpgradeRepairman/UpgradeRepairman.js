@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { requestRepairmanUpgrade, getServiceIndustryTypes, resetError, resetSuccess } from "../../../store/actions/userActions.js";
 import "./UpgradeRepairman.css";
 import { apiGetPubliccitys, apiGetPublicDistrict, apiGetPublicWard } from "../../../services/Address.js";
+import Loading from "../../../component/Loading/Loading.js";
+import Swal from "sweetalert2";
 
 const UpgradeRepairman = () => {
     const [address, setAddress] = useState("");
@@ -15,6 +19,15 @@ const UpgradeRepairman = () => {
     const [cities, setCities] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
+
+    // Thêm biến state cho serviceTypes
+    const [serviceTypes, setServiceTypes] = useState([]);
+
+    const dispatch = useDispatch();
+    const { loading, successUpgrade, errorUpgrade, serviceTypes: serviceTypesFromStore } = useSelector(state => state.user);
+
+    console.log("successUpgrade", successUpgrade);
+    console.log("errorUpgrade", errorUpgrade);
 
     useEffect(() => {
         const fetchCities = async () => {
@@ -67,25 +80,129 @@ const UpgradeRepairman = () => {
         fetchWards();
     }, [district]);
 
+    // Gọi API để lấy danh sách loại thợ khi component mount
+    useEffect(() => {
+        dispatch(getServiceIndustryTypes()); // Dispatch action để lấy dữ liệu serviceTypes
+    }, [dispatch]);
+
+    // Cập nhật lại serviceTypes từ Redux nếu có
+    useEffect(() => {
+        if (serviceTypesFromStore) {
+            setServiceTypes(serviceTypesFromStore);
+        }
+    }, [serviceTypesFromStore]);
+
+    useEffect(() => {
+        if (successUpgrade) {
+            Swal.fire({
+                title: "Thành công",
+                text: successUpgrade,
+                icon: "success",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetSuccess()); // Reset success message after showing it
+        }
+
+        else if (errorUpgrade) {
+            Swal.fire({
+                title: "Lỗi",
+                text: errorUpgrade,
+                icon: "error",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetError()); // Reset error message after showing it
+        }
+    }, [successUpgrade, errorUpgrade, dispatch]);
+
+    //console.log(serviceTypes);
+
+    if (loading) {
+        return <Loading />;
+    }
+
+    const handleFileUpload = (e, setFile) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Kiểm tra định dạng file
+            const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                alert('Vui lòng chỉ upload ảnh định dạng JPG, PNG hoặc JPEG!');
+                return; // Ngừng thực hiện nếu định dạng không hợp lệ
+            }
+
+            setFile(file); // Lưu file vào state
+        }
+    };
+
+    // Thêm hàm kiểm tra cho các trường ảnh
+    const handleIdCardUpload = (e) => {
+        handleFileUpload(e, setIdCard);  // Gọi hàm kiểm tra cho ảnh căn cước công dân
+    };
+
+    const handleCertificationUpload = (e) => {
+        handleFileUpload(e, setCertification);  // Gọi hàm kiểm tra cho ảnh chứng chỉ hành nghề
+    };
+
+
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("Yêu cầu nâng cấp đã được gửi:", {
-            address,
-            ward,
-            district,
-            city,
-            workerType,
-            description,
-            idCard,
-            certification,
-        });
+
+        // reset message trước khi call API
+        dispatch(resetError());
+        dispatch(resetSuccess());
+
+        const formData = new FormData();
+
+        // Gộp các phần của địa chỉ lại, sử dụng tên thay vì ID
+        const fullAddress = `${address}, ${wards.find(w => w.ward_id === ward)?.ward_name || ''}, ${districts.find(d => d.district_id === district)?.district_name || ''}, ${cities.find(c => c.province_id === city)?.province_name || ''}`;
+
+
+        formData.append("address", fullAddress); // Địa chỉ
+        formData.append("serviceType", workerType); // Loại thợ
+        formData.append("description", description); // Mô tả
+
+        // nếu đẩy 1 ảnh thì dùng cái này
+        // Đảm bảo rằng đang đính kèm các tệp đúng
+        // if (idCard) {
+        //     formData.append("imgCCCD", idCard); // Đảm bảo gửi tệp đúng trường
+        // }
+
+        // if (certification) {
+        //     formData.append("imgCertificatePractice", certification); // Đảm bảo gửi tệp đúng trường
+        // }
+
+        // Nếu đẩy nhiều ảnh thì cần lặp qua mảng
+        if (idCard && idCard.length) {
+            idCard.forEach(file => {
+                formData.append("imgCCCD", file); // Đảm bảo gửi từng file trong mảng
+            });
+        } else if (idCard) {
+            formData.append("imgCCCD", idCard); // Đảm bảo gửi tệp đúng trường
+        }
+
+        if (certification && certification.length) {
+            certification.forEach(file => {
+                formData.append("imgCertificatePractice", file); // Đảm bảo gửi từng file trong mảng
+            });
+        } else if (certification) {
+            formData.append("imgCertificatePractice", certification); // Đảm bảo gửi tệp đúng trường
+        }
+
+
+
+        console.log(formData);
+
+        dispatch(requestRepairmanUpgrade(formData)); // Dispatch action để gửi yêu cầu lên API
     };
 
     return (
         <div className="upgrade-repairman-form">
             <h1 className="form-title">Gửi yêu cầu nâng cấp lên thợ</h1>
             <form onSubmit={handleSubmit}>
-                <div >
+                <div>
                     <h2 className="section-title">Thông tin cá nhân</h2>
                     <div className="form-row">
                         <div className="form-group">
@@ -196,30 +313,40 @@ const UpgradeRepairman = () => {
                                 className="form-select"
                             >
                                 <option value="">Chọn loại thợ</option>
-                                <option value="workerType1">Thợ loại 1</option>
-                                <option value="workerType2">Thợ loại 2</option>
+                                {serviceTypes.length > 0 ? (
+                                    serviceTypes.map((type) => (
+                                        <option key={type._id} value={type.type}>
+                                            {type.type}
+                                        </option>
+                                    ))
+                                ) : (
+                                    <option value="">Không có loại thợ nào</option>
+                                )}
                             </select>
                         </div>
+
                         <div className="form-group">
                             <label className="form-label">Tải ảnh căn cước công dân</label>
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => setIdCard(e.target.files[0])}
+                                onChange={handleIdCardUpload}  // Thay đổi hàm onChange
                                 required
                                 className="form-input"
                             />
                         </div>
+
                         <div className="form-group">
                             <label className="form-label">Tải ảnh giấy tờ chứng chỉ hành nghề</label>
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => setCertification(e.target.files[0])}
+                                onChange={handleCertificationUpload}  // Thay đổi hàm onChange
                                 required
                                 className="form-input"
                             />
                         </div>
+
                     </div>
                     <div className="form-row">
                         <div className="form-group">
@@ -231,7 +358,7 @@ const UpgradeRepairman = () => {
                                 rows="4"
                                 placeholder="Mô tả chi tiết về bản thân bạn..."
                                 style={{
-                                    width: '99%', // Đảm bảo độ rộng đầy đủ
+                                    width: '98%', // Đảm bảo độ rộng đầy đủ
                                     minHeight: '40px', // Chiều cao ngắn hơn
                                     padding: '0.5rem', // Padding bên trong
                                     border: '1px solid #d1d5db', // Đường viền
@@ -244,7 +371,9 @@ const UpgradeRepairman = () => {
                     </div>
                 </div>
 
-                <button type="submit" className="submit-btn">Gửi yêu cầu</button>
+                <button type="submit" className="submit-btn" disabled={loading}>
+                    {loading ? "Đang gửi yêu cầu..." : "Gửi yêu cầu"}
+                </button>
             </form>
         </div>
     );

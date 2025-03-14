@@ -23,12 +23,22 @@ router.delete("/services/:id", AuthMiddleware.verifyAdmin, AdminController.delet
 router.get("/complaints", AuthMiddleware.verifyAdmin, AdminController.getAllComplaints);
 router.get("/complaints/:id", AuthMiddleware.verifyAdmin, AdminController.getComplaintById);
 router.post("/complaints/:id/replies", AuthMiddleware.verifyAdmin, AdminController.replyToComplaint);
-router.get("/transactions/history", AuthMiddleware.verifyAdmin, AdminController.viewHistoryPayment);
+
+// API transaction
+router.get("/view-history-payment", AuthMiddleware.verifyAdmin, AdminController.viewHistoryPayment);
+router.get("/view-all-transactions", AuthMiddleware.verifyAdmin, AdminController.viewAllTransactions);
+router.get("/view-deposite-history", AuthMiddleware.verifyAdmin, AdminController.viewDepositeHistory);
+
+
+// User routes for Admin
+router.get("/users", AuthMiddleware.verifyAdmin, AdminController.getAllUsers);
+router.delete("/users/:userId", AuthMiddleware.verifyAdmin, AdminController.deleteUserById);
+
 
 //Service Price routes
 router.post("/service/add-price", AuthMiddleware.verifyAdmin, AdminController.addServicePrice);
 router.put("/service/update", AuthMiddleware.verifyAdmin, AdminController.updateServicePrice);
-router.delete("/service/delete-price/:id",AuthMiddleware.verifyAdmin,AdminController.deleteServicePrice);
-router.get("/service/all-price",AuthMiddleware.verifyAdmin,AdminController.getAllServicePrice)
+router.delete("/service/delete-price/:id", AuthMiddleware.verifyAdmin, AdminController.deleteServicePrice);
+router.get("/service/all-price", AuthMiddleware.verifyAdmin, AdminController.getAllServicePrice)
 
 module.exports = router;    

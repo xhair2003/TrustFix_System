@@ -49,4 +49,8 @@ router.post('/send-request',authMiddleware.verifyToken, CustomerController.sendR
 
 router.get('/requests/:requestId/find-repairman/:radius', authMiddleware.verifyToken, CustomerController.findRepairman);
 
+//view-repair-history
+router.get('/view-repair-history', authMiddleware.verifyToken, CustomerController.viewRepairHistory);
+router.get("/get-request", authMiddleware.verifyToken, CustomerController.getAllRequests);
+
 module.exports = router;
