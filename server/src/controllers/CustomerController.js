@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 const { User, Role, Wallet, Transaction, Complaint, Request, Rating, DuePrice, Price, ServiceIndustry, RepairmanUpgradeRequest } = require("../models");
-=======
-const { User, Role, Wallet, Transaction, Complaint, Request, Rating, ServiceIndustry } = require("../models");
->>>>>>> f7c7f51ae861be905a203b0921bfcd615ff53047
 const cloudinary = require("../../config/cloudinary");
 const fetch = require('node-fetch');
 const user = require("../models/user");
