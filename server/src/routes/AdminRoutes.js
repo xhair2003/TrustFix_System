@@ -33,6 +33,8 @@ router.get("/view-deposite-history", AuthMiddleware.verifyAdmin, AdminController
 // User routes for Admin
 router.get("/users", AuthMiddleware.verifyAdmin, AdminController.getAllUsers);
 router.delete("/users/:userId", AuthMiddleware.verifyAdmin, AdminController.deleteUserById);
+router.put("/users/lock/:userId", AuthMiddleware.verifyAdmin, AdminController.lockUserByUserId);
+router.put("/users/unlock/:userId", AuthMiddleware.verifyAdmin, AdminController.unlockUserByUserId);
 
 
 //Service Price routes

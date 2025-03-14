@@ -1,5 +1,6 @@
 const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, ServicePrice, Role } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
+const { transporter } = require("./AuthenController");
 
 // --- Service Industry CRUD ---
 
@@ -687,6 +688,93 @@ const getAllServicePrice = async (req, res) => {
         });
     }
 }
+
+const lockUserByUserId = async (req, res) => {
+    try {
+        const { reason } = req.body;
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ EC: 0, EM: "Người dùng không tồn tại!" });
+        }
+
+        if (user.status === "Banned") {
+            return res.status(400).json({ EC: 0, EM: "Tài khoản đã bị khóa trước đó!" });
+        }
+
+        user.status = "Banned";
+        await user.save();
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: "Tài khoản TrustFix của bạn đã bị khóa",
+            html: `
+                <h1>Thông báo khóa tài khoản</h1>
+                <p>Chào ${user.firstName} ${user.lastName},</p>
+                <p>Tài khoản của bạn đã bị khóa vì lý do:</p>
+                <blockquote><strong>${reason}</strong></blockquote>
+                <p>Nếu bạn có thắc mắc, vui lòng liên hệ đội ngũ hỗ trợ qua email: 
+                    <a href="mailto:admin@trustfix.com" style="color: #007bff; text-decoration: none;">
+                        admin@trustfix.com
+                    </a>
+                </p>
+                <p>Trân trọng,</p>
+                <p>Đội ngũ TrustFix</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({ EC: 1, EM: "Tài khoản đã bị khóa và email đã được gửi." });
+    } catch (error) {
+        return res.status(500).json({ EC: 0, EM: "Lỗi hệ thống. Vui lòng thử lại!" });
+    }
+};
+
+const unlockUserByUserId = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ EC: 0, EM: "Người dùng không tồn tại!" });
+        }
+
+        if (user.status !== "Banned") {
+            return res.status(400).json({ EC: 0, EM: "Tài khoản chưa bị khóa hoặc đã được mở khóa!" });
+        }
+
+        user.status = "Inactive";
+        await user.save();
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: "Tài khoản TrustFix của bạn đã được mở khóa",
+            html: `
+                <h1>Thông báo mở khóa tài khoản</h1>
+                <p>Chào ${user.firstName} ${user.lastName},</p>
+                <p>Tài khoản của bạn đã được mở khóa. Bạn có thể đăng nhập và tiếp tục sử dụng dịch vụ của chúng tôi.</p>
+                <p>Nếu bạn có thắc mắc, vui lòng liên hệ đội ngũ hỗ trợ qua email: 
+                    <a href="mailto:admin@trustfix.com" style="color: #007bff; text-decoration: none;">
+                        admin@trustfix.com
+                    </a>
+                </p>
+                <p>Trân trọng,</p>
+                <p>Đội ngũ TrustFix</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({ EC: 1, EM: "Tài khoản đã được mở khóa và email đã được gửi." });
+    } catch (error) {
+        return res.status(500).json({ EC: 0, EM: "Lỗi hệ thống. Vui lòng thử lại!" });
+    }
+};
+
 module.exports = {
     createServiceIndustry,
     getAllServiceIndustries,
@@ -709,5 +797,7 @@ module.exports = {
     getAllUsers,
     deleteUserById,
     viewAllTransactions,
-    viewDepositeHistory
+    viewDepositeHistory,
+    lockUserByUserId,
+    unlockUserByUserId
 };
