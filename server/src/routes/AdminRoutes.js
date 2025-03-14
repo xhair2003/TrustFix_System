@@ -25,10 +25,14 @@ router.get("/complaints/:id", AuthMiddleware.verifyAdmin, AdminController.getCom
 router.post("/complaints/:id/replies", AuthMiddleware.verifyAdmin, AdminController.replyToComplaint);
 router.get("/transactions/history", AuthMiddleware.verifyAdmin, AdminController.viewHistoryPayment);
 
-//Service Price routes
-router.post("/service/add-price", AuthMiddleware.verifyAdmin, AdminController.addServicePrice);
-router.put("/service/update", AuthMiddleware.verifyAdmin, AdminController.updateServicePrice);
-router.delete("/service/delete-price/:id",AuthMiddleware.verifyAdmin,AdminController.deleteServicePrice);
-router.get("/service/all-price",AuthMiddleware.verifyAdmin,AdminController.getAllServicePrice)
 
+//Vip routes
+router.post("/add-vip", AuthMiddleware.verifyAdmin, AdminController.addVipService);
+router.put("/edit-vip", AuthMiddleware.verifyAdmin, AdminController.updateVipService);
+router.delete("/delete-vip/:id", AuthMiddleware.verifyAdmin, AdminController.deleteVipService);
+router.get("/get-vip", AuthMiddleware.verifyToken, AdminController.getAllVipServices);
+
+
+// Repairman Upgrade Request routes
+router.post("/accept-update",AuthMiddleware.verifyAdmin,AdminController.acceptUpdate);
 module.exports = router;    
