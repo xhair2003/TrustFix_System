@@ -21,7 +21,8 @@ const RepairmanUpgradeRequestSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Active', 'Inactive', 'Pending']
+        enum: ['Active', 'Inactive', 'Pending' ,'Accepted' ,'Rejected'],
+        default: 'Pending'
     },
     serviceTypes: {
         type: [mongoose.Schema.Types.ObjectId],

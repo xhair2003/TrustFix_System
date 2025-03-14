@@ -45,6 +45,8 @@ router.get('/user-info', authMiddleware.verifyToken, CustomerController.getUserI
 
 //view-repair-history
 router.get('/view-repair-history', authMiddleware.verifyToken, CustomerController.viewRepairHistory);
-router.get("/get-request", authMiddleware.verifyToken, CustomerController.getAllRequests);
+router.get("/get-request", authMiddleware.verifyToken, CustomerController.getAllRequests)
+
+
 
 module.exports = router;
