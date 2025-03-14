@@ -103,7 +103,7 @@ const verifyRepairmanUpgradeRequest = async (req, res) => {
 
         if (action === 'approve') {
             // Update request status to approved
-            upgradeRequest.status = 2;
+            upgradeRequest.status = 'Active';
             upgradeRequest.approvedAt = Date.now();
             await upgradeRequest.save();
 
@@ -135,11 +135,11 @@ const verifyRepairmanUpgradeRequest = async (req, res) => {
                 });
             }
             // Update request status to rejected
-            upgradeRequest.status = 0;
-            upgradeRequest.rejectedAt = Date.now();
-            upgradeRequest.rejectReason = rejectReason;
-            await upgradeRequest.save();
-
+            // upgradeRequest.status = 0;
+            // upgradeRequest.rejectedAt = Date.now();
+            // upgradeRequest.rejectReason = rejectReason;
+            // await upgradeRequest.save();
+            upgradeRequest.findByIdAndDelete(requestId);
             res.status(200).json({
                 EC: 1,
                 EM: "Yêu cầu nâng cấp đã bị từ chối thành công!"

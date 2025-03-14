@@ -520,25 +520,25 @@ const getUserInfo = async (req, res) => {
 };
 const sendRequest = async (req, res) => {
     try {
-        const { serviceIndustry_id, description, image, address, radius } = req.body; // Lấy 'price' từ req.body
+        const { serviceIndustry_id, description, image, address } = req.body; // Lấy 'price' từ req.body
         //const gomapApiKey = process.env.GOMAPS_API_KEY;
         const userId = req.user.id; // Lấy user ID từ token
 
         // Validate các trường bắt buộc
-        if (!serviceIndustry_id || !description || !address || !radius) { // Thêm 'price' vào validation
+        if (!serviceIndustry_id || !description || !address ) { // Thêm 'price' vào validation
             return res.status(400).json({
                 EC: 0,
                 EM: "Vui lòng cung cấp đầy đủ loại dịch vụ, mô tả, địa chỉ, bán kính!" // Cập nhật thông báo lỗi
             });
         }
 
-        const searchRadius = parseFloat(radius);
-        if (isNaN(searchRadius) || searchRadius <= 0) {
-            return res.status(400).json({
-                EC: 0,
-                EM: "Bán kính tìm kiếm không hợp lệ!"
-            });
-        }
+        // const searchRadius = parseFloat(radius);
+        // if (isNaN(searchRadius) || searchRadius <= 0) {
+        //     return res.status(400).json({
+        //         EC: 0,
+        //         EM: "Bán kính tìm kiếm không hợp lệ!"
+        //     });
+        // }
       
 
         const serviceIndustry = await ServiceIndustry.findById(serviceIndustry_id);
