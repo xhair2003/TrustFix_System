@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser, resetError } from "../../../store/actions/auth";
+import { registerUser, resetError } from "../../../store/actions/authActions";
 import Swal from "sweetalert2";
 import "./RegisterForm.scss";
 import { FaEye, FaEyeSlash } from "react-icons/fa";

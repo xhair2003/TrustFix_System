@@ -35,13 +35,14 @@ export const ROUTERS = {
 
     ADMIN: {
         // Admin
-        DASHBOARD: '/admin/dashboard',
-        MANAGE_USER_ACCOUNT: '/admin/manage-user-account',
-        VIEW_REPAIR_BOOKING: '/admin/view-repair-booking',
-        MANAGE_UPGRADE_REPAIRMAN: '/admin/manage-upgrade-repairman',
-        ADMIN_VIEW_DEPOSIT_HISTORY: '/admin/view-deposit-history',
-        ADMIN_VIEW_HISTORY_PAYMENT: '/admin/view-history-payment',
-        MANAGE_COMPLAINTS: '/admin/manage-complaints',
-        MANAGE_SERVICE: '/admin/manage-service-prices',
+        ADMIN: '/admin',
+        DASHBOARD: 'admin/dashboard',
+        MANAGE_USER_ACCOUNT: 'admin/manage-user-account',
+        VIEW_REPAIR_BOOKING: 'admin/view-repair-booking',
+        MANAGE_UPGRADE_REPAIRMAN: 'admin/manage-upgrade-repairman',
+        ADMIN_VIEW_DEPOSIT_HISTORY: 'admin/view-deposit-history',
+        ADMIN_VIEW_HISTORY_PAYMENT: 'admin/view-history-payment',
+        MANAGE_COMPLAINTS: 'admin/manage-complaints',
+        MANAGE_SERVICE: 'admin/manage-service-prices',
     }
 }

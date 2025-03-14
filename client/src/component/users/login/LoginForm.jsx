@@ -4,7 +4,7 @@ import './LoginForm.scss';
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
-import { login, resetError, resetSuccess } from '../../../store/actions/auth';
+import { login, resetError, resetSuccess } from '../../../store/actions/authActions';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../../Loading/Loading';
@@ -14,7 +14,7 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const dispatch = useDispatch();
-  const { loading, errorLogin, successLogin } = useSelector(state => state.auth);
+  const { loading, errorLogin, successLogin, role } = useSelector(state => state.auth);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,15 +32,20 @@ const LoginForm = () => {
     }
 
     if (successLogin) {
-      navigate('/');
+      if (!role) {
+        return <Loading />;
+      } else if (role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     }
-  }, [errorLogin, navigate, successLogin]);
+  }, [errorLogin, navigate, successLogin, role]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(resetError()); // Đặt lại lỗi trước khi gọi đăng nhập
     dispatch(login(email, password));
-
   };
 
   return (

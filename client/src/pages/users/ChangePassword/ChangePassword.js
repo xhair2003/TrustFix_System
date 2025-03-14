@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { changePassword, resetError } from "../../../store/actions/auth"; // Import action
+import { changePassword, resetError } from "../../../store/actions/authActions"; // Import action
 import Swal from "sweetalert2";
 import "./ChangePassword.scss";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";

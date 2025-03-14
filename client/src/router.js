@@ -153,6 +153,11 @@ const UserROUTERS = () => {
             component: <ResetPasswordForm />,
             layout: null, // No layout for auth routes
         },
+        {
+            path: ROUTERS.ADMIN.ADMIN,
+            component: <MasterLayoutAdmin />,
+            layout: null, // No layout for auth routes
+        },
 
 
         // Add more auth routes here....

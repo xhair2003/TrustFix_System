@@ -19,6 +19,8 @@ const initialState = {
     successRegister: null,
     successVerifyOTP: null,
     successLogin: null,
+    role: null,
+    errorGetRole: null,
 };
 
 const authReducer = (state = initialState, action) => {
@@ -41,6 +43,7 @@ const authReducer = (state = initialState, action) => {
                 user: action.payload.user,
                 loading: false,
                 successLogin: action.payload.successLogin,
+                role: action.payload.role,
             };
 
         case "LOGOUT":
@@ -93,6 +96,40 @@ const authReducer = (state = initialState, action) => {
             return { ...state, loading: false, errorRegister: action.payload.EM, successRegister: null };
 
 
+        case "FETCH_ROLE_TYPE_REQUEST":
+            return {
+                ...state,
+                loading: true,
+                errorGetRole: null,
+            };
+        case "FETCH_ROLE_TYPE_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                role: action.payload,
+            };
+        case "FETCH_ROLE_TYPE_FAIL":
+            return {
+                ...state,
+                loading: false,
+                errorGetRole: action.payload,
+            };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         case "RESET_ERROR":
             return {
                 ...state,
@@ -103,6 +140,7 @@ const authReducer = (state = initialState, action) => {
                 errorVerifyOTP: null,
                 errorForgotPassword: null,
                 errorLogin: null,
+                errorGetRole: null,
             };
         case "RESET_SUCCESS":
             return {
@@ -113,7 +151,6 @@ const authReducer = (state = initialState, action) => {
                 successResetPassword: null,
                 successVerifyOTP: null,
             };
-
 
         default:
             return state;

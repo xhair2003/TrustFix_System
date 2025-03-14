@@ -1,5 +1,15 @@
 const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, ServicePrice, Role } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
+const nodemailer = require("nodemailer");
+
+// Email configuration
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
 // --- Service Industry CRUD ---
 
@@ -502,50 +512,86 @@ const viewDepositeHistory = async (req, res) => {
     }
 }
 
+// const getAllUsers = async (req, res) => {
+//     try {
+//         let { search = "", page = 1, limit = 10, sortBy = "createdAt", orderBy = "desc" } = req.query;
+
+//         page = parseInt(page);
+//         limit = parseInt(limit);
+//         orderBy = orderBy === "desc" ? -1 : 1;
+
+//         const adminUserIds = await Role.find({ type: "admin" }).distinct("user_id");
+
+//         let filter = {
+//             _id: { $nin: adminUserIds },
+//             $or: [
+//                 { firstName: new RegExp(search, "i") },
+//                 { lastName: new RegExp(search, "i") },
+//                 { email: new RegExp(search, "i") },
+//                 { phone: new RegExp(search, "i") }
+//             ]
+//         };
+
+//         const users = await User.find(filter)
+//             .sort({ [sortBy]: orderBy })
+//             .skip((page - 1) * limit)
+//             .limit(limit)
+//             .select('-pass')
+//             .populate({
+//                 path: "roles",
+//                 select: "type"
+//             })
+//             .lean();
+
+//         const totalCount = await User.countDocuments(filter);
+//         const totalPages = Math.ceil(totalCount / limit);
+
+//         return res.status(200).json({
+//             EC: 1,
+//             EM: "Lấy danh sách tài khoản thành công!",
+//             data: {
+//                 page,
+//                 limit,
+//                 totalPages,
+//                 totalCount,
+//                 users,
+//             }
+//         });
+//     } catch (err) {
+//         return res.status(500).json({
+//             EC: 0,
+//             EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+//         });
+//     }
+// };
 const getAllUsers = async (req, res) => {
     try {
-        let { search = "", page = 1, limit = 10, sortBy = "createdAt", orderBy = "desc" } = req.query;
+        // Tự động sắp xếp theo 'createdAt' giảm dần
+        const sortBy = "createdAt";
+        const orderBy = -1; // -1 là giảm dần, 1 là tăng dần
 
-        page = parseInt(page);
-        limit = parseInt(limit);
-        orderBy = orderBy === "desc" ? -1 : 1;
-
+        // Lấy tất cả các user có vai trò không phải admin
         const adminUserIds = await Role.find({ type: "admin" }).distinct("user_id");
 
+        // Filter tìm kiếm người dùng
         let filter = {
-            _id: { $nin: adminUserIds },
-            $or: [
-                { firstName: new RegExp(search, "i") },
-                { lastName: new RegExp(search, "i") },
-                { email: new RegExp(search, "i") },
-                { phone: new RegExp(search, "i") }
-            ]
+            _id: { $nin: adminUserIds }
         };
 
+        // Lấy danh sách người dùng với điều kiện đã tạo sẵn
         const users = await User.find(filter)
-            .sort({ [sortBy]: orderBy })
-            .skip((page - 1) * limit)
-            .limit(limit)
-            .select('-pass')
+            .sort({ [sortBy]: orderBy }) // Sắp xếp theo createdAt giảm dần
+            .select('-pass') // Không trả về mật khẩu
             .populate({
                 path: "roles",
                 select: "type"
             })
             .lean();
 
-        const totalCount = await User.countDocuments(filter);
-        const totalPages = Math.ceil(totalCount / limit);
-
         return res.status(200).json({
             EC: 1,
             EM: "Lấy danh sách tài khoản thành công!",
-            data: {
-                page,
-                limit,
-                totalPages,
-                totalCount,
-                users,
-            }
+            DT: users,
         });
     } catch (err) {
         return res.status(500).json({
@@ -558,29 +604,53 @@ const getAllUsers = async (req, res) => {
 const deleteUserById = async (req, res) => {
     try {
         const { userId } = req.params;
+        const { reason } = req.body;  // Lý do xóa tài khoản từ req.body
 
         if (!userId) {
             return res.status(400).json({ EC: 0, EM: "Vui lòng cung cấp userId!" });
         }
 
+        // Tìm người dùng theo userId
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ EC: 0, EM: "Không tìm thấy người dùng!" });
         }
 
+        // Lấy email người dùng cần xóa
+        const email = user.email;
+
+        // Gửi email thông báo
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Thông báo xóa tài khoản',
+            html: `
+                <h1>Thông báo xóa tài khoản</h1>
+                <p>Xin chào ${user.firstName} ${user.lastName},</p>
+                <p>Chúng tôi muốn thông báo rằng tài khoản của bạn tại TrustFix đã bị xóa.</p>
+                <p>Lý do xóa tài khoản: <strong>${reason}</strong></p>
+                <p>Xin vui lòng liên hệ với chúng tôi nếu bạn có bất kỳ thắc mắc nào.</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);  // Gửi email
+
+        // Tiến hành xóa người dùng
         await User.findByIdAndDelete(userId);
 
         res.status(200).json({
             EC: 1,
-            EM: "Xóa tài khoản thành công!"
+            EM: "Xóa tài khoản thành công và email đã được gửi!"
         });
     } catch (err) {
+        console.error(err);
         res.status(500).json({
             EC: 0,
             EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
         });
     }
 };
+
 //Service Price
 const addServicePrice = async (req, res) => {
     try {

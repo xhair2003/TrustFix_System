@@ -208,7 +208,7 @@ const verifyRegister = async (req, res) => {
             email: registration.email,
             pass: hashedPassword,
             phone: registration.phone,
-            status: 1
+            status: "Inactive" // set Inactive ban đầu
         });
 
         // Save user
@@ -329,7 +329,7 @@ const login = async (req, res) => {
         }
 
         // Check if user is active
-        if (user.status !== 1) {
+        if (user.status === "Banned") {
             return res.status(401).json({
                 EC: 0,
                 EM: "Tài khoản đã bị vô hiệu hóa!"
@@ -440,6 +440,37 @@ const logout = async (req, res) => {
         EM: "Logged out successfully!"
     });
 };
+
+const getRole = async (req, res) => {
+    try {
+        // Lấy ID của người dùng từ req.user (được xác thực từ verifyToken)
+        const userId = req.user.id;
+
+        // Tìm loại (type) role của người dùng từ bảng Role
+        const userRole = await Role.findOne({ user_id: userId }).select("type");
+
+        if (!userRole) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy vai trò cho người dùng này!",
+            });
+        }
+
+        // Trả về type của người dùng
+        return res.status(200).json({
+            EC: 1,
+            EM: "Lấy loại vai trò thành công!",
+            DT: userRole.type,  // xuất ra role người dùng
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+        });
+    }
+};
+
 
 
 ///Change password
@@ -673,4 +704,5 @@ module.exports = {
     forgotPassword,
     verifyOTP,
     resetPassword,
+    getRole,
 };

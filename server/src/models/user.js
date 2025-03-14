@@ -1,41 +1,41 @@
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
-    firstName: { 
-        type: String, 
-        required: true 
+    firstName: {
+        type: String,
+        required: true
     },
-    lastName: { 
-        type: String, 
-        required: true 
+    lastName: {
+        type: String,
+        required: true
     },
-    email: { 
-        type: String, 
-        required: true, 
-        unique: true 
+    email: {
+        type: String,
+        required: true,
+        unique: true
     },
-    pass: { 
-        type: String, 
-        required: true 
+    pass: {
+        type: String,
+        required: true
     },
-    phone: { 
-        type: String, 
-        required: true, 
-        unique: true 
+    phone: {
+        type: String,
+        required: true,
+        unique: true
     },
-    imgAvt: { 
+    imgAvt: {
         type: String,
         default: null
     },
-    status: { 
-        type: Number, 
-        enum: ['Active','Inactive','Banned']
+    status: {
+        type: String,
+        enum: ['Active', 'Inactive', 'Banned']
     },
-    address: { 
+    address: {
         type: String,
         default: null
     },
-    description: { 
+    description: {
         type: String,
         default: null
     }

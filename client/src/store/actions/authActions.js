@@ -16,18 +16,18 @@ export const login = (email, pass) => {
                 // Đẩy action vào Redux
                 dispatch({
                     type: "LOGIN_SUCCESS",
-                    payload: { accessToken, isAuthenticated: true, user: response.data.DT, successLogin: response.data.EM }
+                    payload: { accessToken, isAuthenticated: true, user: response.data.DT, successLogin: response.data.EM, role: response.data.DT.roles[0] }
                 });
             } else {
                 dispatch({
                     type: "LOGIN_FAIL",
-                    payload: response.data,
+                    payload: response.data.EM,
                 });
             }
         } catch (error) {
             dispatch({
                 type: "LOGIN_FAIL",
-                payload: error.response.data
+                payload: error.response.data.EM,
             });
         }
     };
@@ -197,4 +197,37 @@ export const resetSuccess = () => {
     };
 };
 
+// Fetch user role type action
+export const getRole = () => async (dispatch, getState) => {
+    const { auth } = getState();
+    const token = auth.token;
+    dispatch({ type: "FETCH_ROLE_TYPE_REQUEST" });
+    try {
+        // Gửi yêu cầu API để lấy loại (type) của user
+        const response = await axios.get('http://localhost:8080/api/authen/get-role', {
+            headers: {
+                //Authorization: `Bearer ${localStorage.getItem('token')}`, // Giả sử bạn lưu token trong localStorage
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (response.data.EC === 1) {
+            // Dispatch action nếu lấy thành công
+            dispatch({
+                type: "FETCH_ROLE_TYPE_SUCCESS",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "FETCH_ROLE_TYPE_FAIL",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "FETCH_ROLE_TYPE_FAIL",
+            payload: error.response.data.EM,
+        });
+    }
+};
 
