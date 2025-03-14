@@ -695,6 +695,7 @@ const resetPassword = async (req, res) => {
 };
 
 module.exports = {
+    transporter,
     initRegister,
     verifyRegister,
     login,

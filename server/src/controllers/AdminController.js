@@ -1,5 +1,6 @@
-const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, ServicePrice, Role } = require("../models");
+const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, ServicePrice, Role, Rating } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
+
 const nodemailer = require("nodemailer");
 
 // Email configuration
@@ -344,11 +345,9 @@ const getComplaintById = async (req, res) => {
 };
 
 const replyToComplaint = async (req, res) => {
-    console.log("req.body:", req.body); // Log req.body ngay đầu function
     try {
         const parentComplaintId = req.params.id; // ID của khiếu nại gốc
         const { complaintContent } = req.body; // Chỉ lấy complaintContent từ request body
-        const adminUserId = req.user.id; // Lấy adminUserId trực tiếp từ req.user.id
 
         if (!complaintContent) {
             return res.status(400).json({
@@ -365,22 +364,57 @@ const replyToComplaint = async (req, res) => {
             });
         }
 
-        const newReply = new Complaint({
-            user_id: adminUserId,
-            complaintContent: complaintContent,
-            complaintType: parentComplaint.complaintType,
-            request_id: parentComplaint.request_id,
-            parentComplaint: parentComplaintId
+        // Get the request details by the request_id from the complaint
+        const request = await Request.findById(parentComplaint.request_id);
+        if (!request) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy đơn hàng liên quan đến khiếu nại!"
+            });
+        }
+
+        // Get the user who created the request
+        const user = await User.findById(request.user_id);
+        if (!user) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy người dùng đã tạo đơn hàng!"
+            });
+        }
+
+        // Create the email content
+        const emailContent = `
+            <h1>Thông báo phản hồi khiếu nại</h1>
+            <p>Xin chào ${user.firstName} ${user.lastName},</p>
+            <p>Chúng tôi muốn thông báo rằng chúng tôi đã nhận được phản hồi từ quản trị viên về khiếu nại của bạn. Dưới đây là nội dung phản hồi của chúng tôi:</p>
+            <p><strong>${complaintContent}</strong></p>
+            <p>Xin vui lòng liên hệ với chúng tôi nếu bạn có bất kỳ thắc mắc nào.</p>
+        `;
+
+        // Set up the email transporter using Gmail
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER, // Your email
+                pass: process.env.EMAIL_PASS // Your email password or an app password
+            }
         });
 
-        console.log("newReply object:", newReply); // <-- Thêm dòng log này
+        // Setup email options
+        const mailOptions = {
+            from: process.env.EMAIL_USER, // Sender email
+            to: user.email, // Recipient email
+            subject: 'Thông báo phản hồi khiếu nại', // Email subject
+            html: emailContent // HTML email content
+        };
 
-        await newReply.save();
+        // Send the email
+        await transporter.sendMail(mailOptions);
 
-        res.status(201).json({
+        res.status(200).json({
             EC: 1,
-            EM: "Phản hồi khiếu nại thành công!",
-            DT: newReply
+            EM: "Phản hồi khiếu nại thành công và đã gửi email đến người dùng!",
+            DT: parentComplaint // You can send the complaint or the response data
         });
 
     } catch (error) {
@@ -392,26 +426,70 @@ const replyToComplaint = async (req, res) => {
     }
 };
 
-// View history payment with transactionType = payment
+// const replyToComplaint = async (req, res) => {
+//     console.log("req.body:", req.body); // Log req.body ngay đầu function
+//     try {
+//         const parentComplaintId = req.params.id; // ID của khiếu nại gốc
+//         const { complaintContent } = req.body; // Chỉ lấy complaintContent từ request body
+//         const adminUserId = req.user.id; // Lấy adminUserId trực tiếp từ req.user.id
+
+//         if (!complaintContent) {
+//             return res.status(400).json({
+//                 EC: 0,
+//                 EM: "Vui lòng nhập nội dung phản hồi!"
+//             });
+//         }
+
+//         const parentComplaint = await Complaint.findById(parentComplaintId);
+//         if (!parentComplaint) {
+//             return res.status(404).json({
+//                 EC: 0,
+//                 EM: "Không tìm thấy khiếu nại gốc để phản hồi!"
+//             });
+//         }
+
+//         const newReply = new Complaint({
+//             user_id: adminUserId,
+//             complaintContent: complaintContent,
+//             complaintType: parentComplaint.complaintType,
+//             request_id: parentComplaint.request_id,
+//             parentComplaint: parentComplaintId
+//         });
+
+//         console.log("newReply object:", newReply); // <-- Thêm dòng log này
+
+//         await newReply.save();
+
+//         res.status(201).json({
+//             EC: 1,
+//             EM: "Phản hồi khiếu nại thành công!",
+//             DT: newReply
+//         });
+
+//     } catch (error) {
+//         console.error("Error replying to complaint:", error);
+//         res.status(500).json({
+//             EC: 0,
+//             EM: "Đã có lỗi xảy ra khi phản hồi khiếu nại. Vui lòng thử lại sau!"
+//         });
+//     }
+// };
+
+// // View history payment with transactionType = payment
+
 const viewHistoryPayment = async (req, res) => {
     try {
-        const { limit, search = "", transactionType = "payment" } = req.query;
-
-        const limitNumber = limit ? parseInt(limit) : undefined;
-
-        const searchFilter = search ? { payCode: { $regex: search, $options: "i" } } : {};
-        const transactionFilter = transactionType ? { transactionType } : {};
+        // Set the transaction type to "payment" directly in the code
+        const transactionType = "payment";
 
         const transactions = await Transaction.find({
-            ...transactionFilter,
-            ...searchFilter,
+            transactionType
         })
             .populate({
                 path: "wallet_id",
                 select: "balance",
             })
-            .limit(limitNumber)
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 }); // Sorting by creation date in descending order
 
         res.status(200).json({
             EC: 1,
@@ -425,9 +503,44 @@ const viewHistoryPayment = async (req, res) => {
             EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
         });
     }
-}
+};
+
+// const viewHistoryPayment = async (req, res) => {
+//     try {
+//         const { limit, search = "", transactionType = "payment" } = req.query;
+
+//         const limitNumber = limit ? parseInt(limit) : undefined;
+
+//         const searchFilter = search ? { payCode: { $regex: search, $options: "i" } } : {};
+//         const transactionFilter = transactionType ? { transactionType } : {};
+
+//         const transactions = await Transaction.find({
+//             ...transactionFilter,
+//             ...searchFilter,
+//         })
+//             .populate({
+//                 path: "wallet_id",
+//                 select: "balance",
+//             })
+//             .limit(limitNumber)
+//             .sort({ createdAt: -1 });
+
+//         res.status(200).json({
+//             EC: 1,
+//             EM: "Lấy lịch sử thanh toán thành công!",
+//             DT: transactions,
+//         });
+//     } catch (err) {
+//         console.error("Get payment history error:", err);
+//         res.status(500).json({
+//             EC: 0,
+//             EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+//         });
+//     }
+// }
 
 //View all history payment have limit, page, search
+
 const viewAllTransactions = async (req, res) => {
     try {
         const { page = 1, limit = 10, search = "" } = req.query;
@@ -480,37 +593,65 @@ const viewAllTransactions = async (req, res) => {
 // View history payment with transactionType = deposite
 const viewDepositeHistory = async (req, res) => {
     try {
-        const { limit, search = "", transactionType = "deposite" } = req.query;
-
-        const limitNumber = limit ? parseInt(limit) : undefined;
-
-        const searchFilter = search ? { payCode: { $regex: search, $options: "i" } } : {};
-        const transactionFilter = transactionType ? { transactionType } : {};
+        // Set the transaction type to "deposite" directly in the code
+        const transactionType = "deposite";
 
         const transactions = await Transaction.find({
-            ...transactionFilter,
-            ...searchFilter,
+            transactionType
         })
             .populate({
                 path: "wallet_id",
                 select: "balance",
             })
-            .limit(limitNumber)
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 }); // Sorting by creation date in descending order
 
         res.status(200).json({
             EC: 1,
-            EM: "Lấy lịch sử thanh toán thành công!",
+            EM: "Lấy lịch sử nạp tiền thành công!",
             DT: transactions,
         });
     } catch (err) {
-        console.error("Get payment history error:", err);
+        console.error("Get deposite history error:", err);
         res.status(500).json({
             EC: 0,
             EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
         });
     }
-}
+};
+
+// const viewDepositeHistory = async (req, res) => {
+//     try {
+//         const { limit, search = "", transactionType = "deposite" } = req.query;
+
+//         const limitNumber = limit ? parseInt(limit) : undefined;
+
+//         const searchFilter = search ? { payCode: { $regex: search, $options: "i" } } : {};
+//         const transactionFilter = transactionType ? { transactionType } : {};
+
+//         const transactions = await Transaction.find({
+//             ...transactionFilter,
+//             ...searchFilter,
+//         })
+//             .populate({
+//                 path: "wallet_id",
+//                 select: "balance",
+//             })
+//             .limit(limitNumber)
+//             .sort({ createdAt: -1 });
+
+//         res.status(200).json({
+//             EC: 1,
+//             EM: "Lấy lịch sử nạp tiền thành công!",
+//             DT: transactions,
+//         });
+//     } catch (err) {
+//         console.error("Get deposite history error:", err);
+//         res.status(500).json({
+//             EC: 0,
+//             EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+//         });
+//     }
+// }
 
 // const getAllUsers = async (req, res) => {
 //     try {
@@ -564,6 +705,7 @@ const viewDepositeHistory = async (req, res) => {
 //         });
 //     }
 // };
+
 const getAllUsers = async (req, res) => {
     try {
         // Tự động sắp xếp theo 'createdAt' giảm dần
@@ -715,7 +857,7 @@ const updateServicePrice = async (req, res) => {
 };
 const deleteServicePrice = async (req, res) => {
     try {
-        const serviceId = req.params.id;
+        const serviceId = req.params.serviceId;
 
         const servicePrice = await ServicePrice.findByIdAndDelete(serviceId);
         if (!servicePrice) {
@@ -757,7 +899,318 @@ const getAllServicePrice = async (req, res) => {
         });
     }
 }
+
+const lockUserByUserId = async (req, res) => {
+    try {
+        const { reason } = req.body;
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ EC: 0, EM: "Người dùng không tồn tại!" });
+        }
+
+        if (user.status === "Banned") {
+            return res.status(400).json({ EC: 0, EM: "Tài khoản đã bị khóa trước đó!" });
+        }
+
+        user.status = "Banned";
+        await user.save();
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: "Tài khoản TrustFix của bạn đã bị khóa",
+            html: `
+                <h1>Thông báo khóa tài khoản</h1>
+                <p>Chào ${user.firstName} ${user.lastName},</p>
+                <p>Tài khoản của bạn đã bị khóa vì lý do:</p>
+                <blockquote><strong>${reason}</strong></blockquote>
+                <p>Nếu bạn có thắc mắc, vui lòng liên hệ đội ngũ hỗ trợ qua email: 
+                    <a href="mailto:admin@trustfix.com" style="color: #007bff; text-decoration: none;">
+                        admin@trustfix.com
+                    </a>
+                </p>
+                <p>Trân trọng,</p>
+                <p>Đội ngũ TrustFix</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({ EC: 1, EM: "Tài khoản đã bị khóa và email đã được gửi." });
+    } catch (error) {
+        return res.status(500).json({ EC: 0, EM: "Lỗi hệ thống. Vui lòng thử lại!" });
+    }
+};
+
+const unlockUserByUserId = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ EC: 0, EM: "Người dùng không tồn tại!" });
+        }
+
+        if (user.status !== "Banned") {
+            return res.status(400).json({ EC: 0, EM: "Tài khoản chưa bị khóa hoặc đã được mở khóa!" });
+        }
+
+        user.status = "Inactive";
+        await user.save();
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: "Tài khoản TrustFix của bạn đã được mở khóa",
+            html: `
+                <h1>Thông báo mở khóa tài khoản</h1>
+                <p>Chào ${user.firstName} ${user.lastName},</p>
+                <p>Tài khoản của bạn đã được mở khóa. Bạn có thể đăng nhập và tiếp tục sử dụng dịch vụ của chúng tôi.</p>
+                <p>Nếu bạn có thắc mắc, vui lòng liên hệ đội ngũ hỗ trợ qua email: 
+                    <a href="mailto:admin@trustfix.com" style="color: #007bff; text-decoration: none;">
+                        admin@trustfix.com
+                    </a>
+                </p>
+                <p>Trân trọng,</p>
+                <p>Đội ngũ TrustFix</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({ EC: 1, EM: "Tài khoản đã được mở khóa và email đã được gửi." });
+    } catch (error) {
+        return res.status(500).json({ EC: 0, EM: "Lỗi hệ thống. Vui lòng thử lại!" });
+    }
+};
+
+// const viewRepairBookingHistory = async (req, res) => {
+//     try {
+//         const { page = 1, limit = 10, search = "" } = req.query;
+
+//         const pageNumber = parseInt(page);
+//         const limitNumber = parseInt(limit);
+
+//         const searchFilter = search
+//             ? { description: { $regex: search, $options: "i" } }
+//             : {};
+
+//         const requests = await Request.find(searchFilter)
+//             .populate({
+//                 path: "serviceIndustry_id",
+//                 select: "type",
+//                 model: ServiceIndustry,
+//             })
+//             .populate({
+//                 path: "user_id",
+//                 select: "firstName lastName",
+//                 model: User,
+//             })
+//             // .populate({
+//             //     path: "ratings",
+//             //     select: "rate comment",
+//             //     model: Rating,
+//             // })
+//             .skip((pageNumber - 1) * limitNumber)
+//             .limit(limitNumber)
+//             .sort({ createdAt: -1 });
+
+//         res.status(200).json({
+//             EC: 1,
+//             EM: "Lấy lịch sử đặt sửa chữa thành công!",
+//             DT: requests,
+//         });
+//     } catch (err) {
+//         console.error("Lỗi khi lấy lịch sử đặt sửa chữa:", err);
+//         res.status(500).json({
+//             EC: 0,
+//             EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+//         });
+//     }
+// };
+const viewRepairBookingHistory = async (req, res) => {
+    try {
+        // Remove page, limit, and search query parameters
+        // Fetch all the records without pagination and search filtering
+
+        const requests = await Request.find()
+            .populate({
+                path: "serviceIndustry_id",
+                select: "type",
+                model: ServiceIndustry,
+            })
+            .populate({
+                path: "user_id",
+                select: "firstName lastName",
+                model: User,
+            })
+            // .populate({
+            //     path: "ratings",
+            //     select: "rate comment",
+            //     model: Rating,
+            // })
+            .sort({ createdAt: -1 }); // Sort by creation date in descending order
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy lịch sử đặt sửa chữa thành công!",
+            DT: requests,
+        });
+    } catch (err) {
+        console.error("Lỗi khi lấy lịch sử đặt sửa chữa:", err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+        });
+    }
+};
+
+const getPendingUpgradeRequests = async (req, res) => {
+    try {
+        const pendingRequests = await RepairmanUpgradeRequest.find({ status: 'Pending' })
+            .populate('user', 'firstName lastName email') // Populate user details
+            .populate('serviceIndustry', 'type'); // Populate service industry type
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy danh sách yêu cầu nâng cấp đang chờ duyệt thành công!",
+            DT: pendingRequests
+        });
+    } catch (err) {
+        console.error('Get pending upgrade requests error:', err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const verifyRepairmanUpgradeRequest = async (req, res) => {
+    try {
+        const requestId = req.params.requestId;
+        const { action, rejectReason } = req.body;
+
+        if (!requestId || !action) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vui lòng cung cấp ID yêu cầu và hành động (approve/reject)!",
+            });
+        }
+
+        const upgradeRequest = await RepairmanUpgradeRequest.findById(requestId).populate('user');
+        if (!upgradeRequest) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy yêu cầu nâng cấp!",
+            });
+        }
+
+        const userEmail = upgradeRequest.user.email;
+
+        // Set up Nodemailer transporter
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,  // Your email here
+                pass: process.env.EMAIL_PASS,  // Your email password or an app password here
+            },
+        });
+
+        if (action === 'approve') {
+            // Update request status to approved
+            upgradeRequest.status = 'Active';
+            upgradeRequest.approvedAt = Date.now();
+            await upgradeRequest.save();
+
+            // Update user role to repairman
+            let userRole = await Role.findOne({ user_id: upgradeRequest.user_id });
+            if (userRole) {
+                userRole.type = 'repairman';
+                await userRole.save();
+            } else {
+                // Create role if not exists (should not happen in normal flow)
+                userRole = new Role({
+                    user_id: upgradeRequest.user_id,
+                    type: 'repairman',
+                });
+                await userRole.save();
+            }
+
+            // Send email to the user informing them of approval
+            const mailOptionsApprove = {
+                from: process.env.EMAIL_USER,
+                to: userEmail,
+                subject: 'Yêu cầu nâng cấp thợ sửa chữa của bạn đã được phê duyệt',
+                html: `
+                    <h1>Phê duyệt yêu cầu nâng cấp của bạn</h1>
+                    <p>Chào ${upgradeRequest.user.firstName} ${upgradeRequest.user.lastName},</p>
+                    <p>Chúng tôi xin chúc mừng bạn! Yêu cầu nâng cấp của bạn để trở thành thợ sửa chữa đã được phê duyệt.</p>
+                    <p>Vai trò của bạn đã được cập nhật thành 'Thợ sửa chữa'. Bạn có thể bắt đầu nhận các yêu cầu sửa chữa từ khách hàng.</p>
+                    <p>Cảm ơn bạn đã tham gia vào nền tảng của chúng tôi!</p>
+                `,
+            };
+
+            await transporter.sendMail(mailOptionsApprove);
+
+            res.status(200).json({
+                EC: 1,
+                EM: "Yêu cầu nâng cấp đã được phê duyệt thành công! Người dùng đã được chuyển thành thợ sửa chữa.",
+            });
+
+        } else if (action === 'reject') {
+            if (!rejectReason) {
+                return res.status(400).json({
+                    EC: 0,
+                    EM: "Vui lòng cung cấp lý do từ chối khi từ chối yêu cầu!",
+                });
+            }
+            // Delete the upgrade request (reject action)
+            await RepairmanUpgradeRequest.findByIdAndDelete(requestId);
+
+            // Send email to the user informing them of rejection
+            const mailOptionsReject = {
+                from: process.env.EMAIL_USER,
+                to: userEmail,
+                subject: 'Yêu cầu nâng cấp thợ sửa chữa của bạn đã bị từ chối',
+                html: `
+                    <h1>Từ chối yêu cầu nâng cấp của bạn</h1>
+                    <p>Chào ${upgradeRequest.user.firstName} ${upgradeRequest.user.lastName},</p>
+                    <p>Chúng tôi rất tiếc phải thông báo rằng yêu cầu nâng cấp của bạn để trở thành thợ sửa chữa đã bị từ chối.</p>
+                    <p>Lý do từ chối: <strong>${rejectReason}</strong></p>
+                    <p>Chúng tôi hy vọng bạn sẽ tiếp tục cải thiện và có thể đăng ký lại trong tương lai. Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.</p>
+                    <p>Cảm ơn bạn đã hiểu và tham gia!</p>
+                `,
+            };
+
+            await transporter.sendMail(mailOptionsReject);
+
+            res.status(200).json({
+                EC: 1,
+                EM: "Yêu cầu nâng cấp đã bị từ chối thành công!",
+            });
+        } else {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Hành động không hợp lệ! Vui lòng chọn 'approve' hoặc 'reject'.",
+            });
+        }
+
+    } catch (err) {
+        console.error('Verify repairman upgrade request error:', err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+        });
+    }
+};
+
+
+
 module.exports = {
+    getPendingUpgradeRequests,
+    verifyRepairmanUpgradeRequest,
     createServiceIndustry,
     getAllServiceIndustries,
     getServiceIndustryById,
@@ -779,5 +1232,8 @@ module.exports = {
     getAllUsers,
     deleteUserById,
     viewAllTransactions,
-    viewDepositeHistory
+    viewDepositeHistory,
+    lockUserByUserId,
+    unlockUserByUserId,
+    viewRepairBookingHistory,
 };
