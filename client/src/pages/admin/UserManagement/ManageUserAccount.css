@@ -89,7 +89,7 @@
     border: none;
     cursor: pointer;
     font-size: 16px;
-    margin-right: 8px;
+    margin-right: auto;
     transition: color 0.3s;
 }
 
@@ -102,11 +102,11 @@
 }
 
 .delete-button {
-    color: #dc3545;
+    color: #ff031c;
 }
 
 .delete-button:hover {
-    color: #c82333;
+    color: #ffffff;
 }
 /* Thêm vào file ManageUserAccount.css */
 .table-wrapper {
@@ -158,7 +158,7 @@
 }
 
 .pagination button.active {
-    background-color: #007bff;
+    background-color: #76b3f5c2;
     color: white;
     border-color: #007bff;
 }

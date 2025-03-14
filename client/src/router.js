@@ -21,6 +21,12 @@ import ForgotPassword from "./pages/users/ForgotPassword.js";
 import ResetPasswordForm from "./pages/users/ResetPassword.js";
 import ManageUserAccount from "./pages/admin/UserManagement/ManageUserAccount.jsx";
 import MasterLayoutAdmin from "./pages/admin/MasterLayoutAdmin/MasterLayoutAdmin.jsx";
+import ManageCategories from "./pages/admin/ManageCategories/ManageCategories.jsx";
+import ManageComplaints from "./pages/admin/ManageComplaints/ManageComplaints.jsx";
+import ManageUpgradeRepairman from "./pages/admin/ManageUpgradeRequests/ManageUpgradeRepairman.jsx";
+import ViewDepositHistory from "./pages/admin/TransactionManagement/DepositHistory/ViewDepositHistory.jsx";
+import ViewPaymentHistory from "./pages/admin/TransactionManagement/PaymentHistory/ViewPaymentHistory.jsx";
+import ManageServicePrices from "./pages/admin/ManageServicePrices/ManageServicePrices.jsx";
 
 const UserROUTERS = () => {
     const routers = [
@@ -87,49 +93,48 @@ const UserROUTERS = () => {
         {
             path: ROUTERS.ADMIN.MANAGE_USER_ACCOUNT,
             component: <ManageUserAccount />,
-            layout: MasterLayoutAdmin, // Routes using MasterLayoutAdmin
+            layout: MasterLayoutAdmin,
         },
         {
             path: ROUTERS.ADMIN.DASHBOARD,
             // component: <Dashboard />,
-            layout: MasterLayoutAdmin, // Routes using MasterLayoutAdmin
-        },
-        {
-            path: ROUTERS.ADMIN.MANAGE_USER_ACCOUNT,
-            component: <ManageUserAccount />,
-            layout: MasterLayoutAdmin, // Routes using MasterLayoutAdmin
+            layout: MasterLayoutAdmin, 
         },
         {
             path: ROUTERS.ADMIN.VIEW_REPAIR_BOOKING,
             // component: <ViewRepairBooking />,
-            layout: MasterLayoutAdmin, // Routes using MasterLayoutAdmin
+            layout: MasterLayoutAdmin, 
         },
         {
             path: ROUTERS.ADMIN.MANAGE_UPGRADE_REPAIRMAN,
-            // component: <ManageUpgradeRepairman />,
-            layout: MasterLayoutAdmin, // Routes using MasterLayoutAdmin
+            component: <ManageUpgradeRepairman />,
+            layout: MasterLayoutAdmin, 
         },
         {
             path: ROUTERS.ADMIN.ADMIN_VIEW_DEPOSIT_HISTORY,
-            // component: <ViewDepositHistory />,
-            layout: MasterLayoutAdmin, // Routes using MasterLayoutAdmin
+            component: <ViewDepositHistory/>,
+            layout: MasterLayoutAdmin, 
         },
         {
             path: ROUTERS.ADMIN.ADMIN_VIEW_HISTORY_PAYMENT,
-            // component: <ViewHistoryPayment />,
-            layout: MasterLayoutAdmin, // Routes using MasterLayoutAdmin
+            component: <ViewPaymentHistory/>,
+            layout: MasterLayoutAdmin, 
         },
         {
             path: ROUTERS.ADMIN.MANAGE_COMPLAINTS,
-            // component: <ManageComplaints />,
-            layout: MasterLayoutAdmin, // Routes using MasterLayoutAdmin
+            component: <ManageComplaints />,
+            layout: MasterLayoutAdmin, 
         },
         {
             path: ROUTERS.ADMIN.MANAGE_SERVICE,
-            // component: <ManageServicePrices />,
-            layout: MasterLayoutAdmin, // Routes using MasterLayoutAdmin
+            component: <ManageServicePrices/>,
+            layout: MasterLayoutAdmin, 
         },
-        
+        {
+            path: ROUTERS.ADMIN.MANAGE_CATEGORIES,
+            component: <ManageCategories/>,
+            layout: MasterLayoutAdmin, 
+        },
 
         
 

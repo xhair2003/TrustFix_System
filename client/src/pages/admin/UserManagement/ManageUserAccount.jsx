@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import "./ManageUserAccount.css";
-import { FaEdit, FaTrash } from "react-icons/fa"; // Icons for edit and delete
+import { FaEdit, FaTrash } from "react-icons/fa";
+import UserInfoModal from "./UserInforModal";
 
 const ManageUserAccount = () => {
-    // Sample user data
     const [users, setUsers] = useState([
         { id: 1, fullName: "Nguyen Xuan Hai", email: "abc123456789@gmail.com", phone: "0989273874", role: "Customer", avatar: "" },
         { id: 2, fullName: "Nguyen Xuan Hai", email: "abc123456789@gmail.com", phone: "0989273874", role: "Customer", avatar: "" },
@@ -22,8 +22,9 @@ const ManageUserAccount = () => {
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [roleFilter, setRoleFilter] = useState("All");
-    const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
-    const [itemsPerPage, setItemsPerPage] = useState(5); // Số mục trên mỗi trang
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const [selectedUser, setSelectedUser] = useState(null); // Trạng thái cho user được chọn
 
     // Handle checkbox selection
     const handleCheckboxChange = (id) => {
@@ -42,7 +43,7 @@ const ManageUserAccount = () => {
         }
     };
 
-    // Filter users based on search term and role
+    // Filter users
     const filteredUsers = users.filter((user) => {
         const matchesSearch = user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             user.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -63,7 +64,17 @@ const ManageUserAccount = () => {
     // Handle items per page change
     const handleItemsPerPageChange = (e) => {
         setItemsPerPage(Number(e.target.value));
-        setCurrentPage(1); // Reset về trang 1 khi thay đổi số lượng mục
+        setCurrentPage(1);
+    };
+
+    // Open modal with user details
+    const handleViewUser = (user) => {
+        setSelectedUser(user);
+    };
+
+    // Close modal
+    const handleCloseModal = () => {
+        setSelectedUser(null);
     };
 
     return (
@@ -71,7 +82,6 @@ const ManageUserAccount = () => {
             <div className="history-form">
                 <h2 className="complaint-title">QUẢN LÝ TÀI KHOẢN NGƯỜI DÙNG</h2>
 
-                {/* Search, Filter, and Items per Page Section */}
                 <div className="filter-section">
                     <input
                         type="text"
@@ -107,7 +117,6 @@ const ManageUserAccount = () => {
                     </button>
                 </div>
 
-                {/* User Table */}
                 <div className="table-wrapper">
                     <table className="user-table">
                         <thead>
@@ -139,7 +148,7 @@ const ManageUserAccount = () => {
                                     <td>{user.role}</td>
                                     <td><div className="avatar-placeholder"></div></td>
                                     <td>
-                                        <button className="action-button edit-button"><FaEdit /></button>
+                                        <button className="action-button edit-button" onClick={() => handleViewUser(user)}><FaEdit /></button>
                                         <button className="action-button delete-button"><FaTrash /></button>
                                     </td>
                                 </tr>
@@ -148,7 +157,6 @@ const ManageUserAccount = () => {
                     </table>
                 </div>
 
-                {/* Pagination */}
                 <div className="pagination">
                     <button
                         onClick={() => handlePageChange(currentPage - 1)}
@@ -173,6 +181,9 @@ const ManageUserAccount = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Render UserInfoModal */}
+            {selectedUser && <UserInfoModal user={selectedUser} onClose={handleCloseModal} />}
         </div>
     );
 };
