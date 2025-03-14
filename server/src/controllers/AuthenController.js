@@ -1,4 +1,4 @@
-const { User, Role } = require("../models");
+const { User, Role, Wallet } = require("../models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const user = require("../models/user");
@@ -222,6 +222,16 @@ const verifyRegister = async (req, res) => {
 
         // Save role
         await newRole.save();
+
+        // Create wallet for user
+        const newWallet = new Wallet({
+            user_id: savedUser._id,
+            balance: 0 // Initial balance có thể là 0 hoặc giá trị mặc định khác
+        });
+
+        // Save wallet
+        await newWallet.save();
+
 
         // Remove pending registration
         pendingRegistrations.delete(email);

@@ -841,6 +841,75 @@ const acceptUpdate = async (req, res) => {
         });
     }
 };
+const rejectUpdate = async (req, res) => {
+    try {
+        const { update_id, reason } = req.body; 
+
+        // Kiểm tra xem update_id có phải là ObjectId hợp lệ không
+        if (!mongoose.Types.ObjectId.isValid(update_id)) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "ID không hợp lệ!"
+            });
+        }
+
+        // Tìm yêu cầu nâng cấp
+        const upgradeRequest = await RepairmanUpgradeRequest.findById(update_id).populate('user_id');
+
+        if (!upgradeRequest) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy yêu cầu nâng cấp!"
+            });
+        }
+
+        // Kiểm tra trạng thái hiện tại của yêu cầu nâng cấp
+        if (upgradeRequest.status === 'Rejected') {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Yêu cầu nâng cấp đã bị từ chối trước đó!"
+            });
+        }
+
+        // Cập nhật trạng thái của yêu cầu nâng cấp thành "Rejected"
+        upgradeRequest.status = 'Rejected';
+        await upgradeRequest.save();
+
+        // Tạo nội dung email thông báo
+        const emailContent = `
+            <h1>Yêu cầu nâng cấp đã bị từ chối</h1>
+            <p>Xin chào ${upgradeRequest.user_id.firstName} ${upgradeRequest.user_id.lastName},</p>
+            <p>Yêu cầu nâng cấp của bạn đã bị từ chối với lý do sau:</p>
+            <p>${reason}</p>
+            <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+        `;
+        // const email = "ducanh8903@gmail.com"
+        // Cấu hình email
+        const mailOptions = {
+            from: process.env.EMAIL_USER, // Email người gửi
+            to: upgradeRequest.user_id.email, // Email người nhận
+            subject: "Yêu cầu nâng cấp đã bị từ chối", // Tiêu đề email
+            html: emailContent // Nội dung email dạng HTML
+        };
+
+        // Gửi email thông báo
+        await transporter.sendMail(mailOptions);
+
+        // Trả về phản hồi thành công
+        res.status(200).json({
+            EC: 1,
+            EM: "Yêu cầu nâng cấp đã bị từ chối và email đã được gửi!",
+            DT: upgradeRequest
+        });
+
+    } catch (error) {
+        console.error("Error rejecting upgrade request:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra khi từ chối yêu cầu nâng cấp. Vui lòng thử lại sau!"
+        });
+    }
+};
 module.exports = {
     createServiceIndustry,
     getAllServiceIndustries,
@@ -864,5 +933,6 @@ module.exports = {
     addVipService,
     updateVipService,
     deleteVipService,
-    acceptUpdate
+    acceptUpdate,
+    rejectUpdate
 };

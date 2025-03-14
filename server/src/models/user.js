@@ -28,8 +28,8 @@ const UserSchema = new mongoose.Schema({
         default: null
     },
     status: { 
-        type: Number, 
-        default: 1 
+        type: String, 
+        enum: ['Active','Inactive','Banned']
     },
     address: { 
         type: String,

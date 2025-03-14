@@ -1,6 +1,7 @@
-const { User, Role, Wallet, Transaction, Complaint, Request, Rating, ServiceIndustry } = require("../models");
+const { User, Role, Wallet, Transaction, Complaint, Request, Rating, DuePrice, Price, ServiceIndustry, RepairmanUpgradeRequest } = require("../models");
 const cloudinary = require("../../config/cloudinary");
 const fetch = require('node-fetch');
+const user = require("../models/user");
 
 const getBalance = async (req, res) => {
     try {
@@ -391,7 +392,7 @@ const updateInformation = async (req, res) => {
 const findNearbyRepairmen = async (req, res) => {
     try {
         const { address, radius } = req.body;
-        const gomapApiKey = "AlzaSyhy1S40EaAbIPht2S-okkBnsuuhmpr5VOo";
+        //const gomapApiKey = "AlzaSyhy1S40EaAbIPht2S-okkBnsuuhmpr5VOo";
 
         if (!address || !radius) {
             return res.status(400).json({
@@ -429,7 +430,7 @@ const findNearbyRepairmen = async (req, res) => {
 
         for (const repairman of repairmenUsers) {
             if (repairman.address) {
-                const gomapApiUrl = `https://maps.gomaps.pro/maps/api/distancematrix/json?destinations=${encodeURIComponent(repairman.address)}&origins=${encodeURIComponent(address)}&key=${gomapApiKey}`;
+                const gomapApiUrl = `https://maps.gomaps.pro/maps/api/distancematrix/json?destinations=${encodeURIComponent(repairman.address)}&origins=${encodeURIComponent(address)}&key=${process.env.GOMAPS_API_KEY}`;
 
                 try {
                     const gomapResponse = await fetch(gomapApiUrl);
@@ -519,6 +520,218 @@ const getUserInfo = async (req, res) => {
         });
     }
 };
+const sendRequest = async (req, res) => {
+    try {
+        const { serviceIndustry_id, description, image, address } = req.body; // Lấy 'price' từ req.body
+        //const gomapApiKey = process.env.GOMAPS_API_KEY;
+        const userId = req.user.id; // Lấy user ID từ token
+
+        // Validate các trường bắt buộc
+        if (!serviceIndustry_id || !description || !address ) { // Thêm 'price' vào validation
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vui lòng cung cấp đầy đủ loại dịch vụ, mô tả, địa chỉ, bán kính!" // Cập nhật thông báo lỗi
+            });
+        }
+
+        // const searchRadius = parseFloat(radius);
+        // if (isNaN(searchRadius) || searchRadius <= 0) {
+        //     return res.status(400).json({
+        //         EC: 0,
+        //         EM: "Bán kính tìm kiếm không hợp lệ!"
+        //     });
+        // }
+      
+
+        const serviceIndustry = await ServiceIndustry.findById(serviceIndustry_id);
+        if (!serviceIndustry) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy loại hình dịch vụ!"
+            });
+        }
+
+        // Tạo Request mới
+        const newRequest = new Request({
+            user_id: userId,
+            serviceIndustry_id: serviceIndustry_id,
+            description: description,
+            address: address,
+            
+            image: image || null, // Lưu image, có thể null nếu không có
+            status: 'Requesting Details' // Trạng thái mặc định
+        });
+
+        const savedRequest = await newRequest.save(); // Lưu Request và lấy bản ghi đã lưu
+
+        // sử lý AI ở đây
+        const newDuePrice = new DuePrice({
+            request_id: savedRequest._id, // Liên kết với request_id
+            minPrice: '2000000', 
+            maxPrice: '5000000'
+        });
+        await newDuePrice.save(); // Lưu Due_price
+
+        // ** Đoạn code tìm kiếm thợ sửa chữa đã bị loại bỏ **
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Tạo yêu cầu dịch vụ thành công!", // Cập nhật thông báo EM
+            DT: {
+                request: savedRequest, // Trả về thông tin Request
+                duePrice: newDuePrice // Trả về thông tin Due_price
+                // nearbyRepairmen: [] // Không trả về danh sách thợ sửa chữa nữa
+            }
+        });
+
+    } catch (error) {
+        console.error("Error creating service request:", error); // Cập nhật log error message
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const findRepairman = async (req, res) => {
+    try {
+        const requestId = req.params.requestId;
+        const radius = req.params.radius; // Get radius from request parameters
+        const gomapApiKey = process.env.GOMAPS_API_KEY;
+
+        if (!requestId) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vui lòng cung cấp ID yêu cầu dịch vụ!"
+            });
+        }
+        if (!radius) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vui lòng cung cấp bán kính tìm kiếm!"
+            });
+        }
+
+        const originalRequest = await Request.findById(requestId); // Rename to originalRequest
+        if (!originalRequest) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy yêu cầu dịch vụ!"
+            });
+        }
+
+        // Cập nhật trạng thái Request gốc thành 'Pending'
+        originalRequest.status = 'Pending'; // Update originalRequest status
+        await originalRequest.save();
+
+        const { address } = originalRequest; // Get address from originalRequest
+
+        // Tìm kiếm thợ sửa chữa gần đây (logic cũ)
+        const repairmanRole = await Role.findOne({ type: 'repairman' });
+        if (!repairmanRole) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy vai trò thợ sửa chữa!"
+            });
+        }
+        const repairmenUsers = await User.find({ _id: { $in: await Role.find({ type: 'repairman' }).distinct('user_id') } });
+
+        if (!repairmenUsers || repairmenUsers.length === 0) {
+            return res.status(200).json({
+                EC: 1,
+                EM: "Không tìm thấy thợ sửa chữa nào trong khu vực!",
+                DT: {
+                    nearbyRepairmen: [],
+                    request: originalRequest // Return originalRequest
+                }
+            });
+        }
+
+        const nearbyRepairmen = [];
+
+        for (const repairman of repairmenUsers) {
+            if (repairman.address) {
+                const gomapApiUrl = `https://maps.gomaps.pro/maps/api/distancematrix/json?destinations=${encodeURIComponent(repairman.address)}&origins=${encodeURIComponent(address)}&key=${gomapApiKey}`;
+
+                try {
+                    const gomapResponse = await fetch(gomapApiUrl);
+                    const gomapData = await gomapResponse.json();
+
+                    if (gomapData.status === 'OK' && gomapData.rows[0].elements[0].status === 'OK') {
+                        const distanceValue = gomapData.rows[0].elements[0].distance.value;
+
+                        if (distanceValue <= radius * 1000) {
+                            nearbyRepairmen.push({
+                                _id: repairman._id,
+                                firstName: repairman.firstName,
+                                lastName: repairman.lastName,
+                                email: repairman.email,
+                                phone: repairman.phone,
+                                address: repairman.address,
+                                distance: gomapData.rows[0].elements[0].distance.text,
+                                duration: gomapData.rows[0].elements[0].duration.text
+                            });
+                        }
+                    } else {
+                        console.warn(`GoMap API error for repairman ${repairman._id}: ${gomapData.status} - ${gomapData.error_message || gomapData.rows[0].elements[0].status}`);
+                    }
+                } catch (error) {
+                    console.error(`Error calling GoMap API for repairman ${repairman._id}:`, error);
+                }
+            }
+        }
+
+        let assignedRepairman = null;
+        const newRequestsForRepairmen = []; // Change to array to store multiple requests
+        if (nearbyRepairmen.length > 0) {
+            for (const repairman of nearbyRepairmen) { // Loop through all nearby repairmen
+                // Tạo một bản ghi Request mới cho mỗi thợ
+                const newRequestForRepairman = new Request({
+                    user_id: originalRequest.user_id, // User ID giống request gốc
+                    serviceIndustry_id: originalRequest.serviceIndustry_id, // ServiceIndustry ID giống request gốc
+                    description: originalRequest.description, // Mô tả giống request gốc
+                    address: originalRequest.address, // Địa chỉ giống request gốc
+                    image: originalRequest.image, // Image giống request gốc
+                    status: 'Deal price', // Trạng thái mới là 'Deal price'
+                    repairman_id: repairman._id, // Gán repairman_id cho request mới
+                    parentRequest: originalRequest._id // Liên kết với request gốc qua parentRequest
+                });
+                await newRequestForRepairman.save(); // Lưu request mới
+                newRequestsForRepairmen.push(newRequestForRepairman); // Add new request to the array
+
+                // Update RepairmanUpgradeRequest status to 'Deal price'
+                const repairmanUpgrade = await RepairmanUpgradeRequest.findOne({ user_id: repairman._id });
+                if (repairmanUpgrade) {
+                    repairmanUpgrade.status = 'Deal price';
+                    await repairmanUpgrade.save();
+                }
+
+                if (!assignedRepairman) {
+                    assignedRepairman = repairman; // Assign the first repairman as assignedRepairman for response
+                }
+            }
+        }
+
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Tìm kiếm thợ sửa chữa thành công!",
+            DT: {
+                nearbyRepairmen: nearbyRepairmen,
+                request: originalRequest, // Vẫn trả về request gốc
+                assignedRepairman: assignedRepairman, // Vẫn trả về assignedRepairman (first one found)
+                // newRequestsForRepairmen: newRequestsForRepairmen // Trả về array các request mới tạo
+            }
+        });
+
+    } catch (error) {
+        console.error("Error finding repairman and assigning:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
 
 const viewRepairHistory = async (req, res) => {
     try {
@@ -572,4 +785,7 @@ module.exports = {
     getUserInfo,
     viewRepairHistory,
     findNearbyRepairmen,
+    getUserInfo,
+    sendRequest,
+    findRepairman
 }

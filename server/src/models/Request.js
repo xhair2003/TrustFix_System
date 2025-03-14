@@ -25,7 +25,7 @@ const RequestSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        default: null
+        enum: ['Completed','Confirmed','Pending','Cancelled','Requesting Details','Deal price']
     },
     repairman_id: {
         type: mongoose.Schema.Types.ObjectId,

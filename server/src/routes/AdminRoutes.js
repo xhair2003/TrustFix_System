@@ -44,4 +44,5 @@ router.get("/get-vip", AuthMiddleware.verifyToken, AdminController.getAllService
 
 // Repairman Upgrade Request routes
 router.post("/accept-update",AuthMiddleware.verifyAdmin,AdminController.acceptUpdate);
+router.post("/reject-update",AuthMiddleware.verifyAdmin,AdminController.rejectUpdate);
 module.exports = router;    

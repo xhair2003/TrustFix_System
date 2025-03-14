@@ -42,6 +42,12 @@ router.delete("/delete-rating/:id", authMiddleware.verifyToken, CustomerControll
 router.post('/repairmen/nearby', authMiddleware.verifyToken, CustomerController.findNearbyRepairmen);
 //user-information
 router.get('/user-info', authMiddleware.verifyToken, CustomerController.getUserInfo);
+router.get("/get-request",authMiddleware.verifyToken,CustomerController.getAllRequests);
+
+//gửi yêu cầu tìm thợ
+router.post('/send-request',authMiddleware.verifyToken, CustomerController.sendRequest);
+
+router.get('/requests/:requestId/find-repairman/:radius', authMiddleware.verifyToken, CustomerController.findRepairman);
 
 //view-repair-history
 router.get('/view-repair-history', authMiddleware.verifyToken, CustomerController.viewRepairHistory);
