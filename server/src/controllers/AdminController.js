@@ -1,5 +1,21 @@
-const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, ServicePrice, Role } = require("../models");
+const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Vip , RepairmanUpgradeRequest
+    ,Role
+ } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
+const nodemailer = require('nodemailer'); // Import nodemailer để gửi email
+
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
+
+
+
 
 // --- Service Industry CRUD ---
 
@@ -340,6 +356,7 @@ const replyToComplaint = async (req, res) => {
         const { complaintContent } = req.body; // Chỉ lấy complaintContent từ request body
         const adminUserId = req.user.id; // Lấy adminUserId trực tiếp từ req.user.id
 
+        // Kiểm tra xem nội dung phản hồi có được cung cấp không
         if (!complaintContent) {
             return res.status(400).json({
                 EC: 0,
@@ -347,7 +364,16 @@ const replyToComplaint = async (req, res) => {
             });
         }
 
-        const parentComplaint = await Complaint.findById(parentComplaintId);
+        // Tìm khiếu nại gốc từ cơ sở dữ liệu và kiểm tra tính hợp lệ
+        const parentComplaint = await Complaint.findById(parentComplaintId).populate({
+            path: 'request_id',
+            populate: {
+                path: 'user_id',
+                select: 'email firstName lastName'
+            }
+        });
+
+        // Nếu không tìm thấy khiếu nại gốc
         if (!parentComplaint) {
             return res.status(404).json({
                 EC: 0,
@@ -355,21 +381,53 @@ const replyToComplaint = async (req, res) => {
             });
         }
 
+        // Kiểm tra xem thông tin người dùng có hợp lệ không
+        if (!parentComplaint.request_id || !parentComplaint.request_id.user_id) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy thông tin người dùng liên quan đến khiếu nại!"
+            });
+        }
+
+        // Tạo đối tượng phản hồi mới từ khiếu nại gốc
         const newReply = new Complaint({
             user_id: adminUserId,
             complaintContent: complaintContent,
-            complaintType: parentComplaint.complaintType,
-            request_id: parentComplaint.request_id,
+            complaintType: parentComplaint.complaintType, // Lấy loại khiếu nại từ khiếu nại gốc
+            request_id: parentComplaint.request_id._id,
             parentComplaint: parentComplaintId
         });
 
-        console.log("newReply object:", newReply); // <-- Thêm dòng log này
+        console.log("newReply object:", newReply); // Log đối tượng phản hồi mới
 
+        // Lưu phản hồi vào cơ sở dữ liệu
         await newReply.save();
 
+        // Tạo nội dung email phản hồi
+        const emailContent = `
+            <h1>Phản hồi khiếu nại</h1>
+            <p>Xin chào ${parentComplaint.request_id.user_id.firstName} ${parentComplaint.request_id.user_id.lastName},</p>
+            <p>Chúng tôi đã nhận được khiếu nại của bạn và đây là phản hồi từ admin:</p>
+            <p>${complaintContent}</p>
+            <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+        `;
+        const anhemail = 'ducanh8903@gmail.com'
+        // Cấu hình email
+        const mailOptions = {
+            from: process.env.EMAIL_USER, // Email người gửi
+            to: parentComplaint.request_id.user_id.email, // Email người nhận
+            subject: "Phản hồi khiếu nại", // Tiêu đề email
+            html: emailContent // Nội dung email dạng HTML
+        };
+        console.log("Mail user :" , parentComplaint.request_id.user_id.email);
+        
+        // Gửi email phản hồi
+        await transporter.sendMail(mailOptions);
+
+        // Trả về phản hồi thành công
         res.status(201).json({
             EC: 1,
-            EM: "Phản hồi khiếu nại thành công!",
+            EM: "Phản hồi khiếu nại thành công và email đã được gửi!",
             DT: newReply
         });
 
@@ -581,90 +639,95 @@ const deleteUserById = async (req, res) => {
         });
     }
 };
-//Service Price
-const addServicePrice = async (req, res) => {
+const addVipService = async (req , res ) => {
+    const { name, description, price } = req.body;
     try {
-        const { serviceName, price, description } = req.body;
-
-        const servicePrice = new ServicePrice({
-            serviceName,
-            price,
-            description
+        if(!name || !description || !price) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vui lòng nhập đầy đủ thông tin dịch vụ"
+            });
+        }
+        const newVip = new Vip({
+            name: name,
+            description: description,
+            price: price,
         });
-
-        await servicePrice.save();
-
-        res.status(200).json({
+        await newVip.save();
+        res.status(201).json({
             EC: 1,
-            EM: "Thêm giá dịch vụ thành công!",
-            DT: servicePrice
+            EM: "Tạo dịch vụ VIP thành công!",
+            DT: newVip
         });
     } catch (error) {
-        console.error("Error adding service price:", error);
+        console.log("Error creating VIP service:", error);
         res.status(500).json({
             EC: 0,
-            EM: "Đã có lỗi xảy ra khi thêm giá dịch vụ. Vui lòng thử lại sau!"
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
         });
+        
     }
-};
-const updateServicePrice = async (req, res) => {
+}
+const updateVipService = async (req, res) => {
+    const { name, price, description, status } = req.body;
     try {
-        const { serviceName, price, description } = req.body;
-
+        // Tạo đối tượng cập nhật chỉ với các trường được truyền vào
         const updateFields = {};
-        if (serviceName) updateFields.serviceName = serviceName;
+        if (name) updateFields.name = name;
         if (price) updateFields.price = price;
         if (description) updateFields.description = description;
+        if (status) updateFields.status = status;
 
-        // Tìm và cập nhật dịch vụ
-        const servicePrice = await ServicePrice.findOneAndUpdate(
-            { serviceName: serviceName }, // Điều kiện tìm kiếm
+        // Tìm và cập nhật dịch vụ VIP
+        const updatedVip = await Vip.findOneAndUpdate(
+            { name: name }, // Điều kiện tìm kiếm
             { $set: updateFields }, // Trường cần cập nhật
             { new: true } // Trả về tài liệu đã được cập nhật
         );
 
-        if (!servicePrice) {
+        if (!updatedVip) {
             return res.status(404).json({
                 EC: 0,
-                EM: "Không tìm thấy dịch vụ để cập nhật giá!"
+                EM: "Không tìm thấy dịch vụ VIP để cập nhật!"
             });
         }
 
         res.status(200).json({
             EC: 1,
-            EM: "Cập nhật dịch vụ thành công!",
-            DT: servicePrice
+            EM: "Cập nhật dịch vụ VIP thành công!",
+            DT: updatedVip
         });
     } catch (error) {
-        console.error("Error updating service price:", error);
+        console.error("Error updating VIP service:", error);
         res.status(500).json({
             EC: 0,
-            EM: "Đã có lỗi xảy ra khi cập nhật giá dịch vụ. Vui lòng thử lại sau!"
+            EM: "Đã có lỗi xảy ra khi cập nhật dịch vụ VIP. Vui lòng thử lại sau!"
         });
     }
 };
-const deleteServicePrice = async (req, res) => {
+const deleteVipService = async (req, res) => {
     try {
-        const serviceId = req.params.id;
+        const vipId = req.params.id; // Lấy ID của dịch vụ VIP từ params
 
-        const servicePrice = await ServicePrice.findByIdAndDelete(serviceId);
-        if (!servicePrice) {
+        // Tìm và xóa dịch vụ VIP
+        const deletedVip = await Vip.findByIdAndDelete(vipId);
+
+        if (!deletedVip) {
             return res.status(404).json({
                 EC: 0,
-                EM: "Không tìm thấy dịch vụ để xóa giá!"
+                EM: "Không tìm thấy dịch vụ VIP để xóa!"
             });
         }
 
         res.status(200).json({
             EC: 1,
-            EM: "Xóa giá dịch vụ thành công!",
-
+            EM: "Xóa dịch vụ VIP thành công!"
         });
     } catch (error) {
-        console.error("Error deleting service price:", error);
+        console.error("Error deleting VIP service:", error);
         res.status(500).json({
             EC: 0,
-            EM: "Đã có lỗi xảy ra khi xóa giá dịch vụ. Vui lòng thử lại sau!"
+            EM: "Đã có lỗi xảy ra khi xóa dịch vụ VIP. Vui lòng thử lại sau!"
         });
     }
 };
@@ -680,13 +743,173 @@ const getAllServicePrice = async (req, res) => {
             DT: servicePrice
         })
     } catch (error) {
-        console.error("Error getting all service prices:", error);
+        console.error("Error getting all VIP services:", error);
         res.status(500).json({
             EC: 0,
-            EM: "Đã có lỗi xảy ra khi lấy danh sách giá dịch vụ. Vui lòng thử lại sau!"
+            EM: "Đã có lỗi xảy ra khi lấy danh sách dịch vụ VIP. Vui lòng thử lại sau!"
         });
     }
 }
+const acceptUpdate = async (req, res) => {
+    try {
+        const { update_id } = req.body; // Lấy ID của yêu cầu nâng cấp từ body
+
+        // Kiểm tra xem update_id có phải là ObjectId hợp lệ không
+        if (!mongoose.Types.ObjectId.isValid(update_id)) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "ID không hợp lệ!"
+            });
+        }
+
+        // Tìm yêu cầu nâng cấp
+        const upgradeRequest = await RepairmanUpgradeRequest.findById(update_id).populate('user_id');
+
+        if (!upgradeRequest) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy yêu cầu nâng cấp!"
+            });
+        }
+        
+        if(upgradeRequest.status === 'Accepted') {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Yêu cầu nâng cấp đã được chấp nhận trước đó!"
+            });
+        }
+        else if(upgradeRequest.status === 'Rejected') {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Yêu cầu nâng cấp đã bị từ chối!"
+            });
+        }
+
+
+
+        // Cập nhật trạng thái của yêu cầu nâng cấp thành "Accepted"
+        upgradeRequest.status = 'Accepted';
+        await upgradeRequest.save();
+
+        // Thay đổi vai trò của người dùng thành "repairman"
+        const user = await User.findById(upgradeRequest.user_id._id);
+        const role = await Role.findOne({ user_id: user._id });
+
+        if (role) {
+            role.type = 'repairman';
+            await role.save();
+        } else {
+            // Nếu người dùng chưa có vai trò, tạo mới vai trò "repairman"
+            const newRole = new Role({
+                user_id: user._id,
+                type: 'repairman'
+            });
+            await newRole.save();
+        }
+
+        // Tạo nội dung email thông báo
+        const emailContent = `
+            <h1>Yêu cầu nâng cấp đã được chấp nhận</h1>
+            <p>Xin chào ${user.firstName} ${user.lastName},</p>
+            <p>Yêu cầu nâng cấp của bạn đã được chấp nhận. Chúc mừng bạn đã thành thợ sửa chữa.</p>
+            <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+        `;
+        // const email = "ducanh8903@gmail.com"
+        // Cấu hình email
+        const mailOptions = {
+            from: process.env.EMAIL_USER, // Email người gửi
+            to: user.email, // Email người nhận
+            subject: "Yêu cầu nâng cấp đã được chấp nhận", // Tiêu đề email
+            html: emailContent // Nội dung email dạng HTML
+        };
+
+        // Gửi email thông báo
+        await transporter.sendMail(mailOptions);
+
+        // Trả về phản hồi thành công
+        res.status(200).json({
+            EC: 1,
+            EM: "Yêu cầu nâng cấp đã được chấp nhận và email đã được gửi!",
+            DT: upgradeRequest
+        });
+
+    } catch (error) {
+        console.error("Error accepting upgrade request:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra khi chấp nhận yêu cầu nâng cấp. Vui lòng thử lại sau!"
+        });
+    }
+};
+const rejectUpdate = async (req, res) => {
+    try {
+        const { update_id, reason } = req.body; 
+
+        // Kiểm tra xem update_id có phải là ObjectId hợp lệ không
+        if (!mongoose.Types.ObjectId.isValid(update_id)) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "ID không hợp lệ!"
+            });
+        }
+
+        // Tìm yêu cầu nâng cấp
+        const upgradeRequest = await RepairmanUpgradeRequest.findById(update_id).populate('user_id');
+
+        if (!upgradeRequest) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy yêu cầu nâng cấp!"
+            });
+        }
+
+        // Kiểm tra trạng thái hiện tại của yêu cầu nâng cấp
+        if (upgradeRequest.status === 'Rejected') {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Yêu cầu nâng cấp đã bị từ chối trước đó!"
+            });
+        }
+
+        // Cập nhật trạng thái của yêu cầu nâng cấp thành "Rejected"
+        upgradeRequest.status = 'Rejected';
+        await upgradeRequest.save();
+
+        // Tạo nội dung email thông báo
+        const emailContent = `
+            <h1>Yêu cầu nâng cấp đã bị từ chối</h1>
+            <p>Xin chào ${upgradeRequest.user_id.firstName} ${upgradeRequest.user_id.lastName},</p>
+            <p>Yêu cầu nâng cấp của bạn đã bị từ chối với lý do sau:</p>
+            <p>${reason}</p>
+            <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+        `;
+        // const email = "ducanh8903@gmail.com"
+        // Cấu hình email
+        const mailOptions = {
+            from: process.env.EMAIL_USER, // Email người gửi
+            to: upgradeRequest.user_id.email, // Email người nhận
+            subject: "Yêu cầu nâng cấp đã bị từ chối", // Tiêu đề email
+            html: emailContent // Nội dung email dạng HTML
+        };
+
+        // Gửi email thông báo
+        await transporter.sendMail(mailOptions);
+
+        // Trả về phản hồi thành công
+        res.status(200).json({
+            EC: 1,
+            EM: "Yêu cầu nâng cấp đã bị từ chối và email đã được gửi!",
+            DT: upgradeRequest
+        });
+
+    } catch (error) {
+        console.error("Error rejecting upgrade request:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra khi từ chối yêu cầu nâng cấp. Vui lòng thử lại sau!"
+        });
+    }
+};
 module.exports = {
     createServiceIndustry,
     getAllServiceIndustries,
@@ -702,12 +925,14 @@ module.exports = {
     getComplaintById,
     replyToComplaint,
     viewHistoryPayment,
-    addServicePrice,
-    updateServicePrice,
-    deleteServicePrice,
-    getAllServicePrice,
+    viewAllTransactions,
+    viewDepositeHistory,
     getAllUsers,
     deleteUserById,
-    viewAllTransactions,
-    viewDepositeHistory
+    getAllServicePrice,
+    addVipService,
+    updateVipService,
+    deleteVipService,
+    acceptUpdate,
+    rejectUpdate
 };
