@@ -100,7 +100,6 @@ const ManageUserAccount = () => {
             return a.roles[0]?.type.localeCompare(b.roles[0]?.type);
         });
 
-
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);

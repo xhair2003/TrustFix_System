@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './MasterLayoutAdmin.css';
 import adminImage from '../../../assets/Images/user.jpg'; // Placeholder for admin image
-import { FaHome, FaUsers, FaHistory, FaExclamationCircle, FaWallet, FaStar, FaCertificate, FaFileAlt, FaArrowLeft } from 'react-icons/fa';
+import { FaHome, FaUsers, FaHistory, FaExclamationCircle, FaWallet, FaStar, FaCertificate, FaFileAlt, FaArrowLeft, FaFolder } from 'react-icons/fa'; // Thêm FaFolder
 import { useNavigate } from 'react-router-dom';
 import logo from '../../../assets/Images/logo.png';
 import onlyLogo from '../../../assets/Images/onlyLogo.jpg';
@@ -11,7 +11,7 @@ import { logout } from '../../../store/actions/authActions';
 const MasterLayoutAdmin = ({ children }) => {
     const dispatch = useDispatch();
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const [selectedItem, setSelectedItem] = useState('overview'); // Default to 'overview' to match the image
+    const [selectedItem, setSelectedItem] = useState('overview'); // Default to 'overview'
     const navigate = useNavigate();
 
     const toggleSidebar = () => {
@@ -32,7 +32,6 @@ const MasterLayoutAdmin = ({ children }) => {
         <div className="master-layout">
             <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
                 <div className='upper-sidebar'>
-                    {/* Add "ADMIN" label */}
                     {!isCollapsed && <h1 className="admin-label">ADMIN</h1>}
 
                     <div className="user-info">
@@ -56,6 +55,7 @@ const MasterLayoutAdmin = ({ children }) => {
                         onClick={() => handleItemClick({ path: '/admin/dashboard', name: 'overview' })}
                     >
                         {isCollapsed ? <FaHome /> : <> <FaHome /> Tổng quan</>}
+
                     </div>
                     <div
                         className={`menu-item ${selectedItem === 'user-management' ? 'active' : ''}`}
@@ -67,25 +67,25 @@ const MasterLayoutAdmin = ({ children }) => {
                         className={`menu-item ${selectedItem === 'manage-categories' ? 'active' : ''}`}
                         onClick={() => handleItemClick({ path: '/admin/manage-categories', name: 'manage-categories' })}
                     >
-                        {isCollapsed ? <FaUsers /> : <> <FaUsers /> Quản lý chuyên mục</>}
+                        {isCollapsed ? <FaFolder /> : <> <FaFolder /> Quản lý chuyên mục</>}
                     </div>
                     <div
                         className={`menu-item ${selectedItem === 'manage-subcategories' ? 'active' : ''}`}
                         onClick={() => handleItemClick({ path: '/admin/manage-subcategories', name: 'manage-subcategories' })}
                     >
-                        {isCollapsed ? <FaUsers /> : <> <FaUsers /> Quản lý danh mục</>}
+                        {isCollapsed ? <FaFolder /> : <> <FaFolder /> Quản lý danh mục</>}
                     </div>
                     <div
                         className={`menu-item ${selectedItem === 'manage-order-history' ? 'active' : ''}`}
                         onClick={() => handleItemClick({ path: '/admin/view-repair-booking', name: 'manage-order-history' })}
                     >
-                        {isCollapsed ? <FaHistory /> : <> <FaHistory /> Lịch sử đặt thợ</>}
+                        {isCollapsed ? <FaHistory /> : <> <FaHistory /> Quản lý lịch sử đặt thợ</>}
                     </div>
                     <div
                         className={`menu-item ${selectedItem === 'manage-upgrade-requests' ? 'active' : ''}`}
                         onClick={() => handleItemClick({ path: '/admin/manage-upgrade-repairman', name: 'manage-upgrade-requests' })}
                     >
-                        {isCollapsed ? <FaExclamationCircle /> : <> <FaExclamationCircle /> Quản lý nâng cấp</>}
+                        {isCollapsed ? <FaExclamationCircle /> : <> <FaExclamationCircle /> Quản lý nâng cấp thành thợ</>}
                     </div>
                     <div
                         className={`menu-item ${selectedItem === 'transaction-management' ? 'active' : ''}`}
