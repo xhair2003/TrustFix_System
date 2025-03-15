@@ -44,7 +44,8 @@ export const ROUTERS = {
         ADMIN_VIEW_HISTORY_PAYMENT: 'admin/view-history-payment',
         MANAGE_COMPLAINTS: 'admin/manage-complaints',
         MANAGE_SERVICE: 'admin/manage-service-prices',
-        MANAGE_CATEGORIES: '/manage-categories',
-        MANAGE_SUBCATEGORIES: '/manage-subcategories',
+        MANAGE_CATEGORIES: 'admin/manage-categories',
+        MANAGE_SUBCATEGORIES: 'admin/manage-subcategories',
+        MANAGE_PRACTICE_SERTIFICATES: 'admin/manage-practice-certificates',
     }
 }

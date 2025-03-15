@@ -85,7 +85,7 @@ const MasterLayoutAdmin = ({ children }) => {
                         className={`menu-item ${selectedItem === 'manage-upgrade-requests' ? 'active' : ''}`}
                         onClick={() => handleItemClick({ path: '/admin/manage-upgrade-repairman', name: 'manage-upgrade-requests' })}
                     >
-                        {isCollapsed ? <FaExclamationCircle /> : <> <FaExclamationCircle /> Quản lý nâng cấp thành thợ</>}
+                        {isCollapsed ? <FaExclamationCircle /> : <> <FaExclamationCircle /> Quản lý nâng cấp thợ</>}
                     </div>
                     <div
                         className={`menu-item ${selectedItem === 'transaction-management' ? 'active' : ''}`}
@@ -100,8 +100,8 @@ const MasterLayoutAdmin = ({ children }) => {
                         {isCollapsed ? <FaStar /> : <> <FaStar /> Quản lý dịch vụ đề xuất</>}
                     </div>
                     <div
-                        className={`menu-item ${selectedItem === 'manage-practice-certificate' ? 'active' : ''}`}
-                        onClick={() => handleItemClick({ path: '/admin/manage-practice-certificate', name: 'manage-practice-certificate' })}
+                        className={`menu-item ${selectedItem === 'manage-practice-certificates' ? 'active' : ''}`}
+                        onClick={() => handleItemClick({ path: '/admin/manage-practice-certificates', name: 'manage-practice-certificates' })}
                     >
                         {isCollapsed ? <FaCertificate /> : <> <FaCertificate /> Quản lý yêu cầu</>}
                     </div>

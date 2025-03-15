@@ -136,6 +136,11 @@ const UserROUTERS = () => {
             component: <ManageSubcategories />,
             layout: MasterLayoutAdmin,
         },
+        {
+            path: ROUTERS.ADMIN.MANAGE_PRACTICE_SERTIFICATES,
+            // component: <ManagePracticeSertificates />,
+            layout: MasterLayoutAdmin,
+        },
 
     ];
 

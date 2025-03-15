@@ -21,7 +21,17 @@ const createServiceIndustry = async (req, res) => {
         if (!type) {
             return res.status(400).json({
                 EC: 0,
-                EM: "Vui lòng nhập đầy đủ thông tin loại hình dịch vụ!"
+                EM: "Vui lòng nhập tên chuyên mục cần tạo mới !"
+            });
+        }
+
+        // Kiểm tra xem loại dịch vụ đã tồn tại chưa
+        const existingServiceIndustry = await ServiceIndustry.findOne({ type });
+
+        if (existingServiceIndustry) {
+            return res.status(400).json({
+                EC: 0,
+                EM: 'Tên chuyên mục đã tồn tại trong hệ thống!',
             });
         }
 
@@ -33,7 +43,7 @@ const createServiceIndustry = async (req, res) => {
 
         res.status(201).json({
             EC: 1,
-            EM: "Tạo loại hình dịch vụ thành công!",
+            EM: "Tạo chuyên mục thành công!",
             DT: newServiceIndustry
         });
 
@@ -52,7 +62,7 @@ const getAllServiceIndustries = async (req, res) => {
 
         res.status(200).json({
             EC: 1,
-            EM: "Lấy danh sách loại hình dịch vụ thành công!",
+            EM: "Lấy danh sách chuyên mục thành công!",
             DT: serviceIndustries
         });
     } catch (err) {
@@ -95,6 +105,15 @@ const updateServiceIndustry = async (req, res) => {
         const serviceIndustryId = req.params.id;
         const { type } = req.body;
 
+        // Kiểm tra xem loại dịch vụ đã tồn tại chưa (trừ trường hợp đang cập nhật chính nó)
+        const existingServiceIndustry = await ServiceIndustry.findOne({ type });
+        if (existingServiceIndustry && existingServiceIndustry._id.toString() !== serviceIndustryId) {
+            return res.status(400).json({
+                EC: 0,
+                EM: 'Tên chuyên mục đã tồn tại trong hệ thống!',
+            });
+        }
+
         const updatedServiceIndustry = await ServiceIndustry.findByIdAndUpdate(
             serviceIndustryId,
             {
@@ -106,13 +125,13 @@ const updateServiceIndustry = async (req, res) => {
         if (!updatedServiceIndustry) {
             return res.status(404).json({
                 EC: 0,
-                EM: "Không tìm thấy loại hình dịch vụ để cập nhật!"
+                EM: "Không tìm thấy chuyên mục để cập nhật!"
             });
         }
 
         res.status(200).json({
             EC: 1,
-            EM: "Cập nhật loại hình dịch vụ thành công!",
+            EM: "Cập nhật chuyên mục thành công!",
             DT: updatedServiceIndustry
         });
     } catch (err) {
@@ -132,13 +151,13 @@ const deleteServiceIndustry = async (req, res) => {
         if (!deletedServiceIndustry) {
             return res.status(404).json({
                 EC: 0,
-                EM: "Không tìm thấy loại hình dịch vụ để xóa!"
+                EM: "Không tìm thấy chuyên mục để xóa!"
             });
         }
 
         res.status(200).json({
             EC: 1,
-            EM: "Xóa loại hình dịch vụ thành công!"
+            EM: "Xóa chuyên mục thành công!"
         });
     } catch (err) {
         console.error('Delete service industry error:', err);
@@ -159,7 +178,7 @@ const createService = async (req, res) => {
         if (!type) {
             return res.status(400).json({
                 EC: 0,
-                EM: "Vui lòng nhập đầy đủ thông tin loại dịch vụ và loại hình dịch vụ!"
+                EM: "Vui lòng nhập tên danh mục cần tạo mới !"
             });
         }
 
@@ -171,7 +190,7 @@ const createService = async (req, res) => {
 
         res.status(201).json({
             EC: 1,
-            EM: "Tạo dịch vụ thành công!",
+            EM: "Tạo danh mục thành công !",
             DT: newService
         });
 
@@ -190,14 +209,14 @@ const getAllServices = async (req, res) => {
 
         res.status(200).json({
             EC: 1,
-            EM: "Lấy danh sách dịch vụ thành công!",
+            EM: "Lấy danh sách danh mục thành công !",
             DT: services
         });
     } catch (err) {
         console.error('Get all services error:', err);
         res.status(500).json({
             EC: 0,
-            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau !"
         });
     }
 };
@@ -228,15 +247,78 @@ const getServiceById = async (req, res) => {
     }
 };
 
+// const updateService = async (req, res) => {
+//     try {
+//         const serviceId = req.params.id;
+//         const { type } = req.body;
+
+//         // Kiểm tra xem loại dịch vụ đã tồn tại chưa (trừ trường hợp đang cập nhật chính nó)
+//         const existingService = await Service.findOne({ type });
+//         if (existingService && existingService._id.toString() !== serviceId) {
+//             return res.status(400).json({
+//                 EC: 0,
+//                 EM: 'Danh mục đã tồn tại trong hệ thống !',
+//             });
+//         }
+
+//         const updatedService = await Service.findByIdAndUpdate(
+//             serviceId,
+//             {
+//                 type: type,
+//             },
+//             { new: true } // Return updated document
+//         ).populate('serviceIndustry_id'); // Populate serviceIndustry details
+
+//         if (!updatedService) {
+//             return res.status(404).json({
+//                 EC: 0,
+//                 EM: "Không tìm thấy danh mục để cập nhật !"
+//             });
+//         }
+
+//         res.status(200).json({
+//             EC: 1,
+//             EM: "Cập nhật danh muc thành công !",
+//             DT: updatedService
+//         });
+//     } catch (err) {
+//         console.error('Update service error:', err);
+//         res.status(500).json({
+//             EC: 0,
+//             EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau !"
+//         });
+//     }
+// };
+
 const updateService = async (req, res) => {
     try {
         const serviceId = req.params.id;
-        const { type } = req.body;
+        const { type, serviceIndustry_id } = req.body;  // Nhận thêm serviceIndustry_id từ body request
 
+        // Kiểm tra xem loại dịch vụ đã tồn tại chưa (trừ trường hợp đang cập nhật chính nó)
+        const existingService = await Service.findOne({ type });
+        if (existingService && existingService._id.toString() !== serviceId) {
+            return res.status(400).json({
+                EC: 0,
+                EM: 'Danh mục đã tồn tại trong hệ thống !',
+            });
+        }
+
+        // Kiểm tra serviceIndustry_id có hợp lệ không (tồn tại trong cơ sở dữ liệu)
+        const serviceIndustry = await ServiceIndustry.findById(serviceIndustry_id);  // Kiểm tra tồn tại loại chuyên mục
+        if (!serviceIndustry) {
+            return res.status(400).json({
+                EC: 0,
+                EM: 'Loại chuyên mục không hợp lệ!',
+            });
+        }
+
+        // Cập nhật dịch vụ với thông tin mới, bao gồm cả serviceIndustry_id
         const updatedService = await Service.findByIdAndUpdate(
             serviceId,
             {
-                type: type,
+                type,
+                serviceIndustry_id,  // Cập nhật serviceIndustry_id mới
             },
             { new: true } // Return updated document
         ).populate('serviceIndustry_id'); // Populate serviceIndustry details
@@ -244,23 +326,24 @@ const updateService = async (req, res) => {
         if (!updatedService) {
             return res.status(404).json({
                 EC: 0,
-                EM: "Không tìm thấy dịch vụ để cập nhật!"
+                EM: "Không tìm thấy danh mục để cập nhật !"
             });
         }
 
         res.status(200).json({
             EC: 1,
-            EM: "Cập nhật dịch vụ thành công!",
+            EM: "Cập nhật danh mục thành công !",
             DT: updatedService
         });
     } catch (err) {
         console.error('Update service error:', err);
         res.status(500).json({
             EC: 0,
-            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau !"
         });
     }
 };
+
 
 const deleteService = async (req, res) => {
     try {
@@ -270,19 +353,19 @@ const deleteService = async (req, res) => {
         if (!deletedService) {
             return res.status(404).json({
                 EC: 0,
-                EM: "Không tìm thấy dịch vụ để xóa!"
+                EM: "Không tìm thấy danh mục để xóa !"
             });
         }
 
         res.status(200).json({
             EC: 1,
-            EM: "Xóa dịch vụ thành công!"
+            EM: "Xóa danh mục thành công !"
         });
     } catch (err) {
         console.error('Delete service error:', err);
         res.status(500).json({
             EC: 0,
-            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau !"
         });
     }
 };

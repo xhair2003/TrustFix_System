@@ -10,7 +10,6 @@ const ServiceSchema = new mongoose.Schema({
         ref: 'ServiceIndustry',
         required: true
     },
-}, 
-);
+}, { timestamps: true });
 
 module.exports = mongoose.model('Service', ServiceSchema); 

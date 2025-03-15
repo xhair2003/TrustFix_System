@@ -639,15 +639,14 @@ export const getAllServices = () => async (dispatch, getState) => {
     }
 };
 
-// updateService
-export const updateService = (id, type) => async (dispatch, getState) => {
+export const updateService = (id, serviceIndustry_id, type) => async (dispatch, getState) => {
     try {
         const token = getState().auth.token || localStorage.getItem('token');
         dispatch({ type: 'UPDATE_SERVICE_REQUEST' });
 
         const response = await axios.put(
             `http://localhost:8080/api/admin/services/${id}`,
-            { type },
+            { serviceIndustry_id, type }, // Gửi cả serviceIndustry_id và type
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -670,6 +669,7 @@ export const updateService = (id, type) => async (dispatch, getState) => {
         });
     }
 };
+
 
 // deleteService
 export const deleteService = (id) => async (dispatch, getState) => {

@@ -1,194 +1,537 @@
-import React, { useState } from "react";
-import "./ManageCategories.css"; // File CSS riêng cho component này
+// import React, { useState, useEffect } from "react";
+// import { useDispatch, useSelector } from "react-redux";
+// import { createServiceIndustry, getAllServiceIndustries, updateServiceIndustry, deleteServiceIndustry, resetError, resetSuccess } from "../../../store/actions/adminActions"; // Adjust the import path as needed
+// import "./ManageCategories.css";
+// import Loading from "../../../component/Loading/Loading";
+// import Swal from "sweetalert2";
+
+// const ManageCategories = () => {
+//     const dispatch = useDispatch();
+
+//     const { categories, loading, errorCategories, successAddCategories, successUpdateCategories, successDeleteCategories
+//         , errorAddCategories, errorUpdateCategories, errorsDeleteCategories
+//     } = useSelector(state => state.admin);
+
+//     const [currentPage, setCurrentPage] = useState(1);
+//     const [modalOpen, setModalOpen] = useState(false);
+//     const [modalAction, setModalAction] = useState(null); // "add", "edit", "delete"
+//     const [selectedCategory, setSelectedCategory] = useState(null);
+//     const [formData, setFormData] = useState({ type: "" });
+//     const itemsPerPage = 5; // Items per page
+
+//     useEffect(() => {
+//         // Fetch service industries on mount
+//         dispatch(getAllServiceIndustries());
+//     }, [dispatch]);
+
+//     useEffect(() => {
+//         if (successAddCategories || successUpdateCategories || successDeleteCategories) {
+//             dispatch(getAllServiceIndustries()); // Re-fetch after successful add, update, or delete
+//         }
+//     }, [successAddCategories, successUpdateCategories, successDeleteCategories, dispatch]);
+
+//     const totalPages = Math.ceil(categories.length / itemsPerPage);
+//     const startIndex = (currentPage - 1) * itemsPerPage;
+//     const paginatedCategories = categories.slice(startIndex, startIndex + itemsPerPage);
+
+//     const openModal = (action, category = null) => {
+//         setModalAction(action);
+//         setSelectedCategory(category);
+//         if (action === "edit" && category) {
+//             setFormData({ type: category.type });
+//         } else if (action === "add") {
+//             setFormData({ type: "" });
+//         }
+//         setModalOpen(true);
+//     };
+
+//     const closeModal = () => {
+//         setModalOpen(false);
+//         setModalAction(null);
+//         setSelectedCategory(null);
+//         setFormData({ type: "" });
+//     };
+
+//     const handleAdd = () => {
+//         dispatch(createServiceIndustry(formData.type));
+//         closeModal();
+//     };
+
+//     const handleEdit = () => {
+//         if (!selectedCategory || !selectedCategory._id) {
+//             Swal.fire({
+//                 title: "Lỗi",
+//                 text: "ID không hợp lệ!",
+//                 icon: "error",
+//                 timer: 5000,
+//                 showConfirmButton: false,
+//             });
+//             return;
+//         }
+
+//         dispatch(updateServiceIndustry(selectedCategory._id, formData.type));
+//         closeModal();
+//     };
+
+//     const handleDelete = () => {
+//         if (window.confirm(`Bạn có chắc chắn muốn xóa chuyên mục ${selectedCategory.type}?`)) {
+//             dispatch(deleteServiceIndustry(selectedCategory._id));
+//             closeModal();
+//         }
+//     };
+
+//     const handleInputChange = (e) => {
+//         const { name, value } = e.target;
+//         setFormData({ ...formData, [name]: value });
+//     };
+
+//     const handlePageChange = (page) => {
+//         if (page >= 1 && page <= totalPages) {
+//             setCurrentPage(page);
+//         }
+//     };
+
+//     // Hàm định dạng ngày và giờ theo kiểu hh:mm dd/mm/yyyy
+//     const formatDateTime = (date) => {
+//         const d = new Date(date);
+//         const hours = d.getHours().toString().padStart(2, '0'); // Lấy giờ
+//         const minutes = d.getMinutes().toString().padStart(2, '0'); // Lấy phút
+//         const day = d.getDate().toString().padStart(2, '0'); // Lấy ngày
+//         const month = (d.getMonth() + 1).toString().padStart(2, '0'); // Lấy tháng
+//         const year = d.getFullYear(); // Lấy năm
+
+//         return `${hours}:${minutes} ${day}/${month}/${year}`; // Trả về định dạng hh:mm dd/mm/yyyy
+//     };
+
+//     // Xử lý thông báo thành công hoặc lỗi khi có sự thay đổi
+//     useEffect(() => {
+//         if (errorCategories) {
+//             Swal.fire({
+//                 title: "Lỗi",
+//                 text: errorCategories,
+//                 icon: "error",
+//                 timer: 5000,
+//                 showConfirmButton: false,
+//             });
+//             dispatch(resetError());
+//         }
+
+//         if (errorAddCategories) {
+//             Swal.fire({
+//                 title: "Lỗi",
+//                 text: errorAddCategories,
+//                 icon: "error",
+//                 timer: 5000,
+//                 showConfirmButton: false,
+//             });
+//             dispatch(resetError());
+//         }
+
+//         if (errorUpdateCategories) {
+//             Swal.fire({
+//                 title: "Lỗi",
+//                 text: errorUpdateCategories,
+//                 icon: "error",
+//                 timer: 5000,
+//                 showConfirmButton: false,
+//             });
+//             dispatch(resetError());
+//         }
+
+//         if (errorsDeleteCategories) {
+//             Swal.fire({
+//                 title: "Lỗi",
+//                 text: errorsDeleteCategories,
+//                 icon: "error",
+//                 timer: 5000,
+//                 showConfirmButton: false,
+//             });
+//             dispatch(resetError());
+//         }
+
+//         if (successAddCategories) {
+//             Swal.fire({
+//                 title: "Thành công",
+//                 text: successAddCategories,
+//                 icon: "success",
+//                 timer: 5000,
+//                 showConfirmButton: false,
+//             });
+//             dispatch(resetSuccess());
+//         }
+
+//         if (successUpdateCategories) {
+//             Swal.fire({
+//                 title: "Thành công",
+//                 text: successUpdateCategories,
+//                 icon: "success",
+//                 timer: 5000,
+//                 showConfirmButton: false,
+//             });
+//             dispatch(resetSuccess());
+//         }
+
+//         if (successDeleteCategories) {
+//             Swal.fire({
+//                 title: "Thành công",
+//                 text: successDeleteCategories,
+//                 icon: "success",
+//                 timer: 5000,
+//                 showConfirmButton: false,
+//             });
+//             dispatch(resetSuccess());
+//         }
+//     }, [dispatch, errorCategories, successAddCategories, successUpdateCategories, successDeleteCategories, errorAddCategories, errorUpdateCategories, errorsDeleteCategories]);
+
+//     return (
+//         <div className="history-container">
+//             <div className="history-form">
+//                 <h2 className="complaint-title">QUẢN LÝ CHUYÊN MỤC SỬA CHỮA</h2>
+//                 <button className="add-button" onClick={() => openModal("add")}>Thêm chuyên mục</button>
+
+//                 {loading ? (
+//                     <p><Loading /></p>
+//                 ) : errorCategories ? (
+//                     <p>{errorCategories}</p>
+//                 ) : (
+//                     <table className="categories-table">
+//                         <thead>
+//                             <tr>
+//                                 <th>ID</th>
+//                                 <th>Tên chuyên mục</th>
+//                                 <th>Ngày tạo</th>
+//                                 <th>Ngày cập nhật</th>
+//                                 <th>Hành động</th>
+//                             </tr>
+//                         </thead>
+//                         <tbody>
+//                             {paginatedCategories.map((category) => (
+//                                 <tr key={category._id}>
+//                                     <td>{category._id}</td>
+//                                     <td>{category.type}</td>
+//                                     <td>{formatDateTime(category.createdAt)}</td> {/* Định dạng ngày tạo */}
+//                                     <td>{formatDateTime(category.updatedAt)}</td> {/* Định dạng ngày cập nhật */}
+//                                     <td>
+//                                         <button className="edit-button" onClick={() => openModal("edit", category)}>Sửa</button>
+//                                         <button className="delete-button" onClick={() => openModal("delete", category)}>Xóa</button>
+//                                     </td>
+//                                 </tr>
+//                             ))}
+//                         </tbody>
+//                     </table>
+//                 )}
+
+//                 <div className="pagination">
+//                     <button disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>Trước</button>
+//                     <span>Trang {currentPage} / {totalPages}</span>
+//                     <button disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}>Sau</button>
+//                 </div>
+//             </div>
+
+//             {modalOpen && (
+//                 <div className="modal-overlay">
+//                     <div className="modal-content">
+//                         <h3>{modalAction === "add" ? "Thêm danh mục" : modalAction === "edit" ? "Sửa danh mục" : "Xóa danh mục"}</h3>
+//                         {modalAction !== "delete" ? (
+//                             <div className="modal-form">
+//                                 <label>Tên danh mục:</label>
+//                                 <input type="text" name="type" value={formData.type} onChange={handleInputChange} />
+//                             </div>
+//                         ) : (
+//                             <p>Bạn có chắc chắn muốn xóa "{selectedCategory.type}" không?</p>
+//                         )}
+
+//                         <div className="modal-buttons">
+//                             {modalAction === "add" && <button onClick={handleAdd}>Thêm</button>}
+//                             {modalAction === "edit" && <button onClick={handleEdit}>Lưu</button>}
+//                             {modalAction === "delete" && <button onClick={handleDelete}>Xóa</button>}
+//                             <button onClick={closeModal}>Hủy</button>
+//                         </div>
+//                     </div>
+//                 </div>
+//             )}
+//         </div>
+//     );
+// };
+
+// export default ManageCategories;
+
+
+
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+    createServiceIndustry,
+    getAllServiceIndustries,
+    updateServiceIndustry,
+    deleteServiceIndustry,
+    resetError,
+    resetSuccess
+} from "../../../store/actions/adminActions"; // Adjust the import path as needed
+import "./ManageCategories.css";
+import Loading from "../../../component/Loading/Loading";
+import Swal from "sweetalert2";
 
 const ManageCategories = () => {
-    // Dữ liệu giả lập (thay bằng API thực tế nếu có)
-    const initialCategories = [
-        { id: 1, name: "Sửa ống nước", description: "Xử lý các vấn đề về ống nước" },
-        { id: 2, name: "Sửa điện", description: "Sửa chữa hệ thống điện" },
-        { id: 3, name: "Sửa máy lạnh", description: "Bảo trì và sửa máy lạnh" },
-    ];
+    const dispatch = useDispatch();
 
-    const [categories, setCategories] = useState(initialCategories);
+    const { categories, loading, errorCategories, successAddCategories, successUpdateCategories, successDeleteCategories
+        , errorAddCategories, errorUpdateCategories, errorsDeleteCategories
+    } = useSelector(state => state.admin);
+
     const [currentPage, setCurrentPage] = useState(1);
     const [modalOpen, setModalOpen] = useState(false);
     const [modalAction, setModalAction] = useState(null); // "add", "edit", "delete"
     const [selectedCategory, setSelectedCategory] = useState(null);
-    const [formData, setFormData] = useState({ name: "", description: "" });
-    const itemsPerPage = 5; // Số mục mỗi trang
+    const [formData, setFormData] = useState({ type: "" });
+    const [searchText, setSearchText] = useState(""); // State cho input tìm kiếm
+    const itemsPerPage = 5; // Items per page
 
-    // Tính toán phân trang
-    const totalPages = Math.ceil(categories.length / itemsPerPage);
+    useEffect(() => {
+        dispatch(getAllServiceIndustries()); // Lấy danh sách loại chuyên mục
+    }, [dispatch]);
+
+    useEffect(() => {
+        if (successAddCategories || successUpdateCategories || successDeleteCategories) {
+            dispatch(getAllServiceIndustries()); // Re-fetch after successful add, update, or delete
+        }
+    }, [successAddCategories, successUpdateCategories, successDeleteCategories, dispatch]);
+
+    // Filter categories based on search text
+    const filteredCategories = categories.filter(category =>
+        category.type.toLowerCase().includes(searchText.toLowerCase()) || category._id.toString().includes(searchText)
+    );
+
+    const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedCategories = categories.slice(startIndex, startIndex + itemsPerPage);
+    const paginatedCategories = filteredCategories.slice(startIndex, startIndex + itemsPerPage);
 
-    // Mở modal cho hành động cụ thể
     const openModal = (action, category = null) => {
         setModalAction(action);
         setSelectedCategory(category);
         if (action === "edit" && category) {
-            setFormData({ name: category.name, description: category.description });
+            setFormData({ type: category.type });
         } else if (action === "add") {
-            setFormData({ name: "", description: "" });
+            setFormData({ type: "" });
         }
         setModalOpen(true);
     };
 
-    // Đóng modal
     const closeModal = () => {
         setModalOpen(false);
         setModalAction(null);
         setSelectedCategory(null);
-        setFormData({ name: "", description: "" });
+        setFormData({ type: "" });
     };
 
-    // Xử lý thêm danh mục
     const handleAdd = () => {
-        const newCategory = {
-            id: categories.length + 1, // Giả lập ID, thay bằng logic thực tế nếu dùng API
-            name: formData.name,
-            description: formData.description,
-        };
-        setCategories([...categories, newCategory]);
+        dispatch(createServiceIndustry(formData.type));
         closeModal();
     };
 
-    // Xử lý sửa danh mục
     const handleEdit = () => {
-        const updatedCategories = categories.map((cat) =>
-            cat.id === selectedCategory.id ? { ...cat, ...formData } : cat
-        );
-        setCategories(updatedCategories);
+        if (!selectedCategory || !selectedCategory._id) {
+            Swal.fire({
+                title: "Lỗi",
+                text: "ID không hợp lệ!",
+                icon: "error",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            return;
+        }
+
+        dispatch(updateServiceIndustry(selectedCategory._id, formData.type));
         closeModal();
     };
 
-    // Xử lý xóa danh mục
     const handleDelete = () => {
-        if (window.confirm("Bạn có chắc chắn muốn xóa danh mục này không?")) {
-            const updatedCategories = categories.filter((cat) => cat.id !== selectedCategory.id);
-            setCategories(updatedCategories);
+        if (window.confirm(`Bạn có chắc chắn muốn xóa chuyên mục ${selectedCategory.type}?`)) {
+            dispatch(deleteServiceIndustry(selectedCategory._id));
             closeModal();
         }
     };
 
-    // Xử lý thay đổi input trong form
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
 
-    // Chuyển trang
+    const handleSearchChange = (e) => {
+        setSearchText(e.target.value);
+        setCurrentPage(1); // Reset to first page when search changes
+    };
+
     const handlePageChange = (page) => {
         if (page >= 1 && page <= totalPages) {
             setCurrentPage(page);
         }
     };
 
+    // Hàm định dạng ngày và giờ theo kiểu hh:mm dd/mm/yyyy
+    const formatDateTime = (date) => {
+        const d = new Date(date);
+        const hours = d.getHours().toString().padStart(2, '0'); // Lấy giờ
+        const minutes = d.getMinutes().toString().padStart(2, '0'); // Lấy phút
+        const day = d.getDate().toString().padStart(2, '0'); // Lấy ngày
+        const month = (d.getMonth() + 1).toString().padStart(2, '0'); // Lấy tháng
+        const year = d.getFullYear(); // Lấy năm
+
+        return `${hours}:${minutes} ${day}/${month}/${year}`; // Trả về định dạng hh:mm dd/mm/yyyy
+    };
+
+    useEffect(() => {
+        if (errorCategories) {
+            Swal.fire({
+                title: "Lỗi",
+                text: errorCategories,
+                icon: "error",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetError());
+        }
+
+        if (errorAddCategories) {
+            Swal.fire({
+                title: "Lỗi",
+                text: errorAddCategories,
+                icon: "error",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetError());
+        }
+
+        if (errorUpdateCategories) {
+            Swal.fire({
+                title: "Lỗi",
+                text: errorUpdateCategories,
+                icon: "error",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetError());
+        }
+
+        if (errorsDeleteCategories) {
+            Swal.fire({
+                title: "Lỗi",
+                text: errorsDeleteCategories,
+                icon: "error",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetError());
+        }
+
+        if (successAddCategories) {
+            Swal.fire({
+                title: "Thành công",
+                text: successAddCategories,
+                icon: "success",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetSuccess());
+        }
+
+        if (successUpdateCategories) {
+            Swal.fire({
+                title: "Thành công",
+                text: successUpdateCategories,
+                icon: "success",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetSuccess());
+        }
+
+        if (successDeleteCategories) {
+            Swal.fire({
+                title: "Thành công",
+                text: successDeleteCategories,
+                icon: "success",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetSuccess());
+        }
+    }, [dispatch, errorCategories, successAddCategories, successUpdateCategories, successDeleteCategories, errorAddCategories, errorUpdateCategories, errorsDeleteCategories]);
+
     return (
         <div className="history-container">
             <div className="history-form">
-                <h2 className="complaint-title">QUẢN LÝ DANH MỤC SỬA CHỮA</h2>
+                <h2 className="complaint-title">QUẢN LÝ CHUYÊN MỤC SỬA CHỮA</h2>
 
-                {/* Nút thêm danh mục */}
-                <button className="add-button" onClick={() => openModal("add")}>
-                    Thêm danh mục
-                </button>
+                {/* Thêm input tìm kiếm và button Thêm chuyên mục */}
+                <div className="filter-container">
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm theo ID hoặc tên chuyên mục"
+                        value={searchText}
+                        onChange={handleSearchChange}
+                        className="search-input"
+                    />
+                    <button className="add-button" onClick={() => openModal("add")}>Thêm chuyên mục</button>
+                </div>
 
-                {/* Bảng danh mục */}
-                <table className="categories-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Tên danh mục</th>
-                            <th>Mô tả</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {paginatedCategories.map((category) => (
-                            <tr key={category.id}>
-                                <td>{category.id}</td>
-                                <td>{category.name}</td>
-                                <td>{category.description}</td>
-                                <td>
-                                    <button
-                                        className="edit-button"
-                                        onClick={() => openModal("edit", category)}
-                                    >
-                                        Sửa
-                                    </button>
-                                    <button
-                                        className="delete-button"
-                                        onClick={() => openModal("delete", category)}
-                                    >
-                                        Xóa
-                                    </button>
-                                </td>
+                {loading ? (
+                    <p><Loading /></p>
+                ) : errorCategories ? (
+                    <p>{errorCategories}</p>
+                ) : (
+                    <table className="categories-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên chuyên mục</th>
+                                <th>Ngày tạo</th>
+                                <th>Ngày cập nhật</th>
+                                <th>Hành động</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {paginatedCategories.map((category) => (
+                                <tr key={category._id}>
+                                    <td>{category._id}</td>
+                                    <td>{category.type}</td>
+                                    <td>{formatDateTime(category.createdAt)}</td>
+                                    <td>{formatDateTime(category.updatedAt)}</td>
+                                    <td>
+                                        <button className="edit-button" onClick={() => openModal("edit", category)}>Sửa</button>
+                                        <button className="delete-button" onClick={() => openModal("delete", category)}>Xóa</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
 
-                {/* Phân trang */}
                 <div className="pagination">
-                    <button
-                        disabled={currentPage === 1}
-                        onClick={() => handlePageChange(currentPage - 1)}
-                    >
-                        Trước
-                    </button>
+                    <button disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>Trước</button>
                     <span>Trang {currentPage} / {totalPages}</span>
-                    <button
-                        disabled={currentPage === totalPages}
-                        onClick={() => handlePageChange(currentPage + 1)}
-                    >
-                        Sau
-                    </button>
+                    <button disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}>Sau</button>
                 </div>
             </div>
 
-            {/* Modal cho thêm/sửa/xóa */}
             {modalOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content">
-                        <h3>
-                            {modalAction === "add"
-                                ? "Thêm danh mục"
-                                : modalAction === "edit"
-                                ? "Sửa danh mục"
-                                : "Xóa danh mục"}
-                        </h3>
-
+                        <h3>{modalAction === "add" ? "Thêm danh mục" : modalAction === "edit" ? "Sửa danh mục" : "Xóa danh mục"}</h3>
                         {modalAction !== "delete" ? (
                             <div className="modal-form">
                                 <label>Tên danh mục:</label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleInputChange}
-                                />
-                                <label>Mô tả:</label>
-                                <textarea
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleInputChange}
-                                />
+                                <input type="text" name="type" value={formData.type} onChange={handleInputChange} />
                             </div>
                         ) : (
-                            <p>Bạn có chắc chắn muốn xóa "{selectedCategory.name}" không?</p>
+                            <p>Bạn có chắc chắn muốn xóa "{selectedCategory.type}" không?</p>
                         )}
 
                         <div className="modal-buttons">
-                            {modalAction === "add" && (
-                                <button onClick={handleAdd}>Thêm</button>
-                            )}
-                            {modalAction === "edit" && (
-                                <button onClick={handleEdit}>Lưu</button>
-                            )}
-                            {modalAction === "delete" && (
-                                <button onClick={handleDelete}>Xóa</button>
-                            )}
+                            {modalAction === "add" && <button onClick={handleAdd}>Thêm</button>}
+                            {modalAction === "edit" && <button onClick={handleEdit}>Lưu</button>}
+                            {modalAction === "delete" && <button onClick={handleDelete}>Xóa</button>}
                             <button onClick={closeModal}>Hủy</button>
                         </div>
                     </div>
