@@ -69,13 +69,13 @@ const Wallet = () => {
                             </p>
                         </div>
                         <div className="options">
-                            <button className="option-btn" onClick={() => navigate("deposit-history")}>
+                            <button className="option-btn" onClick={() => navigate("/deposit-history")}>
                                 Lịch sử nạp tiền
                             </button>
-                            <button className="option-btn" onClick={() => navigate("history-payment")}>
+                            <button className="option-btn" onClick={() => navigate("/history-payment")}>
                                 Lịch sử thanh toán
                             </button>
-                            <button className="option-btn" onClick={() => navigate("repairman/service-price")}>
+                            <button className="option-btn" onClick={() => navigate("/repairman/service-prices")}>
                                 Bảng giá dịch vụ tăng đề xuất
                             </button>
                         </div>

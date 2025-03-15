@@ -52,18 +52,18 @@ export const registerUser = (userData) => async (dispatch) => {
         if (response.data.EC === 1) {
             dispatch({
                 type: "REGISTER_SUCCESS",
-                payload: response.data,
+                payload: response.data.EM,
             });
         } else {
             dispatch({
                 type: "REGISTER_FAIL",
-                payload: response.data,
+                payload: response.data.EM,
             });
         }
     } catch (error) {
         dispatch({
             type: "REGISTER_FAIL",
-            payload: error.response.data,
+            payload: error.response.data.EM,
         });
     }
 };
@@ -78,26 +78,26 @@ export const verifyRegister = (email, otp) => async (dispatch) => {
 
 
         if (response.data.EC === 1) {
-            const { accessToken } = response.data.DT;
+            // const { accessToken } = response.data.DT;
 
-            // Lưu token vào localStorage, không cần
-            localStorage.setItem('token', accessToken);
-            localStorage.setItem('isAuthenticated', true);
+            // // Lưu token vào localStorage, không cần
+            // localStorage.setItem('token', accessToken);
+            // localStorage.setItem('isAuthenticated', true);
 
             dispatch({
                 type: "VERIFY_REGISTER_SUCCESS",
-                payload: { accessToken, isAuthenticated: true, user: response.data.DT }
+                payload: response.data.EM,
             });
         } else {
             dispatch({
                 type: "VERIFY_REGISTER_FAIL",
-                payload: response.data,
+                payload: response.data.EM,
             });
         }
     } catch (error) {
         dispatch({
-            type: "VERIFY_REGISTER_FAILURE",
-            payload: error.response.data,
+            type: "VERIFY_REGISTER_FAIL",
+            payload: error.response.data.EM,
         });
     }
 };

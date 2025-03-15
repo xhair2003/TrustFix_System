@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser, resetError } from "../../../store/actions/authActions";
+import { registerUser, resetError, resetSuccess } from "../../../store/actions/authActions";
 import Swal from "sweetalert2";
 import "./RegisterForm.scss";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -50,9 +50,6 @@ const RegisterForm = ({ onRegisterSuccess }) => {
       return;
     }
 
-
-    dispatch(resetError()); // Đặt lại lỗi trước khi gọi 
-
     try {
       const newUserData = {
         firstName,
@@ -67,26 +64,6 @@ const RegisterForm = ({ onRegisterSuccess }) => {
       await dispatch(registerUser(newUserData));
       setUserData(newUserData); // Lưu trữ userData vào trạng thái
 
-      if (successRegister) {
-        Swal.fire({
-          title: "Success",
-          text: successRegister,
-          icon: "success",
-          timer: 5000,
-          showConfirmButton: false,
-        });
-        onRegisterSuccess(email, newUserData); // Truyền userData vào onRegisterSuccess
-      }
-
-      if (errorRegister) {
-        Swal.fire({
-          title: "Error",
-          text: errorRegister || "Registration failed. Please try again.",
-          icon: "error",
-          timer: 5000,
-          showConfirmButton: false,
-        });
-      }
     } catch (err) {
       Swal.fire({
         title: "Error",
@@ -97,6 +74,31 @@ const RegisterForm = ({ onRegisterSuccess }) => {
       });
     }
   };
+
+  useEffect(() => {
+    if (successRegister) {
+      Swal.fire({
+        title: "Success",
+        text: successRegister,
+        icon: "success",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+      dispatch(resetSuccess());
+      onRegisterSuccess(email); // Truyền userData vào onRegisterSuccess
+    }
+
+    if (errorRegister) {
+      Swal.fire({
+        title: "Error",
+        text: errorRegister,
+        icon: "error",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+      dispatch(resetError()); // Đặt lại lỗi trước khi gọi 
+    }
+  }, [dispatch, successRegister, errorRegister, onRegisterSuccess, email]);
 
   return (
     <div className="register-container">

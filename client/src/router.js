@@ -52,7 +52,7 @@ const UserROUTERS = () => {
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
-            path: ROUTERS.CUSTOMER.COMPLAIN,
+            path: ROUTERS.CUSTOMER.COMPLAIN_REPAIRMAN,
             component: <Complain />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
@@ -67,27 +67,22 @@ const UserROUTERS = () => {
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
-            path: ROUTERS.CUSTOMER.DEPOSIT,
+            path: ROUTERS.CUSTOMER.DEPOSIT_INTO_ACCOUNT,
             component: <Deposit />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
-            path: ROUTERS.CUSTOMER.DEPOSIT_HISTORY,
+            path: ROUTERS.CUSTOMER.VIEW_DEPOSIT_HISTORY,
             component: <DepositHistory />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
-            path: ROUTERS.CUSTOMER.HISTORY_PAYMENT,
+            path: ROUTERS.CUSTOMER.VIEW_HISTORY_PAYMENT,
             component: <HistoryPayment />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
-            path: ROUTERS.CUSTOMER.COMPLAIN,
-            component: <Complain />,
-            layout: MasterLayoutUser, // Routes using MasterLayoutdsf
-        },
-        {
-            path: ROUTERS.REPAIRMAN.SERVICE_PRICE,
+            path: ROUTERS.REPAIRMAN.VIEW_SERVICE_PRICES,
             component: <ServicePrice />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },

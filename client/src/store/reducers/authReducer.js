@@ -1,11 +1,12 @@
 const initialState = {
     token: null || localStorage.getItem('token'),
     isAuthenticated: false || localStorage.getItem('isAuthenticated'),
-    error: null,
+    role: null,
     user: null,
-    success: null,
     loading: false,
     resetToken: null,
+
+    error: null,
     errorRegister: null,
     errorVerifyRegister: null,
     errorChangePassword: null,
@@ -13,14 +14,15 @@ const initialState = {
     errorVerifyOTP: null,
     errorForgotPassword: null,
     errorLogin: null,
+    errorGetRole: null,
+
+    success: null,
     successResetPassword: null,
     successForgotPassword: null,
     successChangePassword: null,
     successRegister: null,
     successVerifyOTP: null,
     successLogin: null,
-    role: null,
-    errorGetRole: null,
 };
 
 const authReducer = (state = initialState, action) => {
@@ -56,6 +58,7 @@ const authReducer = (state = initialState, action) => {
                 ...state,
                 //user: action.payload.user,
                 errorVerifyRegister: null,
+                successVerifyRegister: action.payload,
                 //token: action.payload.accessToken,
                 //isAuthenticated: action.payload.isAuthenticated,
                 loading: false,
@@ -71,7 +74,7 @@ const authReducer = (state = initialState, action) => {
             };
 
         case "REGISTER_SUCCESS":
-            return { ...state, loading: false, successRegister: action.payload.EM, errorRegister: null };
+            return { ...state, loading: false, successRegister: action.payload, errorRegister: null };
         case "CHANGE_PASSWORD_SUCCESS":
             return { ...state, loading: false, successChangePassword: action.payload.EM, errorChangePassword: null };
         case "FORGOT_PASSWORD_SUCCESS":
@@ -91,9 +94,9 @@ const authReducer = (state = initialState, action) => {
         case "CHANGE_PASSWORD_FAIL":
             return { ...state, loading: false, errorChangePassword: action.payload.EM, successChangePassword: null };
         case "VERIFY_REGISTER_FAIL":
-            return { ...state, loading: false, errorVerifyRegister: action.payload.EM };
+            return { ...state, loading: false, errorVerifyRegister: action.payload, successVerifyRegister: null };
         case "REGISTER_FAIL":
-            return { ...state, loading: false, errorRegister: action.payload.EM, successRegister: null };
+            return { ...state, loading: false, errorRegister: action.payload, successRegister: null };
 
 
         case "FETCH_ROLE_TYPE_REQUEST":
@@ -133,6 +136,7 @@ const authReducer = (state = initialState, action) => {
         case "RESET_ERROR":
             return {
                 ...state,
+                error: null,
                 errorRegister: null,
                 errorVerifyRegister: null,
                 errorChangePassword: null,
@@ -145,11 +149,13 @@ const authReducer = (state = initialState, action) => {
         case "RESET_SUCCESS":
             return {
                 ...state,
-                successRegister: null,
-                successChangePassword: null,
-                successForgotPassword: null,
+                success: null,
                 successResetPassword: null,
+                successForgotPassword: null,
+                successChangePassword: null,
+                successRegister: null,
                 successVerifyOTP: null,
+                successLogin: null,
             };
 
         default:
