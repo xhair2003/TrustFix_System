@@ -1,0 +1,111 @@
+.master-layout {
+    display: flex; /* Use flexbox to arrange child elements */
+    height: 100vh; /* Full viewport height */
+}
+
+.sidebar {
+    display: flex; /* Use flexbox for sidebar */
+    flex-direction: column; /* Arrange items vertically */
+    width: 250px; /* Default sidebar width */
+    background-color: #FFFFFF; /* Sidebar background color */
+    padding: 20px; /* Padding inside the sidebar */
+    transition: width 0.3s; /* Smooth transition for width changes */
+    height: 100vh; /* Full viewport height */
+}
+
+.sidebar.collapsed {
+    width: 60px; /* Width when sidebar is collapsed */
+}
+
+.admin-label {
+    font-size: 24px; /* Larger font size for "ADMIN" */
+    font-weight: bold; /* Bold text */
+    text-align: left; /* Align to the left */
+    margin-bottom: 20px; /* Space below the label */
+    color: #000; /* Black color to match the image */
+}
+
+.user-info {
+    text-align: center; /* Center-align user info content */
+    margin-bottom: 20px; /* Space below user info */
+}
+
+.user-info h2 {
+    font-size: 18px; /* Adjust font size for username */
+    margin: 10px 0 5px; /* Adjust spacing */
+}
+
+.user-info p {
+    font-size: 14px; /* Adjust font size for email */
+    color: #666; /* Slightly gray color for email */
+    margin: 0; /* Remove default margin */
+}
+
+.user-image {
+    width: 80px; /* User image width */
+    height: 80px; /* User image height */
+    border-radius: 50%; /* Circular image */
+}
+
+.menu-items {
+    flex: 1; /* Take up remaining space in sidebar */
+    overflow-y: auto; /* Add vertical scroll if content overflows */
+}
+
+.menu-item {
+    display: flex; /* Use flexbox for menu items */
+    align-items: center; /* Vertically center items */
+    padding: 10px; /* Padding for each menu item */
+    cursor: pointer; /* Show pointer on hover */
+    transition: background-color 0.3s, font-weight 0.3s; /* Smooth transition for background and font weight */
+    gap: 10px; /* Space between icon and text */
+    font-size: 16px; /* Adjust font size for menu items */
+}
+
+.menu-item:hover {
+    background-color: #e0e0e0; /* Background color on hover */
+}
+
+.menu-item.active {
+    background-color: #D1E8E2; /* Light teal background for active item (matches the image) */
+    font-weight: bold; /* Bold text for active item */
+}
+
+.toggle-button {
+    background: none; /* No background for button */
+    border: none; /* No border for button */
+    cursor: pointer; /* Show pointer on hover */
+    font-size: 20px; /* Font size for button */
+    position: absolute; /* Absolute positioning */
+    top: 10px; /* Distance from top */
+    right: 20px; /* Distance from right */
+}
+
+.upper-sidebar {
+    flex: 0 0 auto; /* Auto height for upper sidebar */
+    position: relative; /* Relative positioning */
+}
+
+.content {
+    flex: 1; /* Take up remaining space in layout */
+    padding: 20px; /* Padding for content */
+    background-color: #F8F9FA; /* Content background color */
+    height: 100vh; /* Full viewport height */
+}
+
+.sidebar.collapsed .menu-item {
+    justify-content: center; /* Center icon when sidebar is collapsed */
+}
+
+.lower-sidebar {
+    width: 150px; /* Width for logo */
+    height: auto; /* Auto height */
+    margin-top: auto; /* Position logo at the bottom */
+    position: relative;
+    bottom: 20px;
+}
+
+.only-logo {
+    width: 50px; /* Width for collapsed logo */
+    height: auto; /* Maintain aspect ratio */
+}

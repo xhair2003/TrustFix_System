@@ -1,8 +1,8 @@
-const { User, Role } = require("../models");
+const { User, Role, Wallet } = require("../models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const user = require("../models/user");
-const hashPassword  = require("../utils/password");
+const hashPassword = require("../utils/password");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 
@@ -115,7 +115,7 @@ const initRegister = async (req, res) => {
 
         // Generate OTP
         const otp = generateOTP();
-        
+
         // Store registration data temporarily
         pendingRegistrations.set(email, {
             firstName,
@@ -223,6 +223,16 @@ const verifyRegister = async (req, res) => {
         // Save role
         await newRole.save();
 
+        // Create wallet for user
+        const newWallet = new Wallet({
+            user_id: savedUser._id,
+            balance: 0 // Initial balance có thể là 0 hoặc giá trị mặc định khác
+        });
+
+        // Save wallet
+        await newWallet.save();
+
+
         // Remove pending registration
         pendingRegistrations.delete(email);
 
@@ -270,7 +280,7 @@ const login = async (req, res) => {
     try {
         const { email, pass } = req.body;
         console.log(pass);
-        
+
         // Validate required fields
         if (!email || !pass) {
             return res.status(400).json({
@@ -455,6 +465,7 @@ const changePassword = async (req, res) => {
 
         // Lấy thông tin người dùng từ database
         const user = await User.findById(user_id);
+
         if (!user) {
             return res.status(400).json({ EC: 0, EM: "Người dùng không tồn tại" });
         }
@@ -504,7 +515,7 @@ const forgotPassword = async (req, res) => {
 
         // Generate OTP
         const otp = generateOTP();
-        
+
         // Store OTP with expiration (5 minutes)
         otpStore.set(email, {
             code: otp,
@@ -651,9 +662,6 @@ const resetPassword = async (req, res) => {
         });
     }
 };
-
-
-
 
 module.exports = {
     initRegister,

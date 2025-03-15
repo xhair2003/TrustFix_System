@@ -1,13 +1,46 @@
 const { User, Role, RepairmanUpgradeRequest, ServiceIndustry, Service, Vip } = require("../models");
+const cloudinary = require("../../config/cloudinary");
+
+// lấy type của ServiceIndustry
+// API GET để lấy tất cả các loại dịch vụ (type)
+const getTypeServiceIndustry = async (req, res) => {
+    try {
+        // Lấy tất cả các bản ghi từ bảng ServiceIndustry và chỉ lấy trường 'type'
+        const serviceTypes = await ServiceIndustry.find({}, { type: 1 });
+
+        // Nếu không có loại dịch vụ nào
+        if (!serviceTypes || serviceTypes.length === 0) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy loại dịch vụ nào!"
+            });
+        }
+
+        // Trả về danh sách các loại dịch vụ
+        res.status(200).json({
+            EC: 1,
+            DT: serviceTypes,
+            EM: "Lấy loại dịch vụ thành công"
+        });
+    } catch (err) {
+        console.error("Error fetching service types:", err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+}
 
 const requestRepairmanUpgrade = async (req, res) => {
     try {
         const userId = req.user.id; // User ID from verified token
-        //const serviceIndustryId = req.body.serviceIndustry_Id;
-        const { serviceIndustry_Id, typePaper, imgPaper, description } = req.body;
+
+        const { serviceType, address, description } = req.body;
+
+        console.log("address", address);
 
         // Validate required fields
-        if (!serviceIndustry_Id || !typePaper || !imgPaper || !description) {
+        if (!serviceType || !address || !description) {
             return res.status(400).json({
                 EC: 0,
                 EM: "Vui lòng điền đầy đủ thông tin yêu cầu nâng cấp!"
@@ -24,7 +57,7 @@ const requestRepairmanUpgrade = async (req, res) => {
         }
 
         // Find service industry by type
-        const serviceIndustry = await ServiceIndustry.findOne({ _id: serviceIndustry_Id });
+        const serviceIndustry = await ServiceIndustry.findOne({ type: serviceType }); // Tìm ServiceIndustry bằng serviceType
         if (!serviceIndustry) {
             return res.status(404).json({
                 EC: 0,
@@ -32,16 +65,48 @@ const requestRepairmanUpgrade = async (req, res) => {
             });
         }
 
+        let imgCertificatePracticeUrls = [];
+        let imgCCCDUrls = [];
+
+        console.log("req.files", req.files); // Kiểm tra xem req.files có chứa tệp hay không
+
+        // Kiểm tra và upload imgCertificatePractice
+        if (req.files && req.files.imgCertificatePractice) {
+            for (const file of req.files.imgCertificatePractice) {
+                const resultCertificatePractice = await cloudinary.uploader.upload(file.path, {
+                    folder: "repairman_upgrade",
+                    transformation: [{ width: 500, height: 500, crop: "limit" }]
+                });
+                imgCertificatePracticeUrls.push(resultCertificatePractice.secure_url);  // Lưu URL vào mảng
+            }
+        }
+
+        // Kiểm tra và upload imgCCCD
+        if (req.files && req.files.imgCCCD) {
+            for (const file of req.files.imgCCCD) {
+                const resultCCCD = await cloudinary.uploader.upload(file.path, {
+                    folder: "repairman_upgrade",
+                    transformation: [{ width: 500, height: 500, crop: "limit" }]
+                });
+                imgCCCDUrls.push(resultCCCD.secure_url);  // Lưu URL vào mảng
+            }
+        }
+
+        // Update user's address
+        await User.findByIdAndUpdate(userId, { address: address });
+
         // Create new Repairman Upgrade Request
         const newRequest = new RepairmanUpgradeRequest({
             user_id: userId,
-            serviceIndustry_id: serviceIndustry._id,
-            typePaper: typePaper,
-            imgPaper: imgPaper,
+            serviceIndustry_id: serviceIndustry._id, // Lấy _id của ServiceIndustry từ serviceType
+            imgCertificatePractice: imgCertificatePracticeUrls,
+            imgCCCD: imgCCCDUrls,
             description: description,
-            status: 1, // Default status: Pending
-
+            status: 'Pending', // Default status: Pending
         });
+
+        console.log("imgCertificatePracticeUrls", imgCertificatePracticeUrls);
+        console.log("imgCCCDUrls", imgCCCDUrls);
 
         await newRequest.save();
 
@@ -61,7 +126,7 @@ const requestRepairmanUpgrade = async (req, res) => {
 
 const getPendingUpgradeRequests = async (req, res) => {
     try {
-        const pendingRequests = await RepairmanUpgradeRequest.find({ status: 1 })
+        const pendingRequests = await RepairmanUpgradeRequest.find({ status: 'Pending' })
             .populate('user', 'firstName lastName email') // Populate user details
             .populate('serviceIndustry', 'type'); // Populate service industry type
 
@@ -101,7 +166,7 @@ const verifyRepairmanUpgradeRequest = async (req, res) => {
 
         if (action === 'approve') {
             // Update request status to approved
-            upgradeRequest.status = 2;
+            upgradeRequest.status = 'Active';
             upgradeRequest.approvedAt = Date.now();
             await upgradeRequest.save();
 
@@ -133,11 +198,11 @@ const verifyRepairmanUpgradeRequest = async (req, res) => {
                 });
             }
             // Update request status to rejected
-            upgradeRequest.status = 0;
-            upgradeRequest.rejectedAt = Date.now();
-            upgradeRequest.rejectReason = rejectReason;
-            await upgradeRequest.save();
-
+            // upgradeRequest.status = 0;
+            // upgradeRequest.rejectedAt = Date.now();
+            // upgradeRequest.rejectReason = rejectReason;
+            // await upgradeRequest.save();
+            upgradeRequest.findByIdAndDelete(requestId);
             res.status(200).json({
                 EC: 1,
                 EM: "Yêu cầu nâng cấp đã bị từ chối thành công!"
@@ -235,5 +300,6 @@ module.exports = {
     requestRepairmanUpgrade,
     getPendingUpgradeRequests,
     verifyRepairmanUpgradeRequest,
-    getAllVips
+    getAllVips,
+    getTypeServiceIndustry
 };

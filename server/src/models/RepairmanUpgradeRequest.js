@@ -11,17 +11,17 @@ const RepairmanUpgradeRequestSchema = new mongoose.Schema({
         ref: 'ServiceIndustry',
         required: true
     },
-    typePaper: {
-        type: String,
+    imgCertificatePractice: {
+        type: [String],
         required: true
     },
-    imgPaper: {
-        type: String,
+    imgCCCD: {
+        type: [String],
         required: true
     },
     status: {
-        type: Number,
-        default: 1
+        type: String,
+        enum: ['Active','Inactive','Pending','Deal price']
     },
     serviceTypes: {
         type: [mongoose.Schema.Types.ObjectId],

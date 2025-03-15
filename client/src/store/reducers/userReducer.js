@@ -9,6 +9,11 @@ const initialState = {
     vips: [],
     balance: null,
     complaintMessage: null,
+    repairHistory: null,
+    errorRepairHistory: null,
+    errorUgrade: null,
+    successUpgrade: null,
+    serviceTypes: [], // Mảng chứa các loại dịch vụ
 };
 
 const userReducer = (state = initialState, action) => {
@@ -42,12 +47,17 @@ const userReducer = (state = initialState, action) => {
                 updateInfoError: null,
                 error: null,
                 complaintError: null,
+                errorRepairHistory: null,
+                errorUgrade: null,
+                errorServiceTypes: null
             };
         case "RESET_SUCCESS":
             return {
                 ...state,
                 updateInfoSuccess: null,
                 complaintMessage: null,
+                repairHistory: null,
+                successUpgrade: null,
             };
 
 
@@ -153,6 +163,49 @@ const userReducer = (state = initialState, action) => {
                 complaintError: action.payload,
                 complaintMessage: null,
             };
+
+        // Add these cases to your reducer
+        case 'GET_REPAIR_HISTORY_REQUEST':
+            return { ...state, loading: true, errorRepairHistory: null, repairHistory: null };
+        case 'GET_REPAIR_HISTORY_SUCCESS':
+            return { ...state, loading: false, repairHistory: action.payload };
+        case 'GET_REPAIR_HISTORY_FAIL':
+            return { ...state, loading: false, errorRepairHistory: action.payload };
+
+
+        case 'REPAIRMAN_UPGRADE_REQUEST':
+            return { ...state, loading: true, errorUgrade: null, successUpgrade: null };
+        case 'REPAIRMAN_UPGRADE_SUCCESS':
+            return {
+                ...state,
+                loading: false,
+                successUpgrade: action.payload,
+            };
+        case 'REPAIRMAN_UPGRADE_FAIL':
+            return {
+                ...state,
+                loading: false,
+                errorUgrade: action.payload,
+            };
+
+
+
+        case 'SERVICE_INDUSTRY_TYPE_REQUEST':
+            return { ...state, loading: true, errorServiceTypes: null };
+        case 'SERVICE_INDUSTRY_TYPE_SUCCESS':
+            return {
+                ...state,
+                loading: false,
+                serviceTypes: action.payload, // Lưu danh sách loại dịch vụ vào store
+            };
+        case 'SERVICE_INDUSTRY_TYPE_FAIL':
+            return {
+                ...state,
+                loading: false,
+                errorServiceTypes: action.payload, // Lưu lỗi vào store nếu có
+            };
+
+
 
         default:
             return state;

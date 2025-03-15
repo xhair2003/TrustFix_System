@@ -50,6 +50,7 @@ const RegisterForm = ({ onRegisterSuccess }) => {
       return;
     }
 
+
     dispatch(resetError()); // Đặt lại lỗi trước khi gọi 
 
     try {
