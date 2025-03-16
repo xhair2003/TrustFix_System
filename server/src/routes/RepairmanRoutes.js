@@ -16,6 +16,7 @@ router.post("/repairman-upgrade-request", AuthMiddleware.verifyToken, upload.fie
 
 
 router.get("/list-vips", AuthMiddleware.verifyRepairman, RepairmanController.getAllVips);
+router.put("/toggle-status", AuthMiddleware.verifyRepairman, RepairmanController.toggleStatusRepairman);
 
 
 module.exports = router;
