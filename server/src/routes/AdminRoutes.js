@@ -39,7 +39,8 @@ router.put("/unlock-user/:userId", AuthMiddleware.verifyAdmin, AdminController.u
 // repair booking
 router.get("/list-repair-booking-history", AuthMiddleware.verifyAdmin, AdminController.viewRepairBookingHistory);
 
-//Service Price routes
+
+//Service Price routes (VIPS)
 router.post("/service/add-price", AuthMiddleware.verifyAdmin, AdminController.addServicePrice);
 router.put("/service/update", AuthMiddleware.verifyAdmin, AdminController.updateServicePrice);
 router.delete("/service/delete-price/:serviceId", AuthMiddleware.verifyAdmin, AdminController.deleteServicePrice);
@@ -48,5 +49,6 @@ router.get("/service/all-price", AuthMiddleware.verifyAdmin, AdminController.get
 // Admin routes - require admin authentication
 router.get("/repairman-upgrade-requests/pending", AuthMiddleware.verifyAdmin, AdminController.getPendingUpgradeRequests);
 router.put("/repairman-upgrade-requests/:requestId/verify", AuthMiddleware.verifyAdmin, AdminController.verifyRepairmanUpgradeRequest);
+
 
 module.exports = router;    

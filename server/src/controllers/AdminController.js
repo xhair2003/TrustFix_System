@@ -1,9 +1,8 @@
 const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
+const nodemailer = require('nodemailer'); // Import nodemailer để gửi email
 
-const nodemailer = require("nodemailer");
 
-// Email configuration
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -346,7 +345,6 @@ const updateService = async (req, res) => {
     }
 };
 
-
 const deleteService = async (req, res) => {
     try {
         const serviceId = req.params.id;
@@ -440,6 +438,7 @@ const replyToComplaint = async (req, res) => {
         const parentComplaintId = req.params.id; // ID của khiếu nại gốc
         const { complaintContent } = req.body; // Chỉ lấy complaintContent từ request body
 
+        // Kiểm tra xem nội dung phản hồi có được cung cấp không
         if (!complaintContent) {
             return res.status(400).json({
                 EC: 0,
@@ -447,7 +446,16 @@ const replyToComplaint = async (req, res) => {
             });
         }
 
-        const parentComplaint = await Complaint.findById(parentComplaintId);
+        // Tìm khiếu nại gốc từ cơ sở dữ liệu và kiểm tra tính hợp lệ
+        const parentComplaint = await Complaint.findById(parentComplaintId).populate({
+            path: 'request_id',
+            populate: {
+                path: 'user_id',
+                select: 'email firstName lastName'
+            }
+        });
+
+        // Nếu không tìm thấy khiếu nại gốc
         if (!parentComplaint) {
             return res.status(404).json({
                 EC: 0,
@@ -510,6 +518,56 @@ const replyToComplaint = async (req, res) => {
             EC: 1,
             EM: "Phản hồi khiếu nại thành công và đã gửi email đến người dùng!",
             DT: parentComplaint // You can send the complaint or the response data
+
+            // // Kiểm tra xem thông tin người dùng có hợp lệ không
+            // if (!parentComplaint.request_id || !parentComplaint.request_id.user_id) {
+            //     return res.status(404).json({
+            //         EC: 0,
+            //         EM: "Không tìm thấy thông tin người dùng liên quan đến khiếu nại!"
+            //     });
+            // }
+
+            // // Tạo đối tượng phản hồi mới từ khiếu nại gốc
+            // const newReply = new Complaint({
+            //     user_id: adminUserId,
+            //     complaintContent: complaintContent,
+            //     complaintType: parentComplaint.complaintType, // Lấy loại khiếu nại từ khiếu nại gốc
+            //     request_id: parentComplaint.request_id._id,
+            //     parentComplaint: parentComplaintId
+            // });
+
+            // console.log("newReply object:", newReply); // Log đối tượng phản hồi mới
+
+            // // Lưu phản hồi vào cơ sở dữ liệu
+            // await newReply.save();
+
+            // // Tạo nội dung email phản hồi
+            // const emailContent = `
+            //     <h1>Phản hồi khiếu nại</h1>
+            //     <p>Xin chào ${parentComplaint.request_id.user_id.firstName} ${parentComplaint.request_id.user_id.lastName},</p>
+            //     <p>Chúng tôi đã nhận được khiếu nại của bạn và đây là phản hồi từ admin:</p>
+            //     <p>${complaintContent}</p>
+            //     <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+            // `;
+            // const anhemail = 'ducanh8903@gmail.com'
+            // // Cấu hình email
+            // const mailOptions = {
+            //     from: process.env.EMAIL_USER, // Email người gửi
+            //     to: parentComplaint.request_id.user_id.email, // Email người nhận
+            //     subject: "Phản hồi khiếu nại", // Tiêu đề email
+            //     html: emailContent // Nội dung email dạng HTML
+            // };
+            // console.log("Mail user :" , parentComplaint.request_id.user_id.email);
+
+            // // Gửi email phản hồi
+            // await transporter.sendMail(mailOptions);
+
+            // // Trả về phản hồi thành công
+            // res.status(201).json({
+            //     EC: 1,
+            //     EM: "Phản hồi khiếu nại thành công và email đã được gửi!",
+            //     DT: newReply
+
         });
 
     } catch (error) {
@@ -520,10 +578,6 @@ const replyToComplaint = async (req, res) => {
         });
     }
 };
-
-
-
-
 
 // const replyToComplaint = async (req, res) => {
 //     console.log("req.body:", req.body); // Log req.body ngay đầu function
@@ -575,6 +629,10 @@ const replyToComplaint = async (req, res) => {
 // };
 
 // // View history payment with transactionType = payment
+
+
+
+
 
 const viewHistoryPayment = async (req, res) => {
     try {
@@ -737,10 +795,6 @@ const viewDepositeHistory = async (req, res) => {
     }
 };
 
-
-
-
-
 // const viewDepositeHistory = async (req, res) => {
 //     try {
 //         const { limit, search = "", transactionType = "deposite" } = req.query;
@@ -827,6 +881,10 @@ const viewDepositeHistory = async (req, res) => {
 //         });
 //     }
 // };
+
+
+
+
 
 const getAllUsers = async (req, res) => {
     try {
@@ -1005,6 +1063,7 @@ const unlockUserByUserId = async (req, res) => {
 
 
 //Service Price
+//Service Price
 const addServicePrice = async (req, res) => {
     try {
         const { serviceName, price, description } = req.body;
@@ -1159,6 +1218,7 @@ const getAllServicePrice = async (req, res) => {
 //         });
 //     }
 // };
+
 const viewRepairBookingHistory = async (req, res) => {
     try {
         // Remove page, limit, and search query parameters
@@ -1337,8 +1397,6 @@ const verifyRepairmanUpgradeRequest = async (req, res) => {
         });
     }
 };
-
-
 
 module.exports = {
     getPendingUpgradeRequests,

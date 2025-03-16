@@ -51,6 +51,8 @@ router.get('/requests/:requestId/find-repairman/:radius', authMiddleware.verifyT
 
 //view-repair-history
 router.get('/view-repair-history', authMiddleware.verifyToken, CustomerController.viewRepairHistory);
-router.get("/get-request", authMiddleware.verifyToken, CustomerController.getAllRequests);
+router.get("/get-request", authMiddleware.verifyToken, CustomerController.getAllRequests)
+
+
 
 module.exports = router;
