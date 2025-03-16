@@ -1,0 +1,158 @@
+.view-order-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .view-order-form {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .view-order-title {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .filter-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .search-input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    flex: 1;
+  }
+  
+  .status-filter,
+  .date-filter {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .view-order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .view-order-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .view-order-item:hover {
+    background: #f5f5f5;
+    border-color: #ddd;
+  }
+  
+  .view-order-item-id {
+    font-weight: bold;
+    color: #2c3e50;
+    width: 10%;
+  }
+  
+  .view-order-item-date,
+  .view-order-item-complete,
+  .view-order-item-price {
+    width: 20%;
+    color: #666;
+  }
+  
+  .view-order-item-status {
+    width: 15%;
+    padding: 5px 10px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 500;
+  }
+  
+  .view-order-item-rating {
+    width: 15%;
+    color: #f1c40f;
+    text-align: center;
+  }
+  
+  .view-order-status-hoàn-thành {
+    background: #e6ffe6;
+    color: #27ae60;
+  }
+  
+  .view-order-status-đang-xử-lý {
+    background: #fff3e6;
+    color: #e67e22;
+  }
+  
+  .view-order-status-đã-hủy {
+    background: #ffe6e6;
+    color: #c0392b;
+  }
+  
+  .view-order-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .view-order-modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .view-order-modal-title {
+    color: #2c3e50;
+    margin-bottom: 20px;
+  }
+  
+  .view-order-modal-section {
+    margin-bottom: 20px;
+  }
+  
+  .view-order-modal-section h4 {
+    color: #333;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+  }
+  
+  .view-order-modal-section p {
+    margin: 5px 0;
+    color: #666;
+  }
+  
+  .view-order-modal-close {
+    background: #3498db;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+  }
+  
+  .view-order-modal-close:hover {
+    background: #2980b9;
+  }
