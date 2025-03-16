@@ -28,6 +28,7 @@ import ManageUpgradeRepairman from "./pages/admin/ManageUpgradeRequests/ManageUp
 import ViewDepositHistory from "./pages/admin/TransactionManagement/DepositHistory/ViewDepositHistory.jsx";
 import ViewPaymentHistory from "./pages/admin/TransactionManagement/PaymentHistory/ViewPaymentHistory.jsx";
 import ManageServicePrices from "./pages/admin/ManageServicePrices/ManageServicePrices.jsx";
+import ViewRepairBooking from "./pages/admin/ViewRepairBooking/ViewRepairBooking.jsx";
 
 const UserROUTERS = () => {
     const routers = [
@@ -98,7 +99,7 @@ const UserROUTERS = () => {
         },
         {
             path: ROUTERS.ADMIN.VIEW_REPAIR_BOOKING,
-            // component: <ViewRepairBooking />,
+            component: <ViewRepairBooking />,
             layout: MasterLayoutAdmin,
         },
         {

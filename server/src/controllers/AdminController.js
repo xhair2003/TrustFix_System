@@ -1232,20 +1232,29 @@ const viewRepairBookingHistory = async (req, res) => {
             })
             .populate({
                 path: "user_id",
-                select: "firstName lastName",
+                select: "firstName lastName email phone address",
                 model: User,
             })
-            // .populate({
-            //     path: "ratings",
-            //     select: "rate comment",
-            //     model: Rating,
-            // })
+            .populate({
+                path: "ratings",
+                select: "rate comment request_id", // Include request_id in the populated data
+                model: Rating,
+            })
             .sort({ createdAt: -1 }); // Sort by creation date in descending order
+
+        // Filter ratings that match the request _id
+        const filteredRequests = requests.map(request => {
+            const filteredRatings = request.ratings.filter(rating =>
+                rating.request_id.toString() === request._id.toString()
+            );
+            request.ratings = filteredRatings; // Assign only the filtered ratings
+            return request;
+        });
 
         res.status(200).json({
             EC: 1,
             EM: "Lấy lịch sử đặt sửa chữa thành công!",
-            DT: requests,
+            DT: filteredRequests,
         });
     } catch (err) {
         console.error("Lỗi khi lấy lịch sử đặt sửa chữa:", err);
