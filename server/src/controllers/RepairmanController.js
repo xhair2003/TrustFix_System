@@ -197,6 +197,35 @@ const getAllVips = async (req, res) => {
     }
 };
 
+
+
+
+const getStatusRepairman = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Find the repairman request by the user ID
+        const repairmanRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId });
+
+        // If the repairman request does not exist
+        if (!repairmanRequest) {
+            return res.status(404).json({ EC: 0, EM: "Không tìm thấy yêu cầu nâng cấp!" });
+        }
+
+        // Return the current status of the repairman request
+        return res.status(200).json({
+            EC: 1,
+            EM: "Lấy trạng thái thợ thành công !",
+            DT: repairmanRequest.status
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ EC: 0, EM: "Lỗi hệ thống, vui lòng thử lại!" });
+    }
+};
+
+
 const toggleStatusRepairman = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -220,7 +249,7 @@ const toggleStatusRepairman = async (req, res) => {
         return res.status(200).json({
             EC: 1,
             EM: `Trạng thái đã cập nhật thành ${repairmanRequest.status}`,
-            data: repairmanRequest
+            DT: repairmanRequest.status
         });
 
     } catch (error) {
@@ -233,5 +262,6 @@ module.exports = {
     requestRepairmanUpgrade,
     getAllVips,
     getTypeServiceIndustry,
-    toggleStatusRepairman
+    toggleStatusRepairman,
+    getStatusRepairman
 };

@@ -1312,7 +1312,7 @@ const verifyRepairmanUpgradeRequest = async (req, res) => {
 
         if (action === 'approve') {
             // Update request status to approved
-            upgradeRequest.status = 'approved';
+            upgradeRequest.status = 'Inactive';
             upgradeRequest.approvedAt = Date.now();
             await upgradeRequest.save();
 

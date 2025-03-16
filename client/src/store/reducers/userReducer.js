@@ -14,6 +14,9 @@ const initialState = {
     errorUgrade: null,
     successUpgrade: null,
     serviceTypes: [], // Mảng chứa các loại dịch vụ
+    status: null,
+    errorToggleStatus: null,
+    errorGetStatus: null,
 };
 
 const userReducer = (state = initialState, action) => {
@@ -39,26 +42,6 @@ const userReducer = (state = initialState, action) => {
             };
         case 'UPDATE_USER_INFO_FAIL':
             return { ...state, loading: false, updateInfoSuccess: null, updateInfoError: action.payload };
-
-
-        case "RESET_ERROR":
-            return {
-                ...state,
-                updateInfoError: null,
-                error: null,
-                complaintError: null,
-                errorRepairHistory: null,
-                errorUgrade: null,
-                errorServiceTypes: null
-            };
-        case "RESET_SUCCESS":
-            return {
-                ...state,
-                updateInfoSuccess: null,
-                complaintMessage: null,
-                repairHistory: null,
-                successUpgrade: null,
-            };
 
 
         case "FETCH_DEPOSIT_HISTORY_REQUEST":
@@ -206,7 +189,64 @@ const userReducer = (state = initialState, action) => {
             };
 
 
+        case "GET_STATUS_REPAIRMAN_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "GET_STATUS_REPAIRMAN_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                status: action.payload, // Storing the status
+            };
+        case "GET_STATUS_REPAIRMAN_FAIL":
+            return {
+                ...state,
+                loading: false,
+                errorGetStatus: action.payload, // Storing error message
+            };
 
+
+        case "TOGGLE_STATUS_REPAIRMAN_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "TOGGLE_STATUS_REPAIRMAN_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                status: action.payload, // Updated status after toggling
+            };
+        case "TOGGLE_STATUS_REPAIRMAN_FAIL":
+            return {
+                ...state,
+                loading: false,
+                errorToggleStatus: action.payload, // Storing error message
+            };
+
+
+        case "RESET_ERROR":
+            return {
+                ...state,
+                updateInfoError: null,
+                error: null,
+                complaintError: null,
+                errorRepairHistory: null,
+                errorUgrade: null,
+                errorServiceTypes: null,
+                errorToggleStatus: null,
+                errorGetStatus: null,
+            };
+        case "RESET_SUCCESS":
+            return {
+                ...state,
+                updateInfoSuccess: null,
+                complaintMessage: null,
+                repairHistory: null,
+                successUpgrade: null,
+            };
         default:
             return state;
     }
