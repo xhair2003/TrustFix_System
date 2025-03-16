@@ -6,6 +6,9 @@ const VipSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    name: {
+        type: String
+    },
     description: {
         type: String
     },

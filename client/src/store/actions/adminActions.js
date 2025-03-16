@@ -72,12 +72,15 @@ export const lockUser = (userId, reason) => async (dispatch, getState) => {
     dispatch({ type: 'LOCK_USER_REQUEST' });
 
     try {
-        const response = await axios.delete(`http://localhost:8080/api/admin/lock-user/${userId}`, {
-            headers: {
-                Authorization: `Bearer ${token || localStorage.getItem('token')}`,
-            },
-            data: { reason }
-        });
+        const response = await axios.put(`http://localhost:8080/api/admin/lock-user/${userId}`,
+            { reason }, // Passing the reason directly in the body
+            {
+                headers: {
+                    Authorization: `Bearer ${token || localStorage.getItem('token')}`,
+                }
+            }
+        );
+
 
         if (response.data.EC === 1) {
             dispatch({
@@ -105,11 +108,13 @@ export const unlockUser = (userId) => async (dispatch, getState) => {
     dispatch({ type: 'UNLOCK_USER_REQUEST' });
 
     try {
-        const response = await axios.delete(`http://localhost:8080/api/admin/unlock-user/${userId}`, {
-            headers: {
-                Authorization: `Bearer ${token || localStorage.getItem('token')}`,
-            },
-        });
+        const response = await axios.put(`http://localhost:8080/api/admin/unlock-user/${userId}`,
+            {},
+            {
+                headers: {
+                    Authorization: `Bearer ${token || localStorage.getItem('token')}`,
+                },
+            });
 
         if (response.data.EC === 1) {
             dispatch({

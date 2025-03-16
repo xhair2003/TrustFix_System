@@ -1,83 +1,71 @@
-import React, { useState } from "react";
+// cần thêm thanh toán cho đơn hàng nào nữa trong xem chi tiết bằng 
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./ViewPaymentHistory.css";
+import Loading from "../../../../component/Loading/Loading";
+import Swal from "sweetalert2";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPaymentHistory, resetError } from "../../../../store/actions/adminActions"; // Import the action
 
 const ViewPaymentHistory = () => {
-  // Dữ liệu mẫu
-  const [payments] = useState([
-    {
-      creator: "Nguyen Xuan Hai",
-      createDate: "15:15, 25/02/2025",
-      transactionCode: "MOMO1731826001739",
-      amount: 70000,
-      balance: 150000,
-      status: "Hoàn tất",
-      details: {
-        transactionDate: "15:30, 25/02/2025",
-        transactionCode: "PAY1731826001739",
-        amount: 70000,
-        balanceAfter: 150000,
-        status: "Hoàn tất",
-        transactionContent: "Thanh toán phí kết nối + VAT",
-        customerName: "Nguyen Xuan Hai",
-        email: "ngnghai2003@gmail.com",
-        phone: "0978287322",
-        role: "Thợ sửa chữa",
-        address: "27 Trà Nổ 1, Hòa Khánh Nam, Liên Chiểu, Đà Nẵng",
-      },
-    },
-    {
-      creator: "Nguyen Xuan Hai",
-      createDate: "15:15, 25/02/2025",
-      transactionCode: "MOMO1731826001739",
-      amount: 70000,
-      balance: 150000,
-      status: "Hoàn tất",
-      details: {
-        transactionDate: "15:30, 25/02/2025",
-        transactionCode: "PAY1731826001739",
-        amount: 70000,
-        balanceAfter: 150000,
-        status: "Hoàn tất",
-        transactionContent: "Thanh toán phí kết nối + VAT",
-        customerName: "Nguyen Xuan Hai",
-        email: "ngnghai2003@gmail.com",
-        phone: "0978287322",
-        role: "Thợ sửa chữa",
-        address: "27 Trà Nổ 1, Hòa Khánh Nam, Liên Chiểu, Đà Nẵng",
-      },
-    },
-    // Thêm dữ liệu khác nếu cần
-  ]);
+  const dispatch = useDispatch();
+  const { loading, HistoryPayments, errorHistoryPayments } = useSelector(
+    (state) => state.admin
+  );
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("Tất cả");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  // Lọc và tìm kiếm
-  const filteredPayments = payments.filter((payment) => {
-    const matchesSearch = payment.creator
+  useEffect(() => {
+    dispatch(fetchPaymentHistory()); // Fetch payment history when the component is mounted
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (errorHistoryPayments) {
+      Swal.fire({
+        title: "Lỗi",
+        text: errorHistoryPayments,
+        icon: "error",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+      dispatch(resetError());
+    }
+  }, [dispatch, errorHistoryPayments]);
+
+  const filteredPayments = HistoryPayments.filter((payment) => {
+    const matchesSearch = `${payment.wallet_id.user_id.firstName} ${payment.wallet_id.user_id.firstName}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesStatus =
-      statusFilter === "Tất cả" || payment.status === statusFilter;
+      statusFilter === "all" || payment.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  // Phân trang
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentPayments = filteredPayments.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
 
-  // Xử lý chuyển trang
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Hiển thị chi tiết
   const handleShowDetails = (payment) => setSelectedPayment(payment);
   const handleCloseDetails = () => setSelectedPayment(null);
+
+  // Hàm định dạng ngày và giờ theo kiểu hh:mm dd/mm/yyyy
+  const formatDateTime = (date) => {
+    const d = new Date(date);
+    const hours = d.getHours().toString().padStart(2, '0'); // Lấy giờ
+    const minutes = d.getMinutes().toString().padStart(2, '0'); // Lấy phút
+    const day = d.getDate().toString().padStart(2, '0'); // Lấy ngày
+    const month = (d.getMonth() + 1).toString().padStart(2, '0'); // Lấy tháng
+    const year = d.getFullYear(); // Lấy năm
+
+    return `${hours}:${minutes} ${day}/${month}/${year}`; // Trả về định dạng hh:mm dd/mm/yyyy
+  };
 
   return (
     <div className="history-container">
@@ -110,46 +98,52 @@ const ViewPaymentHistory = () => {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <option value="Tất cả">Tất cả trạng thái</option>
-            <option value="Hoàn tất">Hoàn tất</option>
-            <option value="Đang xử lý">Đang xử lý</option>
-            <option value="Thất bại">Thất bại</option>
+            <option value="all">Tất cả trạng thái</option>
+            <option value="complete">Hoàn tất</option>
+            <option value="peding">Đang xử lý</option>
+            <option value="fail">Thất bại</option>
           </select>
         </div>
 
-        <table className="payment-history-table">
-          <thead>
-            <tr>
-              <th>Người tạo</th>
-              <th>Ngày tạo</th>
-              <th>Mã giao dịch</th>
-              <th>Số tiền</th>
-              <th>Số dư</th>
-              <th>Trạng thái</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentPayments.map((payment, index) => (
-              <tr key={index}>
-                <td>{payment.creator}</td>
-                <td>{payment.createDate}</td>
-                <td>{payment.transactionCode}</td>
-                <td>{payment.amount.toLocaleString()} VND</td>
-                <td>{payment.balance.toLocaleString()} VND</td>
-                <td>{payment.status}</td>
-                <td>
-                  <button
-                    className="payment-history-action-btn"
-                    onClick={() => handleShowDetails(payment)}
-                  >
-                    Xem
-                  </button>
-                </td>
+        {loading ? (
+          <Loading />
+        ) : errorHistoryPayments ? (
+          <p>{errorHistoryPayments}</p>
+        ) : (
+          <table className="payment-history-table">
+            <thead>
+              <tr>
+                <th>Người tạo</th>
+                <th>Ngày tạo</th>
+                <th>Mã giao dịch</th>
+                <th>Số tiền giao dịch</th>
+                <th>Số dư sau giao dịch</th>
+                <th>Trạng thái</th>
+                <th>Chi tiết</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {currentPayments.map((payment, index) => (
+                <tr key={index}>
+                  <td>{`${payment.wallet_id.user_id.firstName} ${payment.wallet_id.user_id.firstName}`}</td>
+                  <td>{formatDateTime(payment.createdAt)}</td>
+                  <td>{payment.payCode}</td>
+                  <td>{payment.amount.toLocaleString()} VNĐ</td>
+                  <td>{payment.balanceAfterTransact.toLocaleString()} VNĐ</td>
+                  <td>{payment.status}</td>
+                  <td>
+                    <button
+                      className="payment-history-action-btn"
+                      onClick={() => handleShowDetails(payment)}
+                    >
+                      Xem
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
 
         <div className="payment-history-pagination">
           <select
@@ -173,9 +167,7 @@ const ViewPaymentHistory = () => {
               <button
                 key={i + 1}
                 onClick={() => paginate(i + 1)}
-                className={`payment-history-page-btn ${
-                  currentPage === i + 1 ? "active" : ""
-                }`}
+                className={`payment-history-page-btn ${currentPage === i + 1 ? "active" : ""}`}
               >
                 {i + 1}
               </button>
@@ -193,25 +185,31 @@ const ViewPaymentHistory = () => {
         {selectedPayment && (
           <div className="payment-history-details-overlay">
             <div className="payment-history-details">
-              <h3>Chi tiết giao dịch</h3>
+              <h3>Chi tiết thanh toán</h3>
               <div className="payment-history-details-content">
                 <div className="payment-history-details-section">
-                  <h4>Thông tin giao dịch</h4>
-                  <p>Ngày giao dịch: {selectedPayment.details.transactionDate}</p>
-                  <p>Mã giao dịch: {selectedPayment.details.transactionCode}</p>
-                  <p>Số tiền: {selectedPayment.details.amount.toLocaleString()} VND</p>
-                  <p>Số dư sau giao dịch: {selectedPayment.details.balanceAfter.toLocaleString()} VND</p>
-                  <p>Trạng thái: {selectedPayment.details.status}</p>
-                  <p>Nội dung giao dịch: {selectedPayment.details.transactionContent}</p>
+                  <h4>Thông tin thanh toán</h4>
+                  <p>Ngày giao dịch: {formatDateTime(selectedPayment.createdAt)}</p>
+                  <p>Mã giao dịch: {selectedPayment.payCode}</p>
+                  <p>Số tiền: {selectedPayment.amount.toLocaleString()} VNĐ</p>
+                  <p>Số dư sau giao dịch: {selectedPayment.balanceAfterTransact.toLocaleString()} VNĐ</p>
+                  <p>Trạng thái: {selectedPayment.status}</p>
+                  <p>Nội dung giao dịch: {selectedPayment.content}</p>
                 </div>
                 <div className="payment-history-details-section">
                   <h4>Thông tin khách hàng</h4>
-                  <p>Tên: {selectedPayment.details.customerName}</p>
-                  <p>Email: {selectedPayment.details.email}</p>
-                  <p>Số điện thoại: {selectedPayment.details.phone}</p>
-                  <p>Vai trò: {selectedPayment.details.role}</p>
-                  <p>Địa chỉ: {selectedPayment.details.address}</p>
+                  <p>Họ và tên: {`${selectedPayment.wallet_id.user_id.firstName} ${selectedPayment.wallet_id.user_id.lastName}`}</p>
+                  <p>Email: {selectedPayment.wallet_id.user_id.email}</p>
+                  <p>Số điện thoại: {selectedPayment.wallet_id.user_id.phone}</p>
+                  <p>
+                    Vai trò: {selectedPayment.wallet_id.user_id.roles && selectedPayment.wallet_id.user_id.roles.length > 0 &&
+                      selectedPayment.wallet_id.user_id.roles[0].type === "repairman" ? "Thợ" : "Khách hàng"}
+                  </p>
+                  <p>Địa chỉ: {selectedPayment.wallet_id.user_id.address}</p>
                 </div>
+
+                {/* vài bữa thêm mục thông tin đơn hàng nào nữa nhé hải, bằng selectedPayment.request*/}
+
               </div>
               <button
                 className="payment-history-close-btn"

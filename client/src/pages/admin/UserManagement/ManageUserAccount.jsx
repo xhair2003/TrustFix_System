@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUsers, deleteUser, resetError, resetSuccess } from "../../../store/actions/adminActions";
+import { fetchUsers, deleteUser, lockUser, unlockUser, resetError, resetSuccess } from "../../../store/actions/adminActions";
 import { FaTrash, FaEye, FaLock, FaUnlock } from "react-icons/fa"; // Icons for view, lock, delete
 import "./ManageUserAccount.css";
 import Loading from "../../../component/Loading/Loading";
@@ -8,7 +8,10 @@ import Swal from "sweetalert2";
 
 const ManageUserAccount = () => {
     const dispatch = useDispatch();
-    const { users, loading, errorGetUsers, deleteSuccessMessage, deleteErrorMessage } = useSelector((state) => state.admin);
+    const { users, loading, errorGetUsers, deleteSuccessMessage, deleteErrorMessage, lockSuccessMessage, lockErrorMessage,
+        unlockErrorMessage, unlockSuccessMessage
+    } = useSelector((state) => state.admin);
+
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [roleFilter, setRoleFilter] = useState("All");
@@ -29,9 +32,7 @@ const ManageUserAccount = () => {
             });
             dispatch(resetError());
         }
-    }, [errorGetUsers, dispatch]);
 
-    useEffect(() => {
         if (deleteSuccessMessage) {
             Swal.fire({
                 title: "Thành công",
@@ -56,11 +57,60 @@ const ManageUserAccount = () => {
             });
             dispatch(resetError());
         }
-    }, [deleteSuccessMessage, deleteErrorMessage, dispatch]);
+
+        if (lockErrorMessage) {
+            Swal.fire({
+                title: "Lỗi",
+                text: lockErrorMessage,
+                icon: "error",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetError());
+        }
+
+        if (unlockErrorMessage) {
+            Swal.fire({
+                title: "Lỗi",
+                text: unlockErrorMessage,
+                icon: "error",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetError());
+        }
+
+        if (lockSuccessMessage) {
+            Swal.fire({
+                title: "Thành công",
+                text: lockSuccessMessage,
+                icon: "success",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetSuccess());
+            dispatch(fetchUsers()); // Refresh the user list after locking the user
+        }
+
+        if (unlockSuccessMessage) {
+            Swal.fire({
+                title: "Thành công",
+                text: unlockSuccessMessage,
+                icon: "success",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetSuccess());
+            dispatch(fetchUsers()); // Refresh the user list after unlocking the user
+        }
+
+
+    }, [deleteSuccessMessage, deleteErrorMessage, dispatch, errorGetUsers,
+        lockSuccessMessage, lockErrorMessage,
+        unlockErrorMessage, unlockSuccessMessage
+    ]);
 
     useEffect(() => {
-        dispatch(resetSuccess());
-        dispatch(resetError());
         dispatch(fetchUsers()); // Fetch users when the component mounts
     }, [dispatch]);
 
@@ -118,16 +168,23 @@ const ManageUserAccount = () => {
     };
 
     const handleSubmitReason = () => {
-        if (!reason) {
-            Swal.fire("Vui lòng nhập lý do!");
-            return;
+        // Gọi API khóa tài khoản hoặc mở khóa tài khoản tùy theo modalType
+        if (modalType === "lock") {
+            if (!reason) {
+                Swal.fire("Vui lòng nhập lý do!");
+                return;
+            }
+            dispatch(lockUser(selectedUser._id, reason));
+        } else if (modalType === "unlock") {
+            dispatch(unlockUser(selectedUser._id)); // Unlock the user
+        } else if (modalType === "delete") {
+            if (!reason) {
+                Swal.fire("Vui lòng nhập lý do!");
+                return;
+            }
+            // Gọi API xóa tài khoản
+            dispatch(deleteUser(selectedUser._id, reason));
         }
-
-        dispatch(resetSuccess());
-        dispatch(resetError());
-
-        // Gọi API xóa tài khoản
-        dispatch(deleteUser(selectedUser._id, reason));
 
         // Reset lý do sau khi gửi
         setReason("");
@@ -336,13 +393,7 @@ const ManageUserAccount = () => {
                             &times;
                         </span>
                         <h3>Mở khóa tài khoản</h3>
-                        <textarea
-                            value={reason}
-                            onChange={handleReasonChange}
-                            placeholder="Nhập lý do mở khóa tài khoản"
-                            rows="4"
-                            style={{ width: "100%" }}
-                        />
+                        <p>Bạn có thực sự muốn mở khóa người dùng này?</p>
                         <div className="modal-footer">
                             <button onClick={handleSubmitReason}>Xác nhận</button>
                             <button onClick={closeModal}>Hủy</button>
@@ -350,6 +401,8 @@ const ManageUserAccount = () => {
                     </div>
                 </div>
             )}
+
+
 
             {/* Modal for Delete User Account */}
             {modalType === "delete" && selectedUser && (

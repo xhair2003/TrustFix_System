@@ -39,7 +39,11 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: null
     }
-}, { timestamps: true });
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
 // Virtual for roles
 UserSchema.virtual('roles', {

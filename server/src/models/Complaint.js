@@ -21,7 +21,7 @@ const ComplaintSchema = new mongoose.Schema({
         // required: true
     }, // Yêu cầu giải quyết khiếu nại
     image: {
-        type: String, // Hoặc có thể dùng Array [String] nếu muốn cho phép nhiều ảnh
+        type: [String], // Hoặc có thể dùng Array [String] nếu muốn cho phép nhiều ảnh
         required: false // Tùy chọn, có thể không bắt buộc phải có ảnh
     }, // Hình ảnh minh chứng (URL hoặc path)
     parentComplaint: {
@@ -29,6 +29,11 @@ const ComplaintSchema = new mongoose.Schema({
         ref: 'Complaint',
         default: null
     }, // Nếu là phản hồi, tham chiếu đến khiếu nại cha
+    status: {
+        type: String,
+        enum: ['pending', 'replied'], // Trạng thái khiếu nại (chưa phản hồi hoặc đã phản hồi)
+        default: 'pending', // Mặc định là 'pending'
+    }, // Trạng thái của khiếu nại
 }, { timestamps: true });
 
 // Ảo trường (Virtual field) để lấy danh sách phản hồi

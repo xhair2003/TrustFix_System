@@ -1,4 +1,4 @@
-const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, ServicePrice, Role, Rating } = require("../models");
+const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
 
 const nodemailer = require("nodemailer");
@@ -167,6 +167,8 @@ const deleteServiceIndustry = async (req, res) => {
         });
     }
 };
+
+
 
 // --- Service CRUD ---
 
@@ -370,14 +372,20 @@ const deleteService = async (req, res) => {
     }
 };
 
+
+
+
+
 // --- Complaint CRUD for Admin ---
 
 const getAllComplaints = async (req, res) => {
     try {
+        // Fetch only complaints that are 'pending'
+        // const complaints = await Complaint.find({ status: 'pending' })
         const complaints = await Complaint.find()
             .populate({ // Populate thông tin người dùng thông qua Request
                 path: 'request_id',
-                populate: { path: 'user_id', select: 'firstName lastName email' }
+                populate: { path: 'user_id', select: 'firstName lastName email phone address' }
             })
             .populate('parentComplaint', 'complaintContent')
             .populate('replies');
@@ -494,6 +502,10 @@ const replyToComplaint = async (req, res) => {
         // Send the email
         await transporter.sendMail(mailOptions);
 
+        // Update the complaint status to 'replied'
+        parentComplaint.status = 'replied';
+        await parentComplaint.save();
+
         res.status(200).json({
             EC: 1,
             EM: "Phản hồi khiếu nại thành công và đã gửi email đến người dùng!",
@@ -508,6 +520,10 @@ const replyToComplaint = async (req, res) => {
         });
     }
 };
+
+
+
+
 
 // const replyToComplaint = async (req, res) => {
 //     console.log("req.body:", req.body); // Log req.body ngay đầu function
@@ -562,17 +578,27 @@ const replyToComplaint = async (req, res) => {
 
 const viewHistoryPayment = async (req, res) => {
     try {
-        // Set the transaction type to "payment" directly in the code
         const transactionType = "payment";
 
         const transactions = await Transaction.find({
             transactionType
         })
             .populate({
-                path: "wallet_id",
-                select: "balance",
+                path: "wallet_id", // Populate wallet_id field
+                select: "user_id", // Only select the user_id field from wallet
+                populate: {
+                    path: "user_id", // Populate user_id from wallet
+                    model: "User",   // Populate the User model
+                    select: "firstName lastName email phone address", // Select specific fields from User model
+                    populate: {
+                        path: "roles", // Populate roles virtual field in User model
+                        model: "Role", // Populate the Role model
+                        select: "type"  // Only include the 'type' field from the Role model
+                    }
+                }
             })
-            .sort({ createdAt: -1 }); // Sorting by creation date in descending order
+            .populate('request')  // Populating the request virtual field
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             EC: 1,
@@ -676,17 +702,26 @@ const viewAllTransactions = async (req, res) => {
 // View history payment with transactionType = deposite
 const viewDepositeHistory = async (req, res) => {
     try {
-        // Set the transaction type to "deposite" directly in the code
         const transactionType = "deposite";
 
         const transactions = await Transaction.find({
             transactionType
         })
             .populate({
-                path: "wallet_id",
-                select: "balance",
+                path: "wallet_id", // Populate wallet_id field
+                select: "user_id", // Only select the user_id field from wallet
+                populate: {
+                    path: "user_id", // Populate user_id from wallet
+                    model: "User",   // Populate the User model
+                    select: "firstName lastName email phone address", // Select specific fields from User model
+                    populate: {
+                        path: "roles", // Populate roles virtual field in User model
+                        model: "Role", // Populate the Role model
+                        select: "type"  // Only include the 'type' field from the Role model
+                    }
+                }
             })
-            .sort({ createdAt: -1 }); // Sorting by creation date in descending order
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             EC: 1,
@@ -694,13 +729,17 @@ const viewDepositeHistory = async (req, res) => {
             DT: transactions,
         });
     } catch (err) {
-        console.error("Get deposite history error:", err);
+        console.error("Get deposit history error:", err);
         res.status(500).json({
             EC: 0,
             EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
         });
     }
 };
+
+
+
+
 
 // const viewDepositeHistory = async (req, res) => {
 //     try {
@@ -876,13 +915,104 @@ const deleteUserById = async (req, res) => {
     }
 };
 
+const lockUserByUserId = async (req, res) => {
+    try {
+        const { reason } = req.body;
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ EC: 0, EM: "Người dùng không tồn tại !" });
+        }
+
+        if (user.status === "Banned") {
+            return res.status(400).json({ EC: 0, EM: "Tài khoản người dùng đã bị khóa trước đó !" });
+        }
+
+        user.status = "Banned";
+        await user.save();
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: "Tài khoản TrustFix của bạn đã bị khóa",
+            html: `
+                <h1>Thông báo khóa tài khoản</h1>
+                <p>Chào ${user.firstName} ${user.lastName},</p>
+                <p>Tài khoản của bạn đã bị khóa vì lý do:</p>
+                <blockquote><strong>${reason}</strong></blockquote>
+                <p>Nếu bạn có thắc mắc, vui lòng liên hệ đội ngũ hỗ trợ qua email: 
+                    <a href="mailto:admin@trustfix.com" style="color: #007bff; text-decoration: none;">
+                        admin@trustfix.com
+                    </a>
+                </p>
+                <p>Trân trọng,</p>
+                <p>Đội ngũ TrustFix</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({ EC: 1, EM: "Tài khoản người dùng đã bị khóa và email đã được gửi !" });
+    } catch (error) {
+        return res.status(500).json({ EC: 0, EM: "Lỗi hệ thống. Vui lòng thử lại !" });
+    }
+};
+
+const unlockUserByUserId = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ EC: 0, EM: "Người dùng không tồn tại !" });
+        }
+
+        if (user.status !== "Banned") {
+            return res.status(400).json({ EC: 0, EM: "Tài khoản người dùng chưa bị khóa hoặc đã được mở khóa !" });
+        }
+
+        user.status = "Inactive";
+        await user.save();
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: "Tài khoản TrustFix của bạn đã được mở khóa",
+            html: `
+                <h1>Thông báo mở khóa tài khoản</h1>
+                <p>Chào ${user.firstName} ${user.lastName},</p>
+                <p>Tài khoản của bạn đã được mở khóa. Bạn có thể đăng nhập và tiếp tục sử dụng dịch vụ của chúng tôi.</p>
+                <p>Nếu bạn có thắc mắc, vui lòng liên hệ đội ngũ hỗ trợ qua email: 
+                    <a href="mailto:admin@trustfix.com" style="color: #007bff; text-decoration: none;">
+                        admin@trustfix.com
+                    </a>
+                </p>
+                <p>Trân trọng,</p>
+                <p>Đội ngũ TrustFix</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({ EC: 1, EM: "Tài khoản người dùng đã được mở khóa và email đã được gửi !" });
+    } catch (error) {
+        return res.status(500).json({ EC: 0, EM: "Lỗi hệ thống. Vui lòng thử lại !" });
+    }
+};
+
+
+
+
 //Service Price
 const addServicePrice = async (req, res) => {
     try {
         const { serviceName, price, description } = req.body;
 
-        const servicePrice = new ServicePrice({
-            serviceName,
+        const name = serviceName;
+
+        const servicePrice = new Vip({
+            name,
             price,
             description
         });
@@ -906,14 +1036,16 @@ const updateServicePrice = async (req, res) => {
     try {
         const { serviceName, price, description } = req.body;
 
+        const name = serviceName;
+
         const updateFields = {};
-        if (serviceName) updateFields.serviceName = serviceName;
+        if (name) updateFields.name = name;
         if (price) updateFields.price = price;
         if (description) updateFields.description = description;
 
         // Tìm và cập nhật dịch vụ
-        const servicePrice = await ServicePrice.findOneAndUpdate(
-            { serviceName: serviceName }, // Điều kiện tìm kiếm
+        const servicePrice = await Vip.findOneAndUpdate(
+            { name: name }, // Điều kiện tìm kiếm
             { $set: updateFields }, // Trường cần cập nhật
             { new: true } // Trả về tài liệu đã được cập nhật
         );
@@ -942,7 +1074,7 @@ const deleteServicePrice = async (req, res) => {
     try {
         const serviceId = req.params.serviceId;
 
-        const servicePrice = await ServicePrice.findByIdAndDelete(serviceId);
+        const servicePrice = await Vip.findByIdAndDelete(serviceId);
         if (!servicePrice) {
             return res.status(404).json({
                 EC: 0,
@@ -966,7 +1098,7 @@ const deleteServicePrice = async (req, res) => {
 
 const getAllServicePrice = async (req, res) => {
     try {
-        const servicePrice = await ServicePrice.find()
+        const servicePrice = await Vip.find()
         console.log("All service price : ", servicePrice);
 
         res.status(200).json({
@@ -982,92 +1114,6 @@ const getAllServicePrice = async (req, res) => {
         });
     }
 }
-
-const lockUserByUserId = async (req, res) => {
-    try {
-        const { reason } = req.body;
-        const { userId } = req.params;
-
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ EC: 0, EM: "Người dùng không tồn tại!" });
-        }
-
-        if (user.status === "Banned") {
-            return res.status(400).json({ EC: 0, EM: "Tài khoản đã bị khóa trước đó!" });
-        }
-
-        user.status = "Banned";
-        await user.save();
-
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: user.email,
-            subject: "Tài khoản TrustFix của bạn đã bị khóa",
-            html: `
-                <h1>Thông báo khóa tài khoản</h1>
-                <p>Chào ${user.firstName} ${user.lastName},</p>
-                <p>Tài khoản của bạn đã bị khóa vì lý do:</p>
-                <blockquote><strong>${reason}</strong></blockquote>
-                <p>Nếu bạn có thắc mắc, vui lòng liên hệ đội ngũ hỗ trợ qua email: 
-                    <a href="mailto:admin@trustfix.com" style="color: #007bff; text-decoration: none;">
-                        admin@trustfix.com
-                    </a>
-                </p>
-                <p>Trân trọng,</p>
-                <p>Đội ngũ TrustFix</p>
-            `
-        };
-
-        await transporter.sendMail(mailOptions);
-
-        return res.status(200).json({ EC: 1, EM: "Tài khoản đã bị khóa và email đã được gửi." });
-    } catch (error) {
-        return res.status(500).json({ EC: 0, EM: "Lỗi hệ thống. Vui lòng thử lại!" });
-    }
-};
-
-const unlockUserByUserId = async (req, res) => {
-    try {
-        const { userId } = req.params;
-
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ EC: 0, EM: "Người dùng không tồn tại!" });
-        }
-
-        if (user.status !== "Banned") {
-            return res.status(400).json({ EC: 0, EM: "Tài khoản chưa bị khóa hoặc đã được mở khóa!" });
-        }
-
-        user.status = "Inactive";
-        await user.save();
-
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: user.email,
-            subject: "Tài khoản TrustFix của bạn đã được mở khóa",
-            html: `
-                <h1>Thông báo mở khóa tài khoản</h1>
-                <p>Chào ${user.firstName} ${user.lastName},</p>
-                <p>Tài khoản của bạn đã được mở khóa. Bạn có thể đăng nhập và tiếp tục sử dụng dịch vụ của chúng tôi.</p>
-                <p>Nếu bạn có thắc mắc, vui lòng liên hệ đội ngũ hỗ trợ qua email: 
-                    <a href="mailto:admin@trustfix.com" style="color: #007bff; text-decoration: none;">
-                        admin@trustfix.com
-                    </a>
-                </p>
-                <p>Trân trọng,</p>
-                <p>Đội ngũ TrustFix</p>
-            `
-        };
-
-        await transporter.sendMail(mailOptions);
-
-        return res.status(200).json({ EC: 1, EM: "Tài khoản đã được mở khóa và email đã được gửi." });
-    } catch (error) {
-        return res.status(500).json({ EC: 0, EM: "Lỗi hệ thống. Vui lòng thử lại!" });
-    }
-};
 
 // const viewRepairBookingHistory = async (req, res) => {
 //     try {
@@ -1150,11 +1196,14 @@ const viewRepairBookingHistory = async (req, res) => {
     }
 };
 
+
+
+
 const getPendingUpgradeRequests = async (req, res) => {
     try {
-        const pendingRequests = await RepairmanUpgradeRequest.find({ status: 'Pending' })
-            .populate('user', 'firstName lastName email') // Populate user details
-            .populate('serviceIndustry', 'type'); // Populate service industry type
+        const pendingRequests = await RepairmanUpgradeRequest.find({ status: 'pending' })
+            .populate('user_id', 'firstName lastName email phone address imgAvt') // Populate user details
+            .populate('serviceIndustry_id', 'type'); // Populate service industry type
 
         res.status(200).json({
             EC: 1,
@@ -1203,7 +1252,7 @@ const verifyRepairmanUpgradeRequest = async (req, res) => {
 
         if (action === 'approve') {
             // Update request status to approved
-            upgradeRequest.status = 'Active';
+            upgradeRequest.status = 'approved';
             upgradeRequest.approvedAt = Date.now();
             await upgradeRequest.save();
 
@@ -1239,7 +1288,7 @@ const verifyRepairmanUpgradeRequest = async (req, res) => {
 
             res.status(200).json({
                 EC: 1,
-                EM: "Yêu cầu nâng cấp đã được phê duyệt thành công! Người dùng đã được chuyển thành thợ sửa chữa.",
+                EM: "Yêu cầu nâng cấp đã được phê duyệt thành công! Người dùng đã được chuyển thành thợ sửa chữa. Email thông báo đã được gửi đến người dùng.",
             });
 
         } else if (action === 'reject') {
@@ -1271,7 +1320,7 @@ const verifyRepairmanUpgradeRequest = async (req, res) => {
 
             res.status(200).json({
                 EC: 1,
-                EM: "Yêu cầu nâng cấp đã bị từ chối thành công!",
+                EM: "Từ chối yêu cầu nâng cấp tài khoản thợ thành công. Email thông báo đã được gửi đến người dùng.",
             });
         } else {
             return res.status(400).json({

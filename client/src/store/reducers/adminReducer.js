@@ -22,7 +22,7 @@ const initialState = {
     errorDeleteServicePrices: null,
     errorServicePrices: null,
 
-    historyPayments: [],
+    HistoryPayments: [],
     depositeHistories: [],
     errorHistoryPayments: null,
     errorDepositeHistories: null,
@@ -155,7 +155,6 @@ const adminReducer = (state = initialState, action) => {
             return {
                 ...state,
                 loading: true,
-                //servicePrices: [],
                 errorServicePrices: null,
             };
         case 'FETCH_SERVICE_PRICES_SUCCESS':
@@ -163,14 +162,12 @@ const adminReducer = (state = initialState, action) => {
                 ...state,
                 loading: false,
                 servicePrices: action.payload,
-                errorServicePrices: null,
             };
         case 'FETCH_SERVICE_PRICES_FAIL':
             return {
                 ...state,
                 loading: false,
                 errorServicePrices: action.payload,
-                servicePrices: [],
             };
 
 
