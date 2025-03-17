@@ -17,8 +17,9 @@ router.post("/repairman-upgrade-request", AuthMiddleware.verifyToken, upload.fie
 
 router.get("/list-vips", AuthMiddleware.verifyRepairman, RepairmanController.getAllVips);
 
-// Admin routes - require admin authentication
-router.get("/admin/repairman-upgrade-requests/pending", AuthMiddleware.verifyAdmin, RepairmanController.getPendingUpgradeRequests);
-router.put("/admin/repairman-upgrade-requests/:requestId/verify", AuthMiddleware.verifyAdmin, RepairmanController.verifyRepairmanUpgradeRequest);
+
+router.get("/get-status", AuthMiddleware.verifyRepairman, RepairmanController.getStatusRepairman);
+router.put("/toggle-status", AuthMiddleware.verifyRepairman, RepairmanController.toggleStatusRepairman);
+
 
 module.exports = router;

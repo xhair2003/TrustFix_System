@@ -140,7 +140,6 @@ export const updateUserInfo = (userData) => async (dispatch, getState) => {
 
 
 
-
 // Action để reset lỗi
 export const resetError = () => {
     return {
@@ -154,6 +153,8 @@ export const resetSuccess = () => {
         type: "RESET_SUCCESS",
     };
 };
+
+
 
 export const fetchDepositHistory = () => async (dispatch, getState) => {
     const { auth } = getState();
@@ -187,7 +188,6 @@ export const fetchDepositHistory = () => async (dispatch, getState) => {
     }
 };
 
-
 export const fetchtHistoryPayment = () => async (dispatch, getState) => {
     const { auth } = getState();
     const token = auth.token; // Lấy token từ Redux store
@@ -219,6 +219,8 @@ export const fetchtHistoryPayment = () => async (dispatch, getState) => {
         });
     }
 };
+
+
 
 export const fetchAllVips = () => async (dispatch, getState) => {
     const { auth } = getState();
@@ -380,6 +382,66 @@ export const getServiceIndustryTypes = () => async (dispatch, getState) => {
         dispatch({
             type: 'SERVICE_INDUSTRY_TYPE_FAIL',
             payload: error.response ? error.response.data.EM : 'Có lỗi xảy ra.',
+        });
+    }
+};
+
+// Action to get repairman's current status
+export const getStatusRepairman = () => async (dispatch, getState) => {
+    const token = getState().auth.token || localStorage.getItem('token'); // Lấy token từ state auth hoặc localStorage
+    try {
+        dispatch({ type: "GET_STATUS_REPAIRMAN_REQUEST" });
+
+        const response = await axios.get(`${API_URL_REPAIRMAN}/get-status`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "GET_STATUS_REPAIRMAN_SUCCESS",
+                payload: response.data.DT, // The status
+            });
+        } else {
+            dispatch({
+                type: 'GET_STATUS_REPAIRMAN_FAIL',
+                payload: response.data.EM, // Lỗi từ API
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "GET_STATUS_REPAIRMAN_FAIL",
+            payload: error.response ? error.response.data.EM : 'Lỗi hệ thống, vui lòng thử lại!',
+        });
+    }
+};
+
+// Action to toggle repairman's status
+export const toggleStatusRepairman = () => async (dispatch, getState) => {
+    const token = getState().auth.token || localStorage.getItem('token'); // Lấy token từ state auth hoặc localStorage
+    try {
+        dispatch({ type: "TOGGLE_STATUS_REPAIRMAN_REQUEST" });
+
+        const response = await axios.put(`${API_URL_REPAIRMAN}/toggle-status`, {}, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "TOGGLE_STATUS_REPAIRMAN_SUCCESS",
+                payload: response.data.DT, // Updated status request data
+            });
+        } else {
+            dispatch({
+                type: 'TOGGLE_STATUS_REPAIRMAN_FAIL',
+                payload: response.data.EM, // Lỗi từ API
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "TOGGLE_STATUS_REPAIRMAN_FAIL",
+            payload: error.response ? error.response.data.EM : 'Lỗi hệ thống, vui lòng thử lại!',
         });
     }
 };

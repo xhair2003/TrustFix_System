@@ -5,7 +5,7 @@ import { FaUser, FaLock, FaHistory, FaExclamationCircle, FaStar, FaSignOutAlt, F
 import { useNavigate } from 'react-router-dom';
 import logo from "../../../assets/Images/logo.png";
 import onlyLogo from "../../../assets/Images/onlyLogo.jpg";
-import { logout } from '../../../store/actions/auth';
+import { logout } from '../../../store/actions/authActions';
 import { useDispatch } from 'react-redux';
 
 const MasterLayoutUser = ({ children }) => {

@@ -18,7 +18,6 @@ const Image = require('./Image');
 const VeriMail = require('./VeriMail');
 const Complaint = require('./Complaint');
 
-
 // Collection of all models
 const models = {
     User,
@@ -37,7 +36,6 @@ const models = {
     Image,
     VeriMail,
     Complaint,
-    
 };
 
 // Connect to MongoDB

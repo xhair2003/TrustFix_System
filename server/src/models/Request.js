@@ -11,6 +11,11 @@ const RequestSchema = new mongoose.Schema({
         ref: 'ServiceIndustry',
         required: true
     },
+    rating_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Rating',
+        required: true
+    },
     address: {
         type: String,
         required: true
@@ -25,7 +30,7 @@ const RequestSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Completed','Confirmed','Pending','Cancelled','Requesting Details','Deal price']
+        enum: ['Completed', 'Confirmed', 'Pending', 'Cancelled', 'Requesting Details', 'Deal price']
     },
     repairman_id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -37,7 +42,11 @@ const RequestSchema = new mongoose.Schema({
         ref: 'Request',
         default: null
     },
-}, { timestamps: true });
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
 RequestSchema.virtual('ID', {
     ref: 'Request',

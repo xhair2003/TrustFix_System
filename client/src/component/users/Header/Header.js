@@ -5,7 +5,7 @@ import { FaBell, FaUser, FaLock, FaHistory, FaExclamationCircle, FaSignOutAlt, F
 import userImage from '../../../assets/Images/user.jpg';
 import './Header.css';
 import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../../../store/actions/auth';
+import { logout } from '../../../store/actions/authActions';
 
 
 const Header = () => {
