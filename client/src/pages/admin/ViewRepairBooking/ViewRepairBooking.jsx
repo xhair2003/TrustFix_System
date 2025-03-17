@@ -338,10 +338,10 @@ const ViewRepairBooking = () => {
               className="view-order-item"
               onClick={() => handleOrderClick(order)}
             >
-              <span className="view-order-item-id">{order._id}</span>
-              <span className="view-order-item-date">Đặt: {formatDateTime(order.createdAt)}</span>
+              <span className="view-order-item-id">{order._id || "không xác định"}</span>
+              <span className="view-order-item-date">Đặt: {formatDateTime(order.createdAt) || "Không xác định"}</span>
               <span className="view-order-item-complete">
-                Hoàn thành: {formatDateTime(order.updatedAt)}
+                Hoàn thành: {formatDateTime(order.updatedAt) || "Không xác định"}
               </span>
               <span className="view-order-item-price">{order.priceRange || 0}</span>
               <span
@@ -372,9 +372,13 @@ const ViewRepairBooking = () => {
 
             <div className="view-order-modal-section">
               <h4>Thông tin đơn hàng</h4>
-              <p>Mã đơn hàng: {selectedOrder._id}</p>
-              <p>Ngày đặt: {formatDateTime(selectedOrder.createdAt)}</p>
-              <p>Ngày hoàn thành: {formatDateTime(selectedOrder.updatedAt)}</p>
+              <p>Mã đơn hàng: {selectedOrder._id || "Không xác định"}</p>
+              <p>Ngày đặt: {formatDateTime(selectedOrder.createdAt) || "Không xác định"}</p>
+              <p>Ngày hoàn thành: {formatDateTime(selectedOrder.updatedAt) || "Không xác định"}</p>
+              <p>Loại dịch vụ: {selectedOrder.serviceIndustry_id.type || "Không xác định"}</p>
+              <p>Địa chỉ thực hiện đơn sửa chữa: {selectedOrder.address || "Không xác định"}</p>
+              <p>Mô tả tình trạng đơn sửa chữa: {selectedOrder.description || "Không xác định"}</p>
+              <p>Ảnh đơn sửa chữa: {<img src={selectedOrder.image} alt="Avatar" /> || "Không xác định"}</p>
               <p>Khoảng giá: {selectedOrder.priceRange || 0}</p>
               <p>
                 Trạng thái:{" "}
@@ -388,23 +392,24 @@ const ViewRepairBooking = () => {
                               'Trạng thái không xác định'
                 }
               </p>
-              <p>Đánh giá: {selectedOrder.ratings ? `${selectedOrder.ratings.rate}/5` : "Chưa đánh giá"}</p>
+              <p>Đánh giá: {selectedOrder.ratings && selectedOrder.ratings[0] ? `${selectedOrder.ratings[0].rate}/5` : "Không xác định"}</p>
+
             </div>
 
             <div className="view-order-modal-section">
               <h4>Thông tin khách hàng</h4>
-              <p>Tên: {selectedOrder.user_id.firstName} {selectedOrder.user_id.lastName}</p>
-              <p>Email: {selectedOrder.user_id.email}</p>
-              <p>SĐT: {selectedOrder.user_id.phone}</p>
-              <p>Địa chỉ: {selectedOrder.user_id.address}</p>
+              <p>Tên: {selectedOrder.user_id ? `${selectedOrder.user_id.firstName} ${selectedOrder.user_id.lastName}` : "Không xác định"}</p>
+              <p>Email: {selectedOrder.user_id ? selectedOrder.user_id.email : "Không xác định"}</p>
+              <p>SĐT: {selectedOrder.user_id ? selectedOrder.user_id.phone : "Không xác định"}</p>
+              <p>Địa chỉ: {selectedOrder.user_id ? selectedOrder.user_id.address : "Không xác định"}</p>
             </div>
 
             <div className="view-order-modal-section">
               <h4>Thông tin thợ sửa</h4>
-              <p>Tên: {`${selectedOrder.repairman_id.firstName} ${selectedOrder.repairman_id.lastName}` || "Chưa phân công"}</p>
-              <p>Email: {selectedOrder.repairman_id.email || "N/A"}</p>
-              <p>SĐT: {selectedOrder.repairman_id.phone || "N/A"}</p>
-              <p>Địa chỉ: {selectedOrder.repairman_id.address || "N/A"}</p>
+              <p>Tên: {selectedOrder.repairman_id ? `${selectedOrder.repairman_id.firstName} ${selectedOrder.repairman_id.lastName}` : "Không xác định"}</p>
+              <p>Email: {selectedOrder.repairman_id ? selectedOrder.repairman_id.email : "Không xác định"}</p>
+              <p>SĐT: {selectedOrder.repairman_id ? selectedOrder.repairman_id.phone : "Không xác định"}</p>
+              <p>Địa chỉ: {selectedOrder.repairman_id ? selectedOrder.repairman_id.address : "Không xác định"}</p>
             </div>
 
             <button className="view-order-modal-close" onClick={closeModal}>

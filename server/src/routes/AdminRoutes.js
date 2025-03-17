@@ -51,4 +51,46 @@ router.get("/repairman-upgrade-requests/pending", AuthMiddleware.verifyAdmin, Ad
 router.put("/repairman-upgrade-requests/:requestId/verify", AuthMiddleware.verifyAdmin, AdminController.verifyRepairmanUpgradeRequest);
 
 
+// Dashboard
+
+// User
+router.get("/total-users", AuthMiddleware.verifyAdmin, AdminController.totalUsers);
+router.get("/total-banned-users", AuthMiddleware.verifyAdmin, AdminController.totalBannedUsers);
+router.get("/total-repairmen", AuthMiddleware.verifyAdmin, AdminController.totalRepairmen);
+router.get("/total-customers", AuthMiddleware.verifyAdmin, AdminController.totalCustomers);
+
+// Repair booking 
+// API tính tổng số đơn hàng "Completed"
+router.get("/total-completed-requests", AuthMiddleware.verifyAdmin, AdminController.getCompletedRequestsCount);
+
+// API tính tổng số đơn hàng "Confirmed"
+router.get("/total-confirmed-requests", AuthMiddleware.verifyAdmin, AdminController.getConfirmedRequestsCount);
+
+// API tính tổng số đơn hàng "Pending"
+router.get("/total-pending-requests", AuthMiddleware.verifyAdmin, AdminController.getPendingRequestsCount);
+
+// API tính tổng số đơn hàng "Cancelled"
+router.get("/total-cancelled-requests", AuthMiddleware.verifyAdmin, AdminController.getCancelledRequestsCount);
+
+// API tính tổng số đơn hàng "Make payment"
+router.get("/total-make-payment-requests", AuthMiddleware.verifyAdmin, AdminController.getMakePaymentRequestsCount);
+
+// API tính tổng số đơn hàng "Deal price"
+router.get("/total-deal-price-requests", AuthMiddleware.verifyAdmin, AdminController.getDealPriceRequestsCount);
+
+// pending complaints
+router.get("/total-pending-complaints", AuthMiddleware.verifyAdmin, AdminController.getPendingComplaintsCount);
+
+// pending upgrade requests
+router.get("/total-pending-upgrade-requests", AuthMiddleware.verifyAdmin, AdminController.getPendingUpgradeRequestsCount);
+
+// total categories
+router.get("/total-service-industries", AuthMiddleware.verifyAdmin, AdminController.totalServiceIndustries);
+
+// total subcategories by each category
+router.get("/total-services-by-industry", AuthMiddleware.verifyAdmin, AdminController.totalServicesByIndustry);
+
+// total service prices
+router.get("/total-service-prices", AuthMiddleware.verifyAdmin, AdminController.totalServicePrices);
+
 module.exports = router;    

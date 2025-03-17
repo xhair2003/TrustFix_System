@@ -11,11 +11,6 @@ const RequestSchema = new mongoose.Schema({
         ref: 'ServiceIndustry',
         required: true
     },
-    rating_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Rating',
-        required: true
-    },
     address: {
         type: String,
         required: true

@@ -26,8 +26,8 @@ const UpgradeRepairman = () => {
     const dispatch = useDispatch();
     const { loading, successUpgrade, errorUpgrade, serviceTypes: serviceTypesFromStore } = useSelector(state => state.user);
 
-    console.log("successUpgrade", successUpgrade);
-    console.log("errorUpgrade", errorUpgrade);
+    //console.log("successUpgrade", successUpgrade);
+    //console.log("errorUpgrade", errorUpgrade);
 
     useEffect(() => {
         const fetchCities = async () => {
