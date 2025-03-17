@@ -1,4 +1,4 @@
-const { User, Role, RepairmanUpgradeRequest, ServiceIndustry, Service, Vip } = require("../models");
+const { User, Role, RepairmanUpgradeRequest, ServiceIndustry, Service, Vip, DuePrice, Price, Rating } = require("../models");
 const cloudinary = require("../../config/cloudinary");
 
 // lấy type của ServiceIndustry
@@ -257,11 +257,89 @@ const toggleStatusRepairman = async (req, res) => {
         return res.status(500).json({ EC: 0, EM: "Lỗi hệ thống, vui lòng thử lại!" });
     }
 };
+const dealPrice = async (req, res, next) => {
+    try {
+        const { request_id, deal_price } = req.body;
+        const repairmanId = req.user.id; // Lấy user ID của thợ sửa chữa từ token
 
+        if (!duePrice_id || !deal_price) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vui lòng cung cấp duePrice_id và giá deal!"
+            });
+        }
+
+        if (isNaN(deal_price)) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Giá deal phải là một số!"
+            });
+        }
+
+        const duePrice = await DuePrice.findById(duePrice_id);
+        if (!duePrice) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy DuePrice với ID này!"
+            });
+        }
+
+        const minPrice = parseFloat(duePrice.minPrice);
+        const maxPrice = parseFloat(duePrice.maxPrice);
+        const parsedDealPrice = parseFloat(deal_price);
+
+
+        if (parsedDealPrice < minPrice || parsedDealPrice > maxPrice) {
+            return res.status(400).json({
+                EC: 0,
+                EM: `Giá deal phải nằm trong khoảng từ ${minPrice} đến ${maxPrice}!`
+            });
+        }
+
+        const newPrice = new Price({
+            duePrice_id: duePrice_id,
+            repairman_id: repairmanId,
+            priceToPay: deal_price
+        });
+        const savedPrice = await newPrice.save();
+
+        // Lấy thông tin repairman
+        const repairmanInfo = await User.findById(repairmanId).select('firstName lastName email phone imgAvt address description');
+        if (!repairmanInfo) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy thông tin thợ sửa chữa!"
+            });
+        }
+
+        // Lấy tất cả ratings của repairman
+        const repairmanRatings = await Rating.find({ user_id: repairmanId })
+            .populate('request_id', 'description status'); // Populate thông tin request nếu cần
+
+        res.status(201).json({
+            EC: 1,
+            EM: "Deal giá thành công!",
+            DT: {
+                repairman: repairmanInfo,
+                ratings: repairmanRatings,
+                dealPrice: savedPrice
+            }
+        });
+        next();
+
+    } catch (error) {
+        console.error("Error in dealPrice API:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+}
 module.exports = {
     requestRepairmanUpgrade,
     getAllVips,
     getTypeServiceIndustry,
     toggleStatusRepairman,
-    getStatusRepairman
+    getStatusRepairman,
+    dealPrice
 };

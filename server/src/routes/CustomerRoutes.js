@@ -47,7 +47,7 @@ router.get("/get-request",authMiddleware.verifyToken,CustomerController.getAllRe
 //gửi yêu cầu tìm thợ
 router.post('/send-request',authMiddleware.verifyToken, CustomerController.sendRequest);
 
-router.get('/requests/:requestId/find-repairman/:radius', authMiddleware.verifyToken, CustomerController.findRepairman);
+router.post('/requests/find-repairman', authMiddleware.verifyToken, CustomerController.sendRequest, CustomerController.findRepairman);
 
 //view-repair-history
 router.get('/view-repair-history', authMiddleware.verifyToken, CustomerController.viewRepairHistory);
