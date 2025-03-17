@@ -527,7 +527,7 @@ const sendRequest = async (req, res) => {
         const userId = req.user.id; // Lấy user ID từ token
 
         // Validate các trường bắt buộc
-        if (!serviceIndustry_id || !description || !address ) { // Thêm 'price' vào validation
+        if (!serviceIndustry_id || !description || !address) { // Thêm 'price' vào validation
             return res.status(400).json({
                 EC: 0,
                 EM: "Vui lòng cung cấp đầy đủ loại dịch vụ, mô tả, địa chỉ, bán kính!" // Cập nhật thông báo lỗi
@@ -541,7 +541,7 @@ const sendRequest = async (req, res) => {
         //         EM: "Bán kính tìm kiếm không hợp lệ!"
         //     });
         // }
-      
+
 
         const serviceIndustry = await ServiceIndustry.findById(serviceIndustry_id);
         if (!serviceIndustry) {
@@ -557,7 +557,7 @@ const sendRequest = async (req, res) => {
             serviceIndustry_id: serviceIndustry_id,
             description: description,
             address: address,
-            
+
             image: image || null, // Lưu image, có thể null nếu không có
             status: 'Requesting Details' // Trạng thái mặc định
         });
@@ -567,7 +567,7 @@ const sendRequest = async (req, res) => {
         // sử lý AI ở đây
         const newDuePrice = new DuePrice({
             request_id: savedRequest._id, // Liên kết với request_id
-            minPrice: '2000000', 
+            minPrice: '2000000',
             maxPrice: '5000000'
         });
         await newDuePrice.save(); // Lưu Due_price
