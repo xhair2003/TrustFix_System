@@ -6,11 +6,6 @@ const RatingSchema = new mongoose.Schema({
         ref: 'Request',
         required: true
     },
-    user_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
     comment: {
         type: String
     },
