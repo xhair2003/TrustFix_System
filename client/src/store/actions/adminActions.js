@@ -188,7 +188,7 @@ export const addServicePrice = (serviceName, price, description) => async (dispa
         } else {
             dispatch({
                 type: 'ADD_SERVICE_PRICE_FAIL',
-                payload: response.data.EM // Error message from the backend
+                payload: response.data.EM // Error response.data.EM from the backend
             });
         }
     } catch (error) {
@@ -218,7 +218,7 @@ export const updateServicePrice = (serviceName, price, description) => async (di
         } else {
             dispatch({
                 type: 'UPDATE_SERVICE_PRICE_FAIL',
-                payload: response.data.EM // Error message from the backend
+                payload: response.data.EM // Error response.data.EM from the backend
             });
         }
     } catch (error) {
@@ -247,7 +247,7 @@ export const deleteServicePrice = (serviceId) => async (dispatch, getState) => {
         } else {
             dispatch({
                 type: 'DELETE_SERVICE_PRICE_FAIL',
-                payload: response.data.EM // Error message from the backend
+                payload: response.data.EM // Error response.data.EM from the backend
             });
         }
     } catch (error) {
@@ -739,7 +739,7 @@ export const getPendingUpgradeRequests = () => async (dispatch, getState) => {
         console.error('Error fetching pending upgrade requests:', error);
         dispatch({
             type: 'GET_PENDING_UPGRADE_REQUESTS_FAIL',
-            payload: 'An error occurred while fetching pending upgrade requests.',
+            payload: error.response.data.EM || 'An error occurred while fetching pending upgrade requests.',
         });
     }
 };
@@ -771,12 +771,380 @@ export const verifyRepairmanUpgradeRequest = (requestId, action, rejectReason) =
         console.error('Error verifying upgrade request:', error);
         dispatch({
             type: 'VERIFY_REPAIRMAN_UPGRADE_REQUEST_FAIL',
-            payload: 'An error occurred while verifying the upgrade request.',
+            payload: error.response.data.EM || 'An error occurred while verifying the upgrade request.',
         });
     }
 };
 
 
+
+
+// Action Dashboard
+
+// Loading action type is handled by REQUEST actions
+const request = (type) => ({
+    type: type
+});
+
+// Fetch total users
+export const totalUsers = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_USERS"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-users');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_USERS",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_USERS",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_USERS",
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+// Fetch total banned users
+export const totalBannedUsers = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_BANNED_USERS"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-banned-users');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_BANNED_USERS",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_BANNED_USERS",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_BANNED_USERS",
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+// Fetch total repairmen
+export const totalRepairmen = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_REPAIRMEN"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-repairmen');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_REPAIRMEN",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_REPAIRMEN",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_REPAIRMEN",
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+// Fetch total customers
+export const totalCustomers = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_CUSTOMERS"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-customers');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_CUSTOMERS",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_CUSTOMERS",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_CUSTOMERS",
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+// Fetch total completed requests
+export const totalCompletedRequests = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_COMPLETED_REQUESTS"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-completed-requests');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_COMPLETED_REQUESTS",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_COMPLETED_REQUESTS",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_COMPLETED_REQUESTS",
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+// Fetch total confirmed requests
+export const totalConfirmedRequests = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_CONFIRMED_REQUESTS"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-confirmed-requests');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_CONFIRMED_REQUESTS",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_CONFIRMED_REQUESTS",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_CONFIRMED_REQUESTS",
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+// Fetch total pending requests
+export const totalPendingRequests = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_PENDING_REQUESTS"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-pending-requests');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_PENDING_REQUESTS",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_PENDING_REQUESTS",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_PENDING_REQUESTS",
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+// Fetch total cancelled requests
+export const totalCancelledRequests = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_CANCELLED_REQUESTS"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-cancelled-requests');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_CANCELLED_REQUESTS",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_CANCELLED_REQUESTS",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_CANCELLED_REQUESTS",
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+// Fetch total make payment requests
+export const totalMakePaymentRequests = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_MAKE_PAYMENT_REQUESTS"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-make-payment-requests');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_MAKE_PAYMENT_REQUESTS",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_MAKE_PAYMENT_REQUESTS",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_MAKE_PAYMENT_REQUESTS",
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+// Fetch total deal price requests
+export const totalDealPriceRequests = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_DEAL_PRICE_REQUESTS"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-deal-price-requests');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_DEAL_PRICE_REQUESTS",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_DEAL_PRICE_REQUESTS",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_DEAL_PRICE_REQUESTS",
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+// Fetch total pending complaints
+export const totalPendingComplaints = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_PENDING_COMPLAINTS"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-pending-complaints');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_PENDING_COMPLAINTS",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_PENDING_COMPLAINTS",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_PENDING_COMPLAINTS",
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+// Fetch total pending upgrade requests
+export const totalPendingUpgradeRequests = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_PENDING_UPGRADE_REQUESTS"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-pending-upgrade-requests');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_PENDING_UPGRADE_REQUESTS",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_PENDING_UPGRADE_REQUESTS",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_PENDING_UPGRADE_REQUESTS",
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+// Fetch total service industries
+export const totalServiceIndustries = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_SERVICE_INDUSTRIES"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-service-industries');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_SERVICE_INDUSTRIES",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_SERVICE_INDUSTRIES",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_SERVICE_INDUSTRIES",
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+// Fetch total services by industry
+export const totalServicesByIndustry = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_SERVICES_BY_INDUSTRY"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-services-by-industry');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_SERVICES_BY_INDUSTRY",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_SERVICES_BY_INDUSTRY",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_SERVICES_BY_INDUSTRY",
+            payload: error.response.data.EM,
+        });
+    }
+};
+
+// Fetch total service prices
+export const totalServicePrices = () => async (dispatch) => {
+    try {
+        dispatch(request("REQUEST_TOTAL_SERVICE_PRICES"));
+        const response = await axios.get('http://localhost:8080/api/admin/total-service-prices');
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "SUCCESS_TOTAL_SERVICE_PRICES",
+                payload: response.data.DT,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_SERVICE_PRICES",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ERROR_TOTAL_SERVICE_PRICES",
+            payload: error.response.data.EM,
+        });
+    }
+};
 
 
 

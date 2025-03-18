@@ -885,7 +885,6 @@ const viewDepositeHistory = async (req, res) => {
 
 
 
-
 const getAllUsers = async (req, res) => {
     try {
         // Tự động sắp xếp theo 'createdAt' giảm dần
@@ -1062,7 +1061,6 @@ const unlockUserByUserId = async (req, res) => {
 
 
 
-//Service Price
 //Service Price
 const addServicePrice = async (req, res) => {
     try {
@@ -1407,7 +1405,386 @@ const verifyRepairmanUpgradeRequest = async (req, res) => {
     }
 };
 
+
+
+
+
+// Dashboard Admin - Service Industry CRUD ---
+
+// User Action
+const totalUsers = async (req, res) => {
+    try {
+        // Lấy tất cả các user có vai trò không phải admin
+        const adminUserIds = await Role.find({ type: "admin" }).distinct("user_id");
+
+        // Filter tìm kiếm người dùng
+        let filter = {
+            _id: { $nin: adminUserIds }
+        };
+
+        // Lấy danh sách người dùng
+        const users = await User.find(filter).lean();
+
+        // Tính tổng số người dùng
+        const totalUsers = users.length;
+
+        return res.status(200).json({
+            EC: 1,
+            EM: "Lấy tổng số người dùng thành công!",
+            DT: totalUsers
+        });
+    } catch (err) {
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const totalBannedUsers = async (req, res) => {
+    try {
+        // Lấy tất cả các user có vai trò không phải admin
+        const adminUserIds = await Role.find({ type: "admin" }).distinct("user_id");
+
+        // Lấy danh sách người dùng
+        const users = await User.find({ _id: { $nin: adminUserIds }, status: 'Banned' })
+            .populate({
+                path: "roles",
+                select: "type"
+            })
+            .lean();
+
+        // Tính tổng số người dùng có trạng thái 'Banned'
+        const totalBannedUsers = users.length;
+
+        return res.status(200).json({
+            EC: 1,
+            EM: "Lấy số lượng người dùng bị cấm thành công!",
+            DT: totalBannedUsers
+        });
+    } catch (err) {
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const totalRepairmen = async (req, res) => {
+    try {
+        // Lấy tất cả các user có vai trò không phải admin
+        const adminUserIds = await Role.find({ type: "admin" }).distinct("user_id");
+
+        // Filter tìm kiếm người dùng
+        let filter = {
+            _id: { $nin: adminUserIds }
+        };
+
+        // Lấy danh sách người dùng
+        const users = await User.find(filter)
+            .populate({
+                path: "roles",
+                select: "type"
+            })
+            .lean();
+
+        // Tính tổng số người dùng có vai trò "repairman"
+        const totalRepairmans = users.filter(user => user.roles.some(role => role.type === 'repairman')).length;
+
+        return res.status(200).json({
+            EC: 1,
+            EM: "Lấy số lượng người dùng là thợ thành công!",
+            DT: totalRepairmans
+        });
+    } catch (err) {
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const totalCustomers = async (req, res) => {
+    try {
+        // Lấy tất cả các user có vai trò không phải admin
+        const adminUserIds = await Role.find({ type: "admin" }).distinct("user_id");
+
+        // Filter tìm kiếm người dùng
+        let filter = {
+            _id: { $nin: adminUserIds }
+        };
+
+        // Lấy danh sách người dùng
+        const users = await User.find(filter)
+            .populate({
+                path: "roles",
+                select: "type"
+            })
+            .lean();
+
+        // Tính tổng số người dùng có vai trò "customer"
+        const totalCustomers = users.filter(user => user.roles.some(role => role.type === 'customer')).length;
+
+        return res.status(200).json({
+            EC: 1,
+            EM: "Lấy số lượng người dùng là khách hàng thành công!",
+            DT: totalCustomers
+        });
+    } catch (err) {
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+// Repair booking history
+const getCompletedRequestsCount = async (req, res) => {
+    try {
+        const completedCount = await Request.find({ status: 'Completed' });
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy số lượng đơn hàng hoàn thành thành công!",
+            DT: completedCount
+        });
+    } catch (err) {
+        console.error("Lỗi khi lấy số lượng đơn hàng hoàn thành:", err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const getConfirmedRequestsCount = async (req, res) => {
+    try {
+        const confirmedCount = await Request.find({ status: 'Confirmed' });
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy số lượng đơn hàng đã xác nhận thành công!",
+            DT: confirmedCount
+        });
+    } catch (err) {
+        console.error("Lỗi khi lấy số lượng đơn hàng đã xác nhận:", err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const getPendingRequestsCount = async (req, res) => {
+    try {
+        const pendingCount = await Request.find({ status: 'Pending' });
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy số lượng đơn hàng đang chờ thành công!",
+            DT: pendingCount
+        });
+    } catch (err) {
+        console.error("Lỗi khi lấy số lượng đơn hàng đang chờ:", err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const getCancelledRequestsCount = async (req, res) => {
+    try {
+        const cancelledCount = await Request.find({ status: 'Cancelled' });
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy số lượng đơn hàng đã hủy thành công!",
+            DT: cancelledCount
+        });
+    } catch (err) {
+        console.error("Lỗi khi lấy số lượng đơn hàng đã hủy:", err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const getMakePaymentRequestsCount = async (req, res) => {
+    try {
+        const makePaymentCount = await Request.find({ status: 'Make payment' });
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy số lượng đơn hàng cần thanh toán thành công!",
+            DT: makePaymentCount
+        });
+    } catch (err) {
+        console.error("Lỗi khi lấy số lượng đơn hàng cần thanh toán:", err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const getDealPriceRequestsCount = async (req, res) => {
+    try {
+        const dealPriceCount = await Request.find({ status: 'Deal price' });
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy số lượng đơn hàng đã thỏa thuận giá thành công!",
+            DT: dealPriceCount
+        });
+    } catch (err) {
+        console.error("Lỗi khi lấy số lượng đơn hàng đã thỏa thuận giá:", err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+// pending complaints
+const getPendingComplaintsCount = async (req, res) => {
+    try {
+        // Tính tổng số khiếu nại có trạng thái 'pending'
+        const pendingCount = await Complaint.find({ status: 'pending' });
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy tổng số khiếu nại đang chờ xử lý thành công!",
+            DT: pendingCount
+        });
+    } catch (error) {
+        console.error("Error getting pending complaints count:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+// pending upgrade requests
+const getPendingUpgradeRequestsCount = async (req, res) => {
+    try {
+        // Tính tổng số khiếu nại có trạng thái 'pending'
+        const pendingCount = await Request.find({ status: 'pending' });
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy tổng số yêu cầu nâng cấp tài khoản thợ đang chờ xử lý thành công!",
+            DT: pendingCount
+        });
+    } catch (error) {
+        console.error("Error getting pending complaints count:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const totalServiceIndustries = async (req, res) => {
+    try {
+        // Tính tổng số chuyên mục trong bảng ServiceIndustry
+        const totalCount = ServiceIndustry.length;
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy tổng số chuyên mục thành công!",
+            DT: totalCount
+        });
+    } catch (err) {
+        console.error('Error counting service industries:', err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const totalServicesByIndustry = async (req, res) => {
+    try {
+        // Fetch tất cả dịch vụ và populate serviceIndustry_id để lấy thông tin chuyên mục
+        const services = await Service.aggregate([
+            {
+                $group: {
+                    _id: "$serviceIndustry_id", // Group by serviceIndustry_id
+                    totalServices: { $sum: 1 } // Đếm tổng số dịch vụ theo mỗi serviceIndustry_id
+                }
+            },
+            {
+                $lookup: {
+                    from: "serviceindustries", // Tên bảng serviceIndustry
+                    localField: "_id",         // Trường serviceIndustry_id trong Service
+                    foreignField: "_id",       // Trường _id trong bảng ServiceIndustry
+                    as: "serviceIndustry"     // Tạo một trường mới chứa thông tin chuyên mục
+                }
+            },
+            {
+                $unwind: "$serviceIndustry" // Giải nén thông tin chuyên mục
+            },
+            {
+                $project: {
+                    _id: 0, // Loại bỏ trường _id
+                    serviceIndustry: "$serviceIndustry.type", // Chỉ lấy tên loại chuyên mục
+                    totalServices: 1 // Tổng số dịch vụ
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy tổng số dịch vụ theo từng loại chuyên mục thành công!",
+            DT: services
+        });
+    } catch (err) {
+        console.error('Error counting services by industry:', err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+const totalServicePrices = async (req, res) => {
+    try {
+        const servicePriceCount = Vip.length;
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy tổng số loại dịch vụ tăng đề xuất thành công",
+            DT: servicePriceCount
+        })
+    } catch (error) {
+        console.error("Error getting total service prices:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra khi lấy tổng số loại dịch vụ tăng đề xuất. Vui lòng thử lại sau!"
+        });
+    }
+}
+
+
 module.exports = {
+    totalServicePrices,
+    totalServicesByIndustry,
+    totalServiceIndustries,
+    totalBannedUsers,
+    getPendingUpgradeRequestsCount,
+    getPendingComplaintsCount,
+    getCompletedRequestsCount,
+    getDealPriceRequestsCount,
+    getMakePaymentRequestsCount,
+    getCancelledRequestsCount,
+    getPendingRequestsCount,
+    getConfirmedRequestsCount,
+    totalUsers,
+    totalCustomers,
+    totalRepairmen,
     getPendingUpgradeRequests,
     verifyRepairmanUpgradeRequest,
     createServiceIndustry,

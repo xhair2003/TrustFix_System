@@ -57,6 +57,22 @@ const initialState = {
     errorUpgradeRequests: null,
     errorVerifyUpgradeRequest: null,
     successVerifyUpgradeRequest: null,
+
+    totalUsers: null,
+    totalBannedUsers: null,
+    totalRepairmen: null,
+    totalCustomers: null,
+    totalCompletedRequests: null,
+    totalConfirmedRequests: null,
+    totalPendingRequests: null,
+    totalCancelledRequests: null,
+    totalMakePaymentRequests: null,
+    totalDealPriceRequests: null,
+    totalPendingComplaints: null,
+    totalPendingUpgradeRequests: null,
+    totalServiceIndustries: null,
+    totalServicesByIndustry: null,
+    totalServicePrices: null,
 };
 
 // Reducer function
@@ -376,6 +392,158 @@ const adminReducer = (state = initialState, action) => {
                 loading: false,
                 errorVerifyUpgradeRequest: action.payload,
             };
+
+
+
+        // DASHBOARD
+        case "REQUEST_TOTAL_USERS":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_USERS":
+            return { ...state, totalUsers: action.payload, loading: false };
+
+        case "ERROR_TOTAL_USERS":
+            return { ...state, error: action.payload, loading: false };
+
+        // Similarly for other action types...
+        case "REQUEST_TOTAL_BANNED_USERS":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_BANNED_USERS":
+            return { ...state, totalBannedUsers: action.payload, loading: false };
+
+        case "ERROR_TOTAL_BANNED_USERS":
+            return { ...state, error: action.payload, loading: false };
+
+        case "REQUEST_TOTAL_REPAIRMEN":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_REPAIRMEN":
+            return { ...state, totalRepairmen: action.payload, loading: false };
+
+        case "ERROR_TOTAL_REPAIRMEN":
+            return { ...state, error: action.payload, loading: false };
+
+        // Handle total customers
+        case "REQUEST_TOTAL_CUSTOMERS":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_CUSTOMERS":
+            return { ...state, totalCustomers: action.payload, loading: false };
+
+        case "ERROR_TOTAL_CUSTOMERS":
+            return { ...state, error: action.payload, loading: false };
+
+        // Handle total completed requests
+        case "REQUEST_TOTAL_COMPLETED_REQUESTS":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_COMPLETED_REQUESTS":
+            return { ...state, totalCompletedRequests: action.payload, loading: false };
+
+        case "ERROR_TOTAL_COMPLETED_REQUESTS":
+            return { ...state, error: action.payload, loading: false };
+
+        // Handle total confirmed requests
+        case "REQUEST_TOTAL_CONFIRMED_REQUESTS":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_CONFIRMED_REQUESTS":
+            return { ...state, totalConfirmedRequests: action.payload, loading: false };
+
+        case "ERROR_TOTAL_CONFIRMED_REQUESTS":
+            return { ...state, error: action.payload, loading: false };
+
+        // Handle total pending requests
+        case "REQUEST_TOTAL_PENDING_REQUESTS":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_PENDING_REQUESTS":
+            return { ...state, totalPendingRequests: action.payload, loading: false };
+
+        case "ERROR_TOTAL_PENDING_REQUESTS":
+            return { ...state, error: action.payload, loading: false };
+
+        // Handle total cancelled requests
+        case "REQUEST_TOTAL_CANCELLED_REQUESTS":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_CANCELLED_REQUESTS":
+            return { ...state, totalCancelledRequests: action.payload, loading: false };
+
+        case "ERROR_TOTAL_CANCELLED_REQUESTS":
+            return { ...state, error: action.payload, loading: false };
+
+        // Handle total make payment requests
+        case "REQUEST_TOTAL_MAKE_PAYMENT_REQUESTS":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_MAKE_PAYMENT_REQUESTS":
+            return { ...state, totalMakePaymentRequests: action.payload, loading: false };
+
+        case "ERROR_TOTAL_MAKE_PAYMENT_REQUESTS":
+            return { ...state, error: action.payload, loading: false };
+
+        // Handle total deal price requests
+        case "REQUEST_TOTAL_DEAL_PRICE_REQUESTS":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_DEAL_PRICE_REQUESTS":
+            return { ...state, totalDealPriceRequests: action.payload, loading: false };
+
+        case "ERROR_TOTAL_DEAL_PRICE_REQUESTS":
+            return { ...state, error: action.payload, loading: false };
+
+        // Handle total pending complaints
+        case "REQUEST_TOTAL_PENDING_COMPLAINTS":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_PENDING_COMPLAINTS":
+            return { ...state, totalPendingComplaints: action.payload, loading: false };
+
+        case "ERROR_TOTAL_PENDING_COMPLAINTS":
+            return { ...state, error: action.payload, loading: false };
+
+        // Handle total pending upgrade requests
+        case "REQUEST_TOTAL_PENDING_UPGRADE_REQUESTS":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_PENDING_UPGRADE_REQUESTS":
+            return { ...state, totalPendingUpgradeRequests: action.payload, loading: false };
+
+        case "ERROR_TOTAL_PENDING_UPGRADE_REQUESTS":
+            return { ...state, error: action.payload, loading: false };
+
+        // Handle total service industries
+        case "REQUEST_TOTAL_SERVICE_INDUSTRIES":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_SERVICE_INDUSTRIES":
+            return { ...state, totalServiceIndustries: action.payload, loading: false };
+
+        case "ERROR_TOTAL_SERVICE_INDUSTRIES":
+            return { ...state, error: action.payload, loading: false };
+
+        // Handle total services by industry
+        case "REQUEST_TOTAL_SERVICES_BY_INDUSTRY":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_SERVICES_BY_INDUSTRY":
+            return { ...state, totalServicesByIndustry: action.payload, loading: false };
+
+        case "ERROR_TOTAL_SERVICES_BY_INDUSTRY":
+            return { ...state, error: action.payload, loading: false };
+
+        // Handle total service prices
+        case "REQUEST_TOTAL_SERVICE_PRICES":
+            return { ...state, loading: true };
+
+        case "SUCCESS_TOTAL_SERVICE_PRICES":
+            return { ...state, totalServicePrices: action.payload, loading: false };
+
+        case "ERROR_TOTAL_SERVICE_PRICES":
+            return { ...state, error: action.payload, loading: false };
+
 
 
 

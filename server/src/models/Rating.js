@@ -22,14 +22,6 @@ const RatingSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Virtual for request
-RatingSchema.virtual('request', {
-    ref: 'Request',
-    localField: 'request_id',
-    foreignField: '_id',
-    justOne: true
-});
-
 // Virtual for user
 RatingSchema.virtual('user', {
     ref: 'User',
