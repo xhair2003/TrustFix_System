@@ -522,7 +522,7 @@ const getUserInfo = async (req, res) => {
 };
 const sendRequest = async (req, res, next) => {
     try {
-        const { serviceIndustry_id, description, image, address, radius} = req.body; // Lấy 'price' từ req.body
+        const { serviceIndustry_id, description, address, radius} = req.body; // Lấy 'price' từ req.body
         //const gomapApiKey = process.env.GOMAPS_API_KEY;
         const userId = req.user.id; // Lấy user ID từ token
 
@@ -550,38 +550,33 @@ const sendRequest = async (req, res, next) => {
                 EM: "Không tìm thấy loại hình dịch vụ!"
             });
         }
+
+        // Upload ảnh mới nếu có - Tương tự như createComplaint
+        let image = null; // Mặc định không có ảnh
+        console.log(req.file); // Kiểm tra xem file có được upload không
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: "request_images", // Upload vào thư mục request_images - thư mục khác với complaint
+                transformation: [{ width: 500, height: 500, crop: "limit" }]
+            });
+            image = result.secure_url; // Lấy link ảnh từ Cloudinary
+        }
+
+
         // Tạo Request mới
         const newRequest = new Request({
             user_id: userId,
             serviceIndustry_id: serviceIndustry_id,
             description: description,
             address: address,
-
-            image: image || null, // Lưu image, có thể null nếu không có
+            image: image || null, // Lưu image, có thể null nếu không có - đã được upload ở trên
             status: 'Requesting Details' // Trạng thái mặc định
         });
         const savedRequest = await newRequest.save();
         req.savedRequest = { requestId: savedRequest._id };
-        // res.status(200).json({
-        //     EC: 1,
-        //     EM: "Tạo yêu cầu dịch vụ thành công!", // Cập nhật thông báo EM
-        //     DT: {
-        //         request: savedRequest, // Trả về thông tin Request
-        //         //duePrice: newDuePrice // Trả về thông tin Due_price
-        //         // nearbyRepairmen: [] // Không trả về danh sách thợ sửa chữa nữa
-        //     }
-        // });
+
         next();
-        
 
-         // Lưu Request và lấy bản ghi đã lưu
-
-        
-        
-
-        // ** Đoạn code tìm kiếm thợ sửa chữa đã bị loại bỏ **
-
-        
 
     } catch (error) {
         console.error("Error creating service request:", error); // Cập nhật log error message
@@ -690,6 +685,17 @@ const findRepairman = async (req, res) => {
         const newDuePricesForRepairmen = [];
         if (nearbyRepairmen.length > 0) {
             for (const repairman of nearbyRepairmen) { // Loop through all nearby repairmen
+                // Tìm RepairmanUpgradeRequest tương ứng với user_id của repairman
+                const repairmanUpgradeRequest = await RepairmanUpgradeRequest.findOne({ user_id: repairman._id });
+
+                let repairmanUpgradeRequestId = null;
+                if (repairmanUpgradeRequest) {
+                    repairmanUpgradeRequestId = repairmanUpgradeRequest._id;
+                } else {
+                    console.warn(`Không tìm thấy RepairmanUpgradeRequest cho user_id: ${repairman._id}`);
+                    continue; // Skip repairman này nếu không tìm thấy RepairmanUpgradeRequest
+                }
+
                 // Tạo một bản ghi Request mới cho mỗi thợ
                 const newRequestForRepairman = new Request({
                     user_id: originalRequest.user_id, // User ID giống request gốc
@@ -698,7 +704,7 @@ const findRepairman = async (req, res) => {
                     address: originalRequest.address, // Địa chỉ giống request gốc
                     image: originalRequest.image, // Image giống request gốc
                     status: 'Deal price', // Trạng thái mới là 'Deal price'
-                    repairman_id: repairman._id, // Gán repairman_id cho request mới
+                    repairman_id: repairmanUpgradeRequestId, // Sử dụng repairmanUpgradeRequestId ở đây
                     parentRequest: originalRequest._id // Liên kết với request gốc qua parentRequest
                 });
                 await newRequestForRepairman.save(); // Lưu request mới
