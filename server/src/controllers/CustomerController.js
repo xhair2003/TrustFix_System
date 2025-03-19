@@ -520,14 +520,14 @@ const getUserInfo = async (req, res) => {
         });
     }
 };
-const sendRequest = async (req, res) => {
+const sendRequest = async (req, res, next) => {
     try {
-        const { serviceIndustry_id, description, image, address } = req.body; // Lấy 'price' từ req.body
+        const { serviceIndustry_id, description, address, radius} = req.body; // Lấy 'price' từ req.body
         //const gomapApiKey = process.env.GOMAPS_API_KEY;
         const userId = req.user.id; // Lấy user ID từ token
 
         // Validate các trường bắt buộc
-        if (!serviceIndustry_id || !description || !address ) { // Thêm 'price' vào validation
+        if (!serviceIndustry_id || !description || !address || !radius) { // Thêm 'price' vào validation
             return res.status(400).json({
                 EC: 0,
                 EM: "Vui lòng cung cấp đầy đủ loại dịch vụ, mô tả, địa chỉ, bán kính!" // Cập nhật thông báo lỗi
@@ -541,7 +541,7 @@ const sendRequest = async (req, res) => {
         //         EM: "Bán kính tìm kiếm không hợp lệ!"
         //     });
         // }
-      
+
 
         const serviceIndustry = await ServiceIndustry.findById(serviceIndustry_id);
         if (!serviceIndustry) {
@@ -551,38 +551,32 @@ const sendRequest = async (req, res) => {
             });
         }
 
+        // Upload ảnh mới nếu có - Tương tự như createComplaint
+        let image = null; // Mặc định không có ảnh
+        console.log(req.file); // Kiểm tra xem file có được upload không
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: "request_images", // Upload vào thư mục request_images - thư mục khác với complaint
+                transformation: [{ width: 500, height: 500, crop: "limit" }]
+            });
+            image = result.secure_url; // Lấy link ảnh từ Cloudinary
+        }
+
+
         // Tạo Request mới
         const newRequest = new Request({
             user_id: userId,
             serviceIndustry_id: serviceIndustry_id,
             description: description,
             address: address,
-            
-            image: image || null, // Lưu image, có thể null nếu không có
+            image: image || null, // Lưu image, có thể null nếu không có - đã được upload ở trên
             status: 'Requesting Details' // Trạng thái mặc định
         });
+        const savedRequest = await newRequest.save();
+        req.savedRequest = { requestId: savedRequest._id };
 
-        const savedRequest = await newRequest.save(); // Lưu Request và lấy bản ghi đã lưu
+        next();
 
-        // sử lý AI ở đây
-        const newDuePrice = new DuePrice({
-            request_id: savedRequest._id, // Liên kết với request_id
-            minPrice: '2000000', 
-            maxPrice: '5000000'
-        });
-        await newDuePrice.save(); // Lưu Due_price
-
-        // ** Đoạn code tìm kiếm thợ sửa chữa đã bị loại bỏ **
-
-        res.status(200).json({
-            EC: 1,
-            EM: "Tạo yêu cầu dịch vụ thành công!", // Cập nhật thông báo EM
-            DT: {
-                request: savedRequest, // Trả về thông tin Request
-                duePrice: newDuePrice // Trả về thông tin Due_price
-                // nearbyRepairmen: [] // Không trả về danh sách thợ sửa chữa nữa
-            }
-        });
 
     } catch (error) {
         console.error("Error creating service request:", error); // Cập nhật log error message
@@ -595,14 +589,14 @@ const sendRequest = async (req, res) => {
 
 const findRepairman = async (req, res) => {
     try {
-        const requestId = req.params.requestId;
-        const radius = req.params.radius; // Get radius from request parameters
+        const requestId = req.savedRequest.requestId;
+        const {radius, minPrice, maxPrice} = req.body; // Get radius from request parameters
         const gomapApiKey = process.env.GOMAPS_API_KEY;
 
-        if (!requestId) {
+        if (!requestId || !minPrice || !maxPrice) {
             return res.status(400).json({
                 EC: 0,
-                EM: "Vui lòng cung cấp ID yêu cầu dịch vụ!"
+                EM: "Vui lòng cung cấp ID yêu cầu dịch vụ"
             });
         }
         if (!radius) {
@@ -634,7 +628,12 @@ const findRepairman = async (req, res) => {
                 EM: "Không tìm thấy vai trò thợ sửa chữa!"
             });
         }
-        const repairmenUsers = await User.find({ _id: { $in: await Role.find({ type: 'repairman' }).distinct('user_id') } });
+        const repairmanUpgradeRequests = await RepairmanUpgradeRequest.find({ status: 'Active' });
+        const repairmanUserIds = repairmanUpgradeRequests.map(request => request.user_id);
+
+        const repairmenUsers = await User.find({
+            _id: { $in: repairmanUserIds }
+        }); 
 
         if (!repairmenUsers || repairmenUsers.length === 0) {
             return res.status(200).json({
@@ -683,8 +682,20 @@ const findRepairman = async (req, res) => {
 
         let assignedRepairman = null;
         const newRequestsForRepairmen = []; // Change to array to store multiple requests
+        const newDuePricesForRepairmen = [];
         if (nearbyRepairmen.length > 0) {
             for (const repairman of nearbyRepairmen) { // Loop through all nearby repairmen
+                // Tìm RepairmanUpgradeRequest tương ứng với user_id của repairman
+                const repairmanUpgradeRequest = await RepairmanUpgradeRequest.findOne({ user_id: repairman._id });
+
+                let repairmanUpgradeRequestId = null;
+                if (repairmanUpgradeRequest) {
+                    repairmanUpgradeRequestId = repairmanUpgradeRequest._id;
+                } else {
+                    console.warn(`Không tìm thấy RepairmanUpgradeRequest cho user_id: ${repairman._id}`);
+                    continue; // Skip repairman này nếu không tìm thấy RepairmanUpgradeRequest
+                }
+
                 // Tạo một bản ghi Request mới cho mỗi thợ
                 const newRequestForRepairman = new Request({
                     user_id: originalRequest.user_id, // User ID giống request gốc
@@ -693,12 +704,19 @@ const findRepairman = async (req, res) => {
                     address: originalRequest.address, // Địa chỉ giống request gốc
                     image: originalRequest.image, // Image giống request gốc
                     status: 'Deal price', // Trạng thái mới là 'Deal price'
-                    repairman_id: repairman._id, // Gán repairman_id cho request mới
+                    repairman_id: repairmanUpgradeRequestId, // Sử dụng repairmanUpgradeRequestId ở đây
                     parentRequest: originalRequest._id // Liên kết với request gốc qua parentRequest
                 });
                 await newRequestForRepairman.save(); // Lưu request mới
                 newRequestsForRepairmen.push(newRequestForRepairman); // Add new request to the array
-
+                //DuePrice cho mooix thowj
+                const newDuePriceForRepairmen = new DuePrice({
+                    request_id: newRequestForRepairman._id,
+                    minPrice: minPrice,
+                    maxPrice: maxPrice
+                });
+                await newDuePriceForRepairmen.save();
+                newDuePricesForRepairmen.push(newDuePriceForRepairmen);
                 // Update RepairmanUpgradeRequest status to 'Deal price'
                 const repairmanUpgrade = await RepairmanUpgradeRequest.findOne({ user_id: repairman._id });
                 if (repairmanUpgrade) {
@@ -711,8 +729,14 @@ const findRepairman = async (req, res) => {
                 }
             }
         }
-
-
+        const newDuePrice = new DuePrice({
+            request_id: requestId, // Liên kết với request_id
+            minPrice: minPrice,
+            maxPrice: maxPrice
+        });
+        const saveDuePrice = await newDuePrice.save(); // Lưu Due_price
+        //const deal_price = minPrice + "  " + maxPrice;
+        
         res.status(200).json({
             EC: 1,
             EM: "Tìm kiếm thợ sửa chữa thành công!",
@@ -720,6 +744,7 @@ const findRepairman = async (req, res) => {
                 nearbyRepairmen: nearbyRepairmen,
                 request: originalRequest, // Vẫn trả về request gốc
                 assignedRepairman: assignedRepairman, // Vẫn trả về assignedRepairman (first one found)
+                deal_price: saveDuePrice
                 // newRequestsForRepairmen: newRequestsForRepairmen // Trả về array các request mới tạo
             }
         });

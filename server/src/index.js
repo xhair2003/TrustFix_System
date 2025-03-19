@@ -4,7 +4,7 @@ const cors = require('cors');
 const { createServer } = require('http');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
-
+const path = require('path');
 // Khởi tạo express app
 const app = express();
 
@@ -23,10 +23,10 @@ app.use(cors({
 }));
 
 // Body parsing middleware - phải đặt trước các route
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json());
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
-
+app.use(express.static(path.join(__dirname, 'public')));
 // Set response headers
 app.use((req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
@@ -36,8 +36,8 @@ app.use((req, res, next) => {
 // Debug middleware - log request body
 app.use((req, res, next) => {
     if (req.body && Object.keys(req.body).length > 0) {
-        console.log('Request Body:', req.body);
-        console.log('Content-Type:', req.headers['content-type']);
+        // console.log('Request Body:', req.body);
+        // console.log('Content-Type:', req.headers['content-type']);
     }
     next();
 });
@@ -54,6 +54,10 @@ app.use("/api/admin", adminRoutes);
 
 const customerRoutes = require("./routes/CustomerRoutes");
 app.use("/api/customer", customerRoutes);
+
+const paymentRoutes = require("./routes/PaymentRoutes");
+
+app.use("/api", paymentRoutes);
 
 
 // Test route at root level

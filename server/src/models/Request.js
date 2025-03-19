@@ -11,6 +11,11 @@ const RequestSchema = new mongoose.Schema({
         ref: 'ServiceIndustry',
         required: true
     },
+    // rating_id: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'Rating',
+    //     required: true
+    // },
     address: {
         type: String,
         required: true
@@ -65,11 +70,11 @@ RequestSchema.virtual('serviceIndustry', {
 });
 
 // Virtual for ratings
-RequestSchema.virtual('ratings', {
-    ref: 'Rating',
-    localField: '_id',
-    foreignField: 'request_id'
-});
+// RequestSchema.virtual('ratings', {
+//     ref: 'Rating',
+//     localField: '_id',
+//     foreignField: 'request_id'
+// });
 
 // Virtual for images
 // RequestSchema.virtual('images', {
