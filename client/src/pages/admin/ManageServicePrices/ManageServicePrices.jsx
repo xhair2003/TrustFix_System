@@ -1,124 +1,236 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import './ManageServicePrices.css';
+import { useDispatch, useSelector } from 'react-redux';
+import Loading from "../../../component/Loading/Loading";
+import Swal from "sweetalert2";
+import {
+    fetchSevicePrices,
+    addServicePrice,
+    updateServicePrice,
+    deleteServicePrice,
+    resetError,
+    resetSuccess
+} from "../../../store/actions/adminActions";
 
 const ManageServicePrices = () => {
-    const [services, setServices] = useState([
-        { id: 1, createdAt: "2025-03-01", updatedAt: "2025-03-10", type: "VIP Basic", description: "Gói cơ bản cho khách VIP", price: 500000, status: "active" },
-        { id: 2, createdAt: "2025-03-02", updatedAt: "2025-03-11", type: "VIP Premium", description: "Gói cao cấp cho khách VIP", price: 1000000, status: "active" },
-    ]);
+    const dispatch = useDispatch();
+    const { servicePrices, loading, errorServicePrices, successAddServicePrices, errorAddServicePrices,
+        successUpdateServicePrices, errorUpdateServicePrices, successDeleteServicePrices, errorDeleteServicePrices
+    } = useSelector(state => state.admin);
 
-    const [currentPage, setCurrentPage] = useState(1);
     const [modalOpen, setModalOpen] = useState(false);
     const [modalAction, setModalAction] = useState(null); // "add", "edit", "delete"
     const [selectedService, setSelectedService] = useState(null);
-    const [formData, setFormData] = useState({ type: "", description: "", price: "", status: "" });
-    const itemsPerPage = 5; // Số mục mỗi trang
+    const [formData, setFormData] = useState({ name: "", price: "", description: "", status: "" });
 
-    // Tính toán phân trang
-    const totalPages = Math.ceil(services.length / itemsPerPage);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
+    useEffect(() => {
+        dispatch(fetchSevicePrices()); // Fetch service prices on component mount
+    }, [dispatch]);
+
+    useEffect(() => {
+        if (successAddServicePrices || successUpdateServicePrices || successDeleteServicePrices) {
+            dispatch(fetchSevicePrices()); // Re-fetch after successful add, update, or delete
+        }
+    }, [successAddServicePrices, successUpdateServicePrices, successDeleteServicePrices, dispatch]);
+
+    useEffect(() => {
+        if (errorServicePrices) {
+            Swal.fire({
+                title: "Lỗi",
+                text: errorServicePrices,
+                icon: "error",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetError());
+        }
+
+        if (errorAddServicePrices) {
+            Swal.fire({
+                title: "Lỗi",
+                text: errorAddServicePrices,
+                icon: "error",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetError());
+        }
+
+        if (errorUpdateServicePrices) {
+            Swal.fire({
+                title: "Lỗi",
+                text: errorUpdateServicePrices,
+                icon: "error",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetError());
+        }
+
+        if (errorDeleteServicePrices) {
+            Swal.fire({
+                title: "Lỗi",
+                text: errorDeleteServicePrices,
+                icon: "error",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetError());
+        }
+
+        if (successAddServicePrices) {
+            Swal.fire({
+                title: "Thành công",
+                text: successAddServicePrices,
+                icon: "success",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetSuccess());
+        }
+
+        if (successUpdateServicePrices) {
+            Swal.fire({
+                title: "Thành công",
+                text: successUpdateServicePrices,
+                icon: "success",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetSuccess());
+        }
+
+        if (successDeleteServicePrices) {
+            Swal.fire({
+                title: "Thành công",
+                text: successDeleteServicePrices,
+                icon: "success",
+                timer: 5000,
+                showConfirmButton: false,
+            });
+            dispatch(resetSuccess());
+        }
+    }, [dispatch, errorServicePrices, successAddServicePrices, errorAddServicePrices,
+        successUpdateServicePrices, errorUpdateServicePrices, successDeleteServicePrices, errorDeleteServicePrices]);
+
+    // Calculate pagination
+    const totalPages = Math.ceil(servicePrices.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedServices = services.slice(startIndex, startIndex + itemsPerPage);
+    const paginatedServices = servicePrices.slice(startIndex, startIndex + itemsPerPage);
 
-    // Mở modal cho hành động cụ thể
+    // Open modal for add/edit/delete
     const openModal = (action, service = null) => {
         setModalAction(action);
         setSelectedService(service);
         if (action === "edit" && service) {
-            setFormData({ type: service.type, description: service.description, price: service.price, status: service.status });
+            setFormData({
+                name: service.name,
+                price: service.price,
+                description: service.description,
+                status: service.status
+            });
         } else if (action === "add") {
-            setFormData({ type: "", description: "", price: "", status: "active" });
+            setFormData({ name: "", price: "", description: "", status: "active" });
         }
         setModalOpen(true);
     };
 
-    // Đóng modal
+    // Close modal
     const closeModal = () => {
         setModalOpen(false);
         setModalAction(null);
         setSelectedService(null);
-        setFormData({ type: "", description: "", price: "", status: "" });
+        setFormData({ name: "", price: "", description: "", status: "" });
     };
 
-    // Xử lý thêm dịch vụ
-    const handleAdd = () => {
-        const newService = {
-            id: services.length + 1, // Giả lập ID
-            createdAt: new Date().toISOString().split("T")[0],
-            updatedAt: new Date().toISOString().split("T")[0],
-            type: formData.type,
-            description: formData.description,
-            price: parseInt(formData.price),
-            status: formData.status,
-        };
-        setServices([...services, newService]);
-        closeModal();
-    };
-
-    // Xử lý sửa dịch vụ
-    const handleEdit = () => {
-        const updatedServices = services.map((service) =>
-            service.id === selectedService.id
-                ? { ...service, ...formData, updatedAt: new Date().toISOString().split("T")[0] }
-                : service
-        );
-        setServices(updatedServices);
-        closeModal();
-    };
-
-    // Xử lý xóa dịch vụ
-    const handleDelete = () => {
-        const updatedServices = services.filter((service) => service.id !== selectedService.id);
-        setServices(updatedServices);
-        closeModal();
-    };
-
-    // Xử lý thay đổi input trong form
+    // Handle input change
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
 
-    // Chuyển trang
+    // Handle adding service price
+    const handleAdd = () => {
+        dispatch(addServicePrice(formData.name, formData.price, formData.description));
+        closeModal();
+    };
+
+    // Handle editing service price
+    const handleEdit = () => {
+        dispatch(updateServicePrice(formData.name, formData.price, formData.description));
+        closeModal();
+    };
+
+    // Handle deleting service price
+    const handleDelete = () => {
+        dispatch(deleteServicePrice(selectedService._id));
+        closeModal();
+    };
+
+    // Handle page change
     const handlePageChange = (page) => {
         if (page >= 1 && page <= totalPages) {
             setCurrentPage(page);
         }
     };
 
+    // Hàm định dạng ngày và giờ theo kiểu hh:mm dd/mm/yyyy
+    const formatDateTime = (date) => {
+        const d = new Date(date);
+        const hours = d.getHours().toString().padStart(2, '0'); // Lấy giờ
+        const minutes = d.getMinutes().toString().padStart(2, '0'); // Lấy phút
+        const day = d.getDate().toString().padStart(2, '0'); // Lấy ngày
+        const month = (d.getMonth() + 1).toString().padStart(2, '0'); // Lấy tháng
+        const year = d.getFullYear(); // Lấy năm
+
+        return `${hours}:${minutes} ${day}/${month}/${year}`; // Trả về định dạng hh:mm dd/mm/yyyy
+    };
+
     return (
         <div className="history-container">
             <div className="history-form">
-                <h2 className="complaint-title">QUẢN LÝ GIÁ DỊCH VỤ VIP</h2>
+                <h2 className="complaint-title">QUẢN LÝ GIÁ DỊCH VỤ</h2>
 
-                {/* Nút thêm dịch vụ */}
+                {/* Add button */}
                 <button className="add-button" onClick={() => openModal("add")}>
                     Thêm dịch vụ
                 </button>
 
-                {/* Bảng danh sách dịch vụ */}
+                {/* Loading spinner */}
+                {loading && <Loading />}
+
+                {/* Error handling */}
+                {errorServicePrices && (
+                    <div className="error-message">
+                        <p>{errorServicePrices}</p>
+                    </div>
+                )}
+
+                {/* Service price table */}
                 <table className="categories-table">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Ngày Tạo</th>
-                            <th>Ngày Cập Nhật</th>
                             <th>Loại Dịch Vụ</th>
                             <th>Mô Tả</th>
                             <th>Giá</th>
-                            <th>Trạng Thái</th>
+                            <th>Ngày Tạo</th>
+                            <th>Ngày Cập Nhật</th>
                             <th>Hành Động</th>
                         </tr>
                     </thead>
                     <tbody>
                         {paginatedServices.map((service) => (
-                            <tr key={service.id}>
-                                <td>{service.id}</td>
-                                <td>{service.createdAt}</td>
-                                <td>{service.updatedAt}</td>
-                                <td>{service.type}</td>
+                            <tr key={service._id}>
+                                <td>{service._id}</td>
+                                <td>{service.name}</td>
                                 <td>{service.description}</td>
-                                <td>{service.price.toLocaleString()} VNĐ</td>
-                                <td>{service.status}</td>
+                                <td>{service.price.toLocaleString()}</td>
+                                <td>{formatDateTime(service.createdAt)}</td>
+                                <td>{formatDateTime(service.updatedAt)}</td>
                                 <td>
                                     <button
                                         className="edit-button"
@@ -138,7 +250,7 @@ const ManageServicePrices = () => {
                     </tbody>
                 </table>
 
-                {/* Phân trang */}
+                {/* Pagination */}
                 <div className="pagination">
                     <button
                         disabled={currentPage === 1}
@@ -156,7 +268,7 @@ const ManageServicePrices = () => {
                 </div>
             </div>
 
-            {/* Modal cho thêm/sửa/xóa */}
+            {/* Modal for add/edit/delete */}
             {modalOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content">
@@ -164,8 +276,8 @@ const ManageServicePrices = () => {
                             {modalAction === "add"
                                 ? "Thêm dịch vụ"
                                 : modalAction === "edit"
-                                ? "Sửa dịch vụ"
-                                : "Xóa dịch vụ"}
+                                    ? "Sửa dịch vụ"
+                                    : "Xóa dịch vụ"}
                         </h3>
 
                         {modalAction !== "delete" ? (
@@ -173,8 +285,8 @@ const ManageServicePrices = () => {
                                 <label>Loại dịch vụ:</label>
                                 <input
                                     type="text"
-                                    name="type"
-                                    value={formData.type}
+                                    name="serviceName"
+                                    value={formData.name}
                                     onChange={handleInputChange}
                                 />
                                 <label>Mô tả:</label>
@@ -190,18 +302,9 @@ const ManageServicePrices = () => {
                                     value={formData.price}
                                     onChange={handleInputChange}
                                 />
-                                <label>Trạng thái:</label>
-                                <select
-                                    name="status"
-                                    value={formData.status}
-                                    onChange={handleInputChange}
-                                >
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
                             </div>
                         ) : (
-                            <p>Bạn có chắc chắn muốn xóa "{selectedService.type}" không?</p>
+                            <p>Bạn có chắc chắn muốn xóa "{selectedService.name}" không?</p>
                         )}
 
                         <div className="modal-buttons">

@@ -17,11 +17,12 @@ import Deposit from "./pages/users/Payment/Deposit/Deposit.js";
 import Complain from "./pages/users/Complain/Complain.js";
 import MakePayment from "./pages/users/Payment/MakePayment/MakePayment.js";
 import ViewRepairmentHistories from "./pages/users/customer/ViewRepairmentHistoriesPage/ViewRepairmentHistories.js";
-import ForgotPassword from "./pages/users/ForgotPassword.js";
-import ResetPasswordForm from "./pages/users/ResetPassword.js";
+import ForgotPassword from "./pages/users/ForgotPassword/ForgotPassword.js";
+import ResetPasswordForm from "./component/users/ForgotPassword/ResetPassword.js";
 import ManageUserAccount from "./pages/admin/UserManagement/ManageUserAccount.jsx";
 import MasterLayoutAdmin from "./pages/admin/MasterLayoutAdmin/MasterLayoutAdmin.jsx";
 import ManageCategories from "./pages/admin/ManageCategories/ManageCategories.jsx";
+import ManageSubcategories from "./pages/admin/ManageSubcategories/ManageSubcategories.jsx";
 import ManageComplaints from "./pages/admin/ManageComplaints/ManageComplaints.jsx";
 import ManageUpgradeRepairman from "./pages/admin/ManageUpgradeRequests/ManageUpgradeRepairman.jsx";
 import ViewDepositHistory from "./pages/admin/TransactionManagement/DepositHistory/ViewDepositHistory.jsx";
@@ -53,7 +54,7 @@ const UserROUTERS = () => {
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
-            path: ROUTERS.CUSTOMER.COMPLAIN,
+            path: ROUTERS.CUSTOMER.COMPLAIN_REPAIRMAN,
             component: <Complain />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
@@ -68,27 +69,22 @@ const UserROUTERS = () => {
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
-            path: ROUTERS.CUSTOMER.DEPOSIT,
+            path: ROUTERS.CUSTOMER.DEPOSIT_INTO_ACCOUNT,
             component: <Deposit />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
-            path: ROUTERS.CUSTOMER.DEPOSIT_HISTORY,
+            path: ROUTERS.CUSTOMER.VIEW_DEPOSIT_HISTORY,
             component: <DepositHistory />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
-            path: ROUTERS.CUSTOMER.HISTORY_PAYMENT,
+            path: ROUTERS.CUSTOMER.VIEW_HISTORY_PAYMENT,
             component: <HistoryPayment />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
-            path: ROUTERS.CUSTOMER.COMPLAIN,
-            component: <Complain />,
-            layout: MasterLayoutUser, // Routes using MasterLayoutdsf
-        },
-        {
-            path: ROUTERS.REPAIRMAN.SERVICE_PRICE,
+            path: ROUTERS.REPAIRMAN.VIEW_SERVICE_PRICES,
             component: <ServicePrice />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
@@ -105,41 +101,48 @@ const UserROUTERS = () => {
         {
             path: ROUTERS.ADMIN.VIEW_REPAIR_BOOKING,
             component: <ViewRepairBooking />,
-            layout: MasterLayoutAdmin, 
+            layout: MasterLayoutAdmin,
         },
         {
             path: ROUTERS.ADMIN.MANAGE_UPGRADE_REPAIRMAN,
             component: <ManageUpgradeRepairman />,
-            layout: MasterLayoutAdmin, 
+            layout: MasterLayoutAdmin,
         },
         {
             path: ROUTERS.ADMIN.ADMIN_VIEW_DEPOSIT_HISTORY,
-            component: <ViewDepositHistory/>,
-            layout: MasterLayoutAdmin, 
+            component: <ViewDepositHistory />,
+            layout: MasterLayoutAdmin,
         },
         {
             path: ROUTERS.ADMIN.ADMIN_VIEW_HISTORY_PAYMENT,
-            component: <ViewPaymentHistory/>,
-            layout: MasterLayoutAdmin, 
+            component: <ViewPaymentHistory />,
+            layout: MasterLayoutAdmin,
         },
         {
             path: ROUTERS.ADMIN.MANAGE_COMPLAINTS,
             component: <ManageComplaints />,
-            layout: MasterLayoutAdmin, 
+            layout: MasterLayoutAdmin,
         },
         {
             path: ROUTERS.ADMIN.MANAGE_SERVICE,
-            component: <ManageServicePrices/>,
-            layout: MasterLayoutAdmin, 
+            component: <ManageServicePrices />,
+            layout: MasterLayoutAdmin,
         },
         {
             path: ROUTERS.ADMIN.MANAGE_CATEGORIES,
-            component: <ManageCategories/>,
-            layout: MasterLayoutAdmin, 
+            component: <ManageCategories />,
+            layout: MasterLayoutAdmin,
         },
-
-        
-
+        {
+            path: ROUTERS.ADMIN.MANAGE_SUBCATEGORIES,
+            component: <ManageSubcategories />,
+            layout: MasterLayoutAdmin,
+        },
+        {
+            path: ROUTERS.ADMIN.MANAGE_PRACTICE_SERTIFICATES,
+            // component: <ManagePracticeSertificates />,
+            layout: MasterLayoutAdmin,
+        },
 
     ];
 
@@ -156,16 +159,21 @@ const UserROUTERS = () => {
         },
         {
             path: ROUTERS.CUSTOMER.FORGOT_PASSWORD,
-            component: <ForgotPassword/>,
+            component: <ForgotPassword />,
             layout: null, // No layout for auth routes
         },
         {
             path: ROUTERS.CUSTOMER.RESET_PASSWORD,
-            component: <ResetPasswordForm/>,
+            component: <ResetPasswordForm />,
             layout: null, // No layout for auth routes
         },
-        
-        
+        {
+            path: ROUTERS.ADMIN.ADMIN,
+            component: <MasterLayoutAdmin />,
+            layout: null, // No layout for auth routes
+        },
+
+
         // Add more auth routes here....
     ];
 

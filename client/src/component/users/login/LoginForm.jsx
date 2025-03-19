@@ -4,44 +4,53 @@ import './LoginForm.scss';
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
-import { login } from '../../store/actions/auth';
+import { login, resetError, resetSuccess } from '../../../store/actions/authActions';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
+import Loading from '../../Loading/Loading';
 
 const LoginForm = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const dispatch = useDispatch();
-  const { error, user } = useSelector(state => state.auth);
+  const { loading, errorLogin, successLogin, role } = useSelector(state => state.auth);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    dispatch(login(email, password));
-    console.log('Login attempted with:', { email, password });
-    console.log(user);
-    navigate('/');
-  };
-
-  // Hiển thị thông báo lỗi nếu có
   useEffect(() => {
-    if (error) {
+    if (errorLogin) {
       // Hiển thị thông báo lỗi khi có lỗi
       Swal.fire({
         icon: 'error',
         title: 'Lỗi!',
-        text: error,
+        text: errorLogin,
         timer: 5000,
         timerProgressBar: true,
         showCloseButton: true,
         showConfirmButton: false,
       });
     }
-  }, [error]);
+
+    if (successLogin) {
+      if (!role) {
+        return <Loading />;
+      } else if (role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
+    }
+  }, [errorLogin, navigate, successLogin, role]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    dispatch(resetError()); // Đặt lại lỗi trước khi gọi đăng nhập
+    dispatch(login(email, password));
+  };
 
   return (
     <div className="login-container">
+      {loading && <Loading />}
       <form className="login-form" onSubmit={handleSubmit}>
         <p className='welcome-back'>Chào mừng quay trở lại</p>
         <p className='login-title'>Đăng nhập bằng tài khoản của bạn</p>
@@ -86,8 +95,8 @@ const LoginForm = () => {
           </a>
         </div>
 
-        <button type="submit" className="login-button">
-          ĐĂNG NHẬP
+        <button type="submit" className="login-button" disabled={loading}>
+          {loading ? 'ĐANG XỬ LÝ...' : 'ĐĂNG NHẬP'}
         </button>
 
         <p className="signup-link">

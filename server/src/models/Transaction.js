@@ -31,9 +31,18 @@ const TransactionSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-  },
-  { timestamps: true }
-);
+
+    request_id: { // New field to link the transaction to a specific request
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Request",
+      required: false,  // Only required for "payment" transactions
+    },
+
+  }, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
 
 // Virtual for wallet
 TransactionSchema.virtual("wallet", {
@@ -41,6 +50,14 @@ TransactionSchema.virtual("wallet", {
   localField: "wallet_id",
   foreignField: "_id",
   justOne: true,
+});
+
+// Virtual for the related request (if present)
+TransactionSchema.virtual("request", {
+  ref: "Request",  // The model to populate (Request)
+  localField: "request_id",  // The field in the Transaction schema
+  foreignField: "_id",  // The field in the Request schema
+  justOne: true,  // One transaction can have one request
 });
 
 module.exports = mongoose.model("Transaction", TransactionSchema);

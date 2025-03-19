@@ -5,7 +5,7 @@ import { FaBell, FaUser, FaLock, FaHistory, FaExclamationCircle, FaSignOutAlt, F
 import userImage from '../../../assets/Images/user.jpg';
 import './Header.css';
 import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../../../store/actions/auth';
+import { logout } from '../../../store/actions/authActions';
 
 
 const Header = () => {
@@ -13,7 +13,9 @@ const Header = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { user } = useSelector(state => state.auth);
-    const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
+
+    const isAuthenticated = useSelector(state => state.auth.isAuthenticated) || localStorage.getItem('isAuthenticated');
+
     console.log(isAuthenticated);
     console.log(user);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -55,7 +57,8 @@ const Header = () => {
                         </button>
                     ))}
                 </nav>
-                {isAuthenticated ? (
+
+                {isAuthenticated === true || isAuthenticated === 'true' ? (
                     <div className="header-buttons">
                         <FaBell className="icon" />
                         <div className="divider"></div>

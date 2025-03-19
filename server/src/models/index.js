@@ -35,7 +35,7 @@ const models = {
     Address,
     Image,
     VeriMail,
-    Complaint
+    Complaint,
 };
 
 // Connect to MongoDB

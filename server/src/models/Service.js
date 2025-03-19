@@ -9,7 +9,7 @@ const ServiceSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'ServiceIndustry',
         required: true
-    }
+    },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Service', ServiceSchema); 

@@ -1,111 +1,68 @@
-// ManageUpgradeRepairman.jsx
 import React, { useState, useEffect } from "react";
 import "./ManageUpgradeRepairman.css";
+import Loading from "../../../component/Loading/Loading";
+import Swal from "sweetalert2";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getPendingUpgradeRequests,
+  verifyRepairmanUpgradeRequest,
+  resetError,
+  resetSuccess
+} from "../../../store/actions/adminActions"; // Adjust import to match the location of actions
 
 const ManageUpgradeRepairman = () => {
-  const [upgradeRequests, setUpgradeRequests] = useState([
-    {
-      id: 1,
-      userId: 101,
-      serviceIndustryId: 1,
-      imgCertificatePractice: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-      imgGCCCD: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-      status: 0,
-      name: "Nguyễn Văn A",
-      email: "vana@example.com",
-      phone: "0901234567",
-      address: "123 Đường ABC, Quận 1, TP.HCM",
-      avatar: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-      rejectReason: "",
-      updatedAt: null
-    },
-    {
-      id: 2,
-      userId: 102,
-      serviceIndustryId: 2,
-      imgCertificatePractice: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-      imgGCCCD: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-      status: 1,
-      name: "Trần Thị B",
-      email: "thib@example.com",
-      phone: "0912345678",
-      address: "456 Đường XYZ, Quận 2, TP.HCM",
-      avatar: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-      rejectReason: "",
-      updatedAt: "2025-03-14T10:00:00Z"
-    },
-    {
-        id: 3,
-        userId: 102,
-        serviceIndustryId: 2,
-        imgCertificatePractice: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-        imgGCCCD: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-        status: 1,
-        name: "Trần Thị B",
-        email: "thib@example.com",
-        phone: "0912345678",
-        address: "456 Đường XYZ, Quận 2, TP.HCM",
-        avatar: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-        rejectReason: "",
-        updatedAt: "2025-03-14T10:00:00Z"
-      },
-      {
-        id: 4,
-        userId: 102,
-        serviceIndustryId: 2,
-        imgCertificatePractice: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-        imgGCCCD: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-        status: 0,
-        name: "Trần Thị B",
-        email: "thib@example.com",
-        phone: "0912345678",
-        address: "456 Đường XYZ, Quận 2, TP.HCM",
-        avatar: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-        rejectReason: "",
-        updatedAt: "2025-03-14T10:00:00Z"
-      },
-      {
-        id: 5,
-        userId: 102,
-        serviceIndustryId: 2,
-        imgCertificatePractice: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-        imgGCCCD: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-        status: 0,
-        name: "Trần Thị B",
-        email: "thib@example.com",
-        phone: "0912345678",
-        address: "456 Đường XYZ, Quận 2, TP.HCM",
-        avatar: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-        rejectReason: "",
-        updatedAt: "2025-03-14T10:00:00Z"
-      },
-      {
-        id: 6,
-        userId: 102,
-        serviceIndustryId: 2,
-        imgCertificatePractice: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-        imgGCCCD: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-        status: 0,
-        name: "Trần Thị B",
-        email: "thib@example.com",
-        phone: "0912345678",
-        address: "456 Đường XYZ, Quận 2, TP.HCM",
-        avatar: "https://cdn.accgroup.vn/wp-content/uploads/2022/01/giay-to-tuy-than-la-gi.jpeg",
-        rejectReason: "",
-        updatedAt: "2025-03-14T10:00:00Z"
-      },
-  ]);
-
+  const dispatch = useDispatch();
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [reason, setReason] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("all"); // Thêm state cho bộ lọc trạng thái
+  const [searchTerm, setSearchTerm] = useState(""); // Store search term
+  const { upgradeRequests, loading, errorUpgradeRequests,
+    successVerifyUpgradeRequest, errorVerifyUpgradeRequest } = useSelector((state) => state.admin);
 
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 1000);
-  }, []);
+    dispatch(getPendingUpgradeRequests());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (successVerifyUpgradeRequest) {
+      dispatch(getPendingUpgradeRequests()); // Re-fetch after successful verify
+    }
+  }, [successVerifyUpgradeRequest, dispatch]);
+
+  useEffect(() => {
+    if (errorUpgradeRequests) {
+      Swal.fire({
+        title: "Lỗi",
+        text: errorUpgradeRequests,
+        icon: "error",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+      dispatch(resetError());
+    }
+
+    if (errorVerifyUpgradeRequest) {
+      Swal.fire({
+        title: "Lỗi",
+        text: errorVerifyUpgradeRequest,
+        icon: "error",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+      dispatch(resetError());
+    }
+
+    if (successVerifyUpgradeRequest) {
+      Swal.fire({
+        title: "Thành công",
+        text: successVerifyUpgradeRequest,
+        icon: "success",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+      dispatch(resetSuccess());
+    }
+
+  }, [dispatch, successVerifyUpgradeRequest, errorUpgradeRequests, errorVerifyUpgradeRequest]);
 
   const openModal = (request) => {
     setSelectedRequest(request);
@@ -118,66 +75,26 @@ const ManageUpgradeRepairman = () => {
   };
 
   const handleApprove = async (id) => {
-    try {
-      setLoading(true);
-      setUpgradeRequests(
-        upgradeRequests.map((req) =>
-          req.id === id ? { 
-            ...req, 
-            status: 1, 
-            updatedAt: new Date().toISOString() 
-          } : req
-        )
-      );
-      closeModal();
-      alert("Yêu cầu đã được cấp nhận thành công!");
-    } catch (error) {
-      alert("Có lỗi xảy ra khi phê duyệt!");
-    } finally {
-      setLoading(false);
-    }
+    dispatch(verifyRepairmanUpgradeRequest(id, "approve"));
+    closeModal();
   };
 
   const handleReject = async (id) => {
-    if (reason.trim() === "") {
-      alert("Vui lòng nhập lý do từ chối!");
-      return;
-    }
-    try {
-      setLoading(true);
-      setUpgradeRequests(
-        upgradeRequests.map((req) =>
-          req.id === id ? { 
-            ...req, 
-            status: 2, 
-            rejectReason: reason,
-            updatedAt: new Date().toISOString() 
-          } : req
-        )
-      );
-      closeModal();
-      alert(`Yêu cầu đã bị từ chối với lý do: ${reason}`);
-    } catch (error) {
-      alert("Có lỗi xảy ra khi từ chối!");
-    } finally {
-      setLoading(false);
-    }
+    dispatch(verifyRepairmanUpgradeRequest(id, "reject", reason));
+    closeModal();
   };
+
 
   // Lọc danh sách theo cả search term và trạng thái
   const filteredRequests = upgradeRequests.filter((request) => {
-    const matchesSearch = 
-      request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.phone.includes(searchTerm);
-    
-    const matchesStatus = 
-      statusFilter === "all" || 
-      (statusFilter === "pending" && request.status === 0) ||
-      (statusFilter === "approved" && request.status === 1) ||
-      (statusFilter === "rejected" && request.status === 2);
-    
-    return matchesSearch && matchesStatus;
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+
+    const matchesSearch =
+      request.user_id.firstName.toLowerCase().includes(lowerCaseSearchTerm) ||
+      request.user_id.lastName.toLowerCase().includes(lowerCaseSearchTerm) ||
+      request.user_id.email.toLowerCase().includes(lowerCaseSearchTerm) ||
+      request.user_id.phone.includes(lowerCaseSearchTerm);
+    return matchesSearch;
   });
 
   return (
@@ -193,52 +110,44 @@ const ManageUpgradeRepairman = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             disabled={loading}
           />
-            <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            disabled={loading}
-          >
-            <option value="pending">Đang chờ xử lý</option>
-            <option value="approved">Đã phê duyệt</option>
-            <option value="rejected">Đã từ chối</option>
-            <option value="all">Tất cả trạng thái</option>
-          </select>
-
         </div>
 
         {loading ? (
-          <p>Đang tải dữ liệu...</p>
+          <p><Loading /></p>
+        ) : errorUpgradeRequests ? (
+          <p>{errorUpgradeRequests}</p>
         ) : (
           <div className="manage-upgrade-request-list">
             {filteredRequests.map((request) => (
-              <div 
-                key={request.id} 
-                className="manage-upgrade-request-item" 
+              <div
+                key={request._id}
+                className="manage-upgrade-request-item"
                 onClick={() => openModal(request)}
               >
-                <img src={request.avatar} alt="Avatar" className="manage-upgrade-avatar" />
+                <img src={request.user_id.imgAvt} alt="Avatar" className="manage-upgrade-avatar" />
                 <div className="manage-upgrade-info">
-                  <p><strong>Tên:</strong> {request.name}</p>
-                  <p><strong>Email:</strong> {request.email}</p>
-                  <p><strong>SĐT:</strong> {request.phone}</p>
-                  <p><strong>Địa chỉ:</strong> {request.address}</p>
+                  <p><strong>Tên:</strong> {`${request.user_id.firstName} ${request.user_id.lastName}`}</p>
+                  <p><strong>Email:</strong> {request.user_id.email}</p>
+                  <p><strong>SĐT:</strong> {request.user_id.phone}</p>
+                  <p><strong>Địa chỉ:</strong> {request.user_id.address}</p>
+                  <p><strong>Loại dịch vụ:</strong> {request.serviceIndustry_id.type}</p>
                 </div>
                 <div className="manage-upgrade-actions">
-                  {request.status === 0 && (
+                  {request.status === "pending" && (
                     <>
-                      <button 
-                        onClick={(e) => { 
-                          e.stopPropagation(); 
-                          handleApprove(request.id); 
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleApprove(request._id);
                         }}
                         disabled={loading}
                       >
-                        Cấp nhận
+                        Chấp thuận
                       </button>
-                      <button 
-                        onClick={(e) => { 
-                          e.stopPropagation(); 
-                          openModal(request); 
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openModal(request);
                         }}
                         disabled={loading}
                       >
@@ -246,8 +155,6 @@ const ManageUpgradeRepairman = () => {
                       </button>
                     </>
                   )}
-                  {request.status === 1 && <span className="manage-upgrade-status-approved">Đã phê duyệt</span>}
-                  {request.status === 2 && <span className="manage-upgrade-status-rejected">Đã từ chối</span>}
                 </div>
               </div>
             ))}
@@ -262,25 +169,26 @@ const ManageUpgradeRepairman = () => {
             <div className="manage-upgrade-modal-content" onClick={(e) => e.stopPropagation()}>
               <button className="manage-upgrade-close-btn" onClick={closeModal}>Đóng</button>
               <h3>Thông tin chi tiết</h3>
-              <p><strong>Tên:</strong> {selectedRequest.name}</p>
-              <p><strong>Email:</strong> {selectedRequest.email}</p>
-              <p><strong>SĐT:</strong> {selectedRequest.phone}</p>
-              <p><strong>Địa chỉ:</strong> {selectedRequest.address}</p>
+              <p><strong>Tên:</strong> {`${selectedRequest.user_id.firstName} ${selectedRequest.user_id.lastName}`}</p>
+              <p><strong>Email:</strong> {selectedRequest.user_id.email}</p>
+              <p><strong>SĐT:</strong> {selectedRequest.user_id.phone}</p>
+              <p><strong>Địa chỉ:</strong> {selectedRequest.user_id.address}</p>
+              <p><strong>Loại dịch vụ:</strong> {selectedRequest.serviceIndustry_id.type}</p>
               <div className="manage-upgrade-documents">
                 <p><strong>Giấy chứng nhận thực hành:</strong></p>
-                <img 
-                  src={selectedRequest.imgCertificatePractice} 
-                  alt="Certificate" 
-                  className="manage-upgrade-document-img" 
+                <img
+                  src={selectedRequest.imgCertificatePractice}
+                  alt="Certificate"
+                  className="manage-upgrade-document-img"
                 />
                 <p><strong>CMND/CCCD:</strong></p>
-                <img 
-                  src={selectedRequest.imgGCCCD} 
-                  alt="GCCCD" 
-                  className="manage-upgrade-document-img" 
+                <img
+                  src={selectedRequest.imgCCCD}
+                  alt="CCCD"
+                  className="manage-upgrade-document-img"
                 />
               </div>
-              {selectedRequest.status === 0 && (
+              {selectedRequest.status === "pending" && (
                 <div className="manage-upgrade-reject-section">
                   <label>Lý do từ chối:</label>
                   <textarea
@@ -289,27 +197,12 @@ const ManageUpgradeRepairman = () => {
                     placeholder="Nhập lý do từ chối..."
                     disabled={loading}
                   />
-                  <button 
-                    onClick={() => handleReject(selectedRequest.id)}
+                  <button
+                    onClick={() => handleReject(selectedRequest._id)}
                     disabled={loading}
                   >
                     {loading ? "Đang xử lý..." : "Xác nhận từ chối"}
                   </button>
-                </div>
-              )}
-              {selectedRequest.status === 1 && (
-                <p className="manage-upgrade-status-approved">
-                  Yêu cầu đã được cấp nhận! 
-                  (Cập nhật: {new Date(selectedRequest.updatedAt).toLocaleString()})
-                </p>
-              )}
-              {selectedRequest.status === 2 && (
-                <div>
-                  <p className="manage-upgrade-status-rejected">
-                    Yêu cầu đã bị từ chối! 
-                    (Cập nhật: {new Date(selectedRequest.updatedAt).toLocaleString()})
-                  </p>
-                  <p><strong>Lý do:</strong> {selectedRequest.rejectReason}</p>
                 </div>
               )}
             </div>

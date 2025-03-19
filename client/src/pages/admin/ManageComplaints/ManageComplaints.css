@@ -157,3 +157,65 @@
   .manage-complaints-modal-content::-webkit-scrollbar-track {
     background: #ffffff;
   }
+  
+  .manage-complaints-modal-content {
+    /* Modal content style */
+    padding: 20px;
+    max-width: 600px;
+    width: 100%;
+  }
+  
+  .reply-section {
+    margin-top: 20px;
+  }
+  
+  .manage-complaints-modal-reply-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    cursor: pointer;
+  }
+  
+  .manage-complaints-modal-reply-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .manage-complaints-modal-close {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    display: block;
+    margin-left: auto;
+  }
+  
+  .complaint-detail,
+.order-detail,
+.user-detail {
+  margin-bottom: 20px;
+}
+
+.complaint-detail p,
+.order-detail p,
+.user-detail p {
+  margin: 5px 0;
+}
+
+.complaint-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.manage-complaints-modal-content h3,
+.manage-complaints-modal-content h4 {
+  margin-top: 20px;
+  color: #333;
+}

@@ -1,5 +1,215 @@
-import React, { useState } from "react";
+// import React, { useState, useEffect } from "react";
+// import "./ViewRepairBooking.css";
+// import Loading from "../../../component/Loading/Loading";
+// import Swal from "sweetalert2";
+// import { useDispatch, useSelector } from "react-redux";
+// import {
+//   fetchRepairBookingHistory, resetError
+// } from "../../../store/actions/adminActions"; // Adjust import to match the location of your actions
+
+// const ViewRepairBooking = () => {
+//   const [selectedOrder, setSelectedOrder] = useState(null);
+//   const [searchTerm, setSearchTerm] = useState("");
+//   const [statusFilter, setStatusFilter] = useState("");
+//   const [startDate, setStartDate] = useState("");
+//   const [endDate, setEndDate] = useState("");
+
+//   // Redux state
+//   const dispatch = useDispatch();
+//   const { repairBookingHistory, loading, errorRepairBookingHistory } = useSelector(state => state.admin);
+
+//   // Fetch repair booking history when the component mounts
+//   useEffect(() => {
+//     dispatch(fetchRepairBookingHistory());
+//   }, [dispatch]);
+
+//   useEffect(() => {
+//     if (errorRepairBookingHistory) {
+//       Swal.fire({
+//         title: "Lỗi",
+//         text: errorRepairBookingHistory,
+//         icon: "error",
+//         timer: 5000,
+//         showConfirmButton: false,
+//       });
+//       dispatch(resetError());
+//     }
+//   }, [dispatch, errorRepairBookingHistory]);
+
+//   const handleOrderClick = (order) => {
+//     setSelectedOrder(order);
+//   };
+
+//   const closeModal = () => {
+//     setSelectedOrder(null);
+//   };
+
+//   // Filter orders based on search term, status, and date
+//   const filteredOrders = repairBookingHistory.filter((order) => {
+//     const orderDate = new Date(order.orderDate);
+//     const start = startDate ? new Date(startDate) : null;
+//     const end = endDate ? new Date(endDate) : null;
+
+//     return (
+//       (searchTerm === "" ||
+//         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//         order.customer.name.toLowerCase().includes(searchTerm.toLowerCase())) &&
+//       (statusFilter === "" || order.status === statusFilter) &&
+//       (!start || orderDate >= start) &&
+//       (!end || orderDate <= end)
+//     );
+//   });
+
+//   // Function to format date
+//   const formatDateTime = (date) => {
+//     const d = new Date(date);
+//     const hours = d.getHours().toString().padStart(2, '0');
+//     const minutes = d.getMinutes().toString().padStart(2, '0');
+//     const day = d.getDate().toString().padStart(2, '0');
+//     const month = (d.getMonth() + 1).toString().padStart(2, '0');
+//     const year = d.getFullYear();
+//     return `${hours}:${minutes} ${day}/${month}/${year}`;
+//   };
+
+//   if (loading) {
+//     return <Loading />;
+//   }
+
+//   return (
+//     <div className="history-container">
+//       <div className="history-form">
+//         <h2 className="complaint-title">XEM LỊCH SỬ SỬA CHỮA</h2>
+
+//         <div className="filter-section">
+//           <input
+//             type="text"
+//             placeholder="Tìm theo mã hoặc tên khách hàng"
+//             value={searchTerm}
+//             onChange={(e) => setSearchTerm(e.target.value)}
+//             className="search-input"
+//           />
+//           <select
+//             value={statusFilter}
+//             onChange={(e) => setStatusFilter(e.target.value)}
+//             className="status-filter"
+//           >
+//             <option value="">Tất cả trạng thái</option>
+//             <option value="Hoàn thành">Hoàn thành</option>
+//             <option value="Đang xử lý">Đang xử lý</option>
+//             <option value="Đã hủy">Đã hủy</option>
+//           </select>
+//           <input
+//             type="date"
+//             value={startDate}
+//             onChange={(e) => setStartDate(e.target.value)}
+//             className="date-filter"
+//           />
+//           <input
+//             type="date"
+//             value={endDate}
+//             onChange={(e) => setEndDate(e.target.value)}
+//             className="date-filter"
+//           />
+//         </div>
+
+//         <div className="view-order-list">
+//           {filteredOrders.map((order) => (
+//             <div
+//               key={order._id}
+//               className="view-order-item"
+//               onClick={() => handleOrderClick(order)}
+//             >
+//               <span className="view-order-item-id">{order._id}</span>
+//               <span className="view-order-item-date">Đặt: {formatDateTime(order.createdAt)}</span>
+//               <span className="view-order-item-complete">
+//                 Hoàn thành:  {formatDateTime(order.updatedAt)}
+//               </span>
+//               <span className="view-order-item-price">{order.priceRange || 0}</span>
+//               <span
+//                 className={`view-order-item-status view-order-status-${order.status}`}
+//               >
+//                 {
+//                   order.status === 'Pending' ? 'Đang tiến hành' :
+//                     order.status === 'Completed' ? 'Đã hoàn thành' :
+//                       order.status === 'Confirmed' ? 'Đã xác nhận' :
+//                         order.status === 'Cancelled' ? 'Đã hủy' :
+//                           order.status === 'Make payment' ? 'Chờ thanh toán' :
+//                             order.status === 'Deal price' ? 'Đã thỏa thuận giá' :
+//                               'Trạng thái không xác định'
+//                 }
+//               </span>
+//               <span className="view-order-item-rating">
+//                 {order.ratings ? `★ ${order.ratings.rate}/5` : "Chưa đánh giá"}
+//               </span>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+
+//       {selectedOrder && (
+//         <div className="view-order-modal">
+//           <div className="view-order-modal-content">
+//             <h3 className="view-order-modal-title">CHI TIẾT ĐƠN HÀNG {selectedOrder.id}</h3>
+
+//             <div className="view-order-modal-section">
+//               <h4>Thông tin đơn hàng</h4>
+//               <p>Mã đơn hàng: {selectedOrder._id}</p>
+//               <p>Ngày đặt: {formatDateTime(selectedOrder.createdAt)}</p>
+//               <p>Ngày hoàn thành: {formatDateTime(selectedOrder.updatedAt)}</p>
+//               <p>Khoảng giá: {selectedOrder.priceRange || 0}</p>
+//               <p>
+//                 Trạng thái:{" "}
+//                 {
+//                   selectedOrder.status === 'Pending' ? 'Đang tiến hành' :
+//                     selectedOrder.status === 'Completed' ? 'Đã hoàn thành' :
+//                       selectedOrder.status === 'Confirmed' ? 'Đã xác nhận' :
+//                         selectedOrder.status === 'Cancelled' ? 'Đã hủy' :
+//                           selectedOrder.status === 'Make payment' ? 'Chờ thanh toán' :
+//                             selectedOrder.status === 'Deal price' ? 'Đã thỏa thuận giá' :
+//                               'Trạng thái không xác định'
+//                 }
+//               </p>
+//               <p>Đánh giá: {selectedOrder.ratings ? `${selectedOrder.ratings.rate}/5` : "Chưa đánh giá"}</p>
+//             </div>
+
+//             <div className="view-order-modal-section">
+//               <h4>Thông tin khách hàng</h4>
+//               <p>Tên: {selectedOrder.user_id.firstName} {selectedOrder.user_id.lastName}</p>
+//               <p>Email: {selectedOrder.user_id.email}</p>
+//               <p>SĐT: {selectedOrder.user_id.phone}</p>
+//               <p>Địa chỉ: {selectedOrder.user_id.address}</p>
+//             </div>
+
+//             <div className="view-order-modal-section">
+//               <h4>Thông tin thợ sửa</h4>
+//               <p>Tên: {`${selectedOrder.repairman_id.firstName} ${selectedOrder.repairman_id.lastName} || "Chưa phân công"`}</p>
+//               <p>Email: {selectedOrder.repairman_id.email || "N/A"}</p>
+//               <p>SĐT: {selectedOrder.repairman_id.phone || "N/A"}</p>
+//               <p>Địa chỉ: {selectedOrder.repairman_id.address || "N/A"}</p>
+//             </div>
+
+//             <button className="view-order-modal-close" onClick={closeModal}>
+//               Đóng
+//             </button>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default ViewRepairBooking;
+
+
+
+import React, { useState, useEffect } from "react";
 import "./ViewRepairBooking.css";
+import Loading from "../../../component/Loading/Loading";
+import Swal from "sweetalert2";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchRepairBookingHistory, resetError
+} from "../../../store/actions/adminActions"; // Adjust import to match the location of your actions
 
 const ViewRepairBooking = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -8,68 +218,27 @@ const ViewRepairBooking = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const repairOrders = [
-    {
-      id: "DH001",
-      orderDate: "2025-03-15 09:30",
-      completeDate: "2025-03-15 14:00",
-      priceRange: "500.000 - 700.000 VNĐ",
-      status: "Hoàn thành",
-      rating: 4.5,
-      customer: {
-        name: "Nguyễn Văn A",
-        email: "nguyenvana@gmail.com",
-        phone: "0905123456",
-        address: "123 Đường Láng, Hà Nội"
-      },
-      technician: {
-        name: "Trần Văn B",
-        email: "tranvanb@gmail.com",
-        phone: "0987654321",
-        address: "456 Lê Lợi, TP.HCM"
-      }
-    },
-    {
-      id: "DH002",
-      orderDate: "2025-03-16 10:00",
-      completeDate: null,
-      priceRange: "300.000 - 500.000 VNĐ",
-      status: "Đang xử lý",
-      rating: null,
-      customer: {
-        name: "Lê Thị C",
-        email: "lethic@gmail.com",
-        phone: "0912345678",
-        address: "789 Trần Phú, Đà Nẵng"
-      },
-      technician: {
-        name: "Phạm Văn D",
-        email: "phamvand@gmail.com",
-        phone: "0978123456",
-        address: "321 Nguyễn Huệ, Huế"
-      }
-    },
-    {
-      id: "DH003",
-      orderDate: "2025-03-16 14:00",
-      completeDate: null,
-      priceRange: "400.000 - 600.000 VNĐ",
-      status: "Đã hủy",
-      rating: null,
-      customer: {
-        name: "Hoàng Văn E",
-        email: "hoangvane@gmail.com",
-        phone: "0935123456",
-        address: "111 Nguyễn Trãi, Hà Nội"
-      },
-      technician: {
-        name: null, // Chưa phân thợ vì đã hủy
-        email: null,
-        phone: null,
-        address: null
-      }
+  // Redux state
+  const dispatch = useDispatch();
+  const { repairBookingHistory, loading, errorRepairBookingHistory } = useSelector(state => state.admin);
+
+  // Fetch repair booking history when the component mounts
+  useEffect(() => {
+    dispatch(fetchRepairBookingHistory());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (errorRepairBookingHistory) {
+      Swal.fire({
+        title: "Lỗi",
+        text: errorRepairBookingHistory,
+        icon: "error",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+      dispatch(resetError());
     }
-  ];
+  }, [dispatch, errorRepairBookingHistory]);
 
   const handleOrderClick = (order) => {
     setSelectedOrder(order);
@@ -79,20 +248,48 @@ const ViewRepairBooking = () => {
     setSelectedOrder(null);
   };
 
-  const filteredOrders = repairOrders.filter((order) => {
-    const orderDate = new Date(order.orderDate);
+  // Function to format date
+  const formatDateTime = (date) => {
+    const d = new Date(date);
+    const hours = d.getHours().toString().padStart(2, '0');
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const year = d.getFullYear();
+    return `${hours}:${minutes} ${day}/${month}/${year}`;
+  };
+
+  // Filter orders based on search term, status, and date
+  const filteredOrders = repairBookingHistory.filter((order) => {
+    const orderDate = new Date(order.updatedAt); // Use the completion date for filtering
     const start = startDate ? new Date(startDate) : null;
     const end = endDate ? new Date(endDate) : null;
 
-    return (
-      (searchTerm === "" || 
-        order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.customer.name.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (statusFilter === "" || order.status === statusFilter) &&
-      (!start || orderDate >= start) &&
-      (!end || orderDate <= end)
-    );
+    // Normalize the start and end dates (set end date to 23:59:59 for inclusivity)
+    if (end) {
+      end.setHours(23, 59, 59, 999); // Set time to end of the day
+    }
+
+    const fullName = order.user_id ? `${order.user_id.firstName} ${order.user_id.lastName}` : "";
+    // Check if the search term matches order ID or customer name
+    const matchesSearch =
+      searchTerm === "" ||
+      order._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (fullName.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    // Apply status filter
+    const matchesStatus = statusFilter === "" || order.status === statusFilter;
+
+    // Apply date range filter
+    const matchesDate =
+      (!start || orderDate >= start) && (!end || orderDate <= end);
+
+    return matchesSearch && matchesStatus && matchesDate;
   });
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <div className="history-container">
@@ -116,6 +313,9 @@ const ViewRepairBooking = () => {
             <option value="Hoàn thành">Hoàn thành</option>
             <option value="Đang xử lý">Đang xử lý</option>
             <option value="Đã hủy">Đã hủy</option>
+            <option value="Chờ thanh toán">Chờ thanh toán</option>
+            <option value="Đã thỏa thuận giá">Đã thỏa thuận giá</option>
+            <option value="Đã xác nhận">Đã xác nhận</option>
           </select>
           <input
             type="date"
@@ -134,25 +334,31 @@ const ViewRepairBooking = () => {
         <div className="view-order-list">
           {filteredOrders.map((order) => (
             <div
-              key={order.id}
+              key={order._id}
               className="view-order-item"
               onClick={() => handleOrderClick(order)}
             >
-              <span className="view-order-item-id">{order.id}</span>
-              <span className="view-order-item-date">Đặt: {order.orderDate}</span>
+              <span className="view-order-item-id">{order._id || "không xác định"}</span>
+              <span className="view-order-item-date">Đặt: {formatDateTime(order.createdAt) || "Không xác định"}</span>
               <span className="view-order-item-complete">
-                Hoàn thành: {order.completeDate || "Chưa hoàn thành"}
+                Hoàn thành: {formatDateTime(order.updatedAt) || "Không xác định"}
               </span>
-              <span className="view-order-item-price">{order.priceRange}</span>
+              <span className="view-order-item-price">{order.priceRange || 0}</span>
               <span
-                className={`view-order-item-status view-order-status-${order.status
-                  .toLowerCase()
-                  .replace(" ", "-")}`}
+                className={`view-order-item-status view-order-status-${order.status.toLowerCase().replace(" ", "-")}`}
               >
-                {order.status}
+                {
+                  order.status === 'Pending' ? 'Đang tiến hành' :
+                    order.status === 'Completed' ? 'Đã hoàn thành' :
+                      order.status === 'Confirmed' ? 'Đã xác nhận' :
+                        order.status === 'Cancelled' ? 'Đã hủy' :
+                          order.status === 'Make payment' ? 'Chờ thanh toán' :
+                            order.status === 'Deal price' ? 'Đã thỏa thuận giá' :
+                              'Trạng thái không xác định'
+                }
               </span>
               <span className="view-order-item-rating">
-                {order.rating ? `★ ${order.rating}/5` : "Chưa đánh giá"}
+                {order.ratings ? `★ ${order.ratings.rate}/5` : "Chưa đánh giá"}
               </span>
             </div>
           ))}
@@ -162,32 +368,48 @@ const ViewRepairBooking = () => {
       {selectedOrder && (
         <div className="view-order-modal">
           <div className="view-order-modal-content">
-            <h3 className="view-order-modal-title">CHI TIẾT ĐƠN HÀNG {selectedOrder.id}</h3>
+            <h3 className="view-order-modal-title">CHI TIẾT ĐƠN HÀNG {selectedOrder._id}</h3>
 
             <div className="view-order-modal-section">
               <h4>Thông tin đơn hàng</h4>
-              <p>Mã đơn hàng: {selectedOrder.id}</p>
-              <p>Ngày đặt: {selectedOrder.orderDate}</p>
-              <p>Ngày hoàn thành: {selectedOrder.completeDate || "Chưa hoàn thành"}</p>
-              <p>Khoảng giá: {selectedOrder.priceRange}</p>
-              <p>Trạng thái: {selectedOrder.status}</p>
-              <p>Đánh giá: {selectedOrder.rating ? `${selectedOrder.rating}/5` : "Chưa đánh giá"}</p>
+              <p>Mã đơn hàng: {selectedOrder._id || "Không xác định"}</p>
+              <p>Ngày đặt: {formatDateTime(selectedOrder.createdAt) || "Không xác định"}</p>
+              <p>Ngày hoàn thành: {formatDateTime(selectedOrder.updatedAt) || "Không xác định"}</p>
+              <p>Loại dịch vụ: {selectedOrder.serviceIndustry_id.type || "Không xác định"}</p>
+              <p>Địa chỉ thực hiện đơn sửa chữa: {selectedOrder.address || "Không xác định"}</p>
+              <p>Mô tả tình trạng đơn sửa chữa: {selectedOrder.description || "Không xác định"}</p>
+              <p>Ảnh đơn sửa chữa: {<img src={selectedOrder.image} alt="Avatar" /> || "Không xác định"}</p>
+              <p>Khoảng giá: {selectedOrder.priceRange || 0}</p>
+              <p>
+                Trạng thái:{" "}
+                {
+                  selectedOrder.status === 'Pending' ? 'Đang tiến hành' :
+                    selectedOrder.status === 'Completed' ? 'Đã hoàn thành' :
+                      selectedOrder.status === 'Confirmed' ? 'Đã xác nhận' :
+                        selectedOrder.status === 'Cancelled' ? 'Đã hủy' :
+                          selectedOrder.status === 'Make payment' ? 'Chờ thanh toán' :
+                            selectedOrder.status === 'Deal price' ? 'Đã thỏa thuận giá' :
+                              'Trạng thái không xác định'
+                }
+              </p>
+              <p>Đánh giá: {selectedOrder.ratings && selectedOrder.ratings[0] ? `${selectedOrder.ratings[0].rate}/5` : "Không xác định"}</p>
+
             </div>
 
             <div className="view-order-modal-section">
               <h4>Thông tin khách hàng</h4>
-              <p>Tên: {selectedOrder.customer.name}</p>
-              <p>Email: {selectedOrder.customer.email}</p>
-              <p>SĐT: {selectedOrder.customer.phone}</p>
-              <p>Địa chỉ: {selectedOrder.customer.address}</p>
+              <p>Tên: {selectedOrder.user_id ? `${selectedOrder.user_id.firstName} ${selectedOrder.user_id.lastName}` : "Không xác định"}</p>
+              <p>Email: {selectedOrder.user_id ? selectedOrder.user_id.email : "Không xác định"}</p>
+              <p>SĐT: {selectedOrder.user_id ? selectedOrder.user_id.phone : "Không xác định"}</p>
+              <p>Địa chỉ: {selectedOrder.user_id ? selectedOrder.user_id.address : "Không xác định"}</p>
             </div>
 
             <div className="view-order-modal-section">
               <h4>Thông tin thợ sửa</h4>
-              <p>Tên: {selectedOrder.technician.name || "Chưa phân công"}</p>
-              <p>Email: {selectedOrder.technician.email || "N/A"}</p>
-              <p>SĐT: {selectedOrder.technician.phone || "N/A"}</p>
-              <p>Địa chỉ: {selectedOrder.technician.address || "N/A"}</p>
+              <p>Tên: {selectedOrder.repairman_id ? `${selectedOrder.repairman_id.firstName} ${selectedOrder.repairman_id.lastName}` : "Không xác định"}</p>
+              <p>Email: {selectedOrder.repairman_id ? selectedOrder.repairman_id.email : "Không xác định"}</p>
+              <p>SĐT: {selectedOrder.repairman_id ? selectedOrder.repairman_id.phone : "Không xác định"}</p>
+              <p>Địa chỉ: {selectedOrder.repairman_id ? selectedOrder.repairman_id.address : "Không xác định"}</p>
             </div>
 
             <button className="view-order-modal-close" onClick={closeModal}>

@@ -11,13 +11,21 @@ const RequestSchema = new mongoose.Schema({
         ref: 'ServiceIndustry',
         required: true
     },
+    address: {
+        type: String,
+        required: true
+    },
+    image: {
+        type: String,
+        default: null
+    },
     description: {
         type: String,
         required: true
     },
     status: {
-        type: Number,
-        default: 1
+        type: String,
+        enum: ['Completed', 'Confirmed', 'Pending', 'Cancelled', 'Requesting Details', 'Deal price']
     },
     repairman_id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -29,7 +37,11 @@ const RequestSchema = new mongoose.Schema({
         ref: 'Request',
         default: null
     },
-}, { timestamps: true });
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
 RequestSchema.virtual('ID', {
     ref: 'Request',
@@ -60,11 +72,11 @@ RequestSchema.virtual('ratings', {
 });
 
 // Virtual for images
-RequestSchema.virtual('images', {
-    ref: 'Image',
-    localField: '_id',
-    foreignField: 'request_id'
-});
+// RequestSchema.virtual('images', {
+//     ref: 'Image',
+//     localField: '_id',
+//     foreignField: 'request_id'
+// });
 
 // Virtual for repairman
 RequestSchema.virtual('repairman', {

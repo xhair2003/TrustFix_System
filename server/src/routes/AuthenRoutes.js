@@ -7,7 +7,7 @@ const upload = require("../middlewares/upload_IMG");
 router.post("/register", AuthenController.initRegister);
 router.post("/verify-register", AuthenController.verifyRegister);
 
-
+router.get("/get-role", AuthMiddleware.verifyToken, AuthenController.getRole);
 router.post("/login", AuthenController.login);
 router.post("/refresh-token", AuthenController.refreshToken);
 router.post("/logout", AuthMiddleware.verifyToken, AuthenController.logout);
@@ -50,5 +50,6 @@ router.get("/user-info", AuthMiddleware.verifyToken, (req, res) => {
 
 
 
-router.post("/update-profile",upload.single("image") , AuthenController.updateInformation);
+// router.post("/update-profile",upload.single("image") , AuthenController.updateInformation);
 module.exports = router;
+

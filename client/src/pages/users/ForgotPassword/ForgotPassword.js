@@ -1,6 +1,6 @@
 // ForgotPassword.js (container)
-import "../../style/style.scss";
-import ForgotPasswordForm from "../../component/login/ForgotPasswordForm";
+import "../../../style/style.scss";
+import ForgotPasswordForm from "../../../component/users/ForgotPassword/ForgotPasswordForm";
 
 const ForgotPassword = () => {
   return (

@@ -1,11 +1,11 @@
-const { User, Role } = require("../models");
+const { User, Role, Wallet } = require("../models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const user = require("../models/user");
-const hashPassword  = require("../utils/password");
+const hashPassword = require("../utils/password");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
-const cloudinary = require("../../config/cloudinary");
+
 
 // JWT configuration
 const JWT_ACCESS_KEY = process.env.JWT_ACCESS_KEY || "your_jwt_access_secret_key";
@@ -115,7 +115,7 @@ const initRegister = async (req, res) => {
 
         // Generate OTP
         const otp = generateOTP();
-        
+
         // Store registration data temporarily
         pendingRegistrations.set(email, {
             firstName,
@@ -208,7 +208,7 @@ const verifyRegister = async (req, res) => {
             email: registration.email,
             pass: hashedPassword,
             phone: registration.phone,
-            status: 1
+            status: "Inactive" // set Inactive ban đầu
         });
 
         // Save user
@@ -222,6 +222,16 @@ const verifyRegister = async (req, res) => {
 
         // Save role
         await newRole.save();
+
+        // Create wallet for user
+        const newWallet = new Wallet({
+            user_id: savedUser._id,
+            balance: 0 // Initial balance có thể là 0 hoặc giá trị mặc định khác
+        });
+
+        // Save wallet
+        await newWallet.save();
+
 
         // Remove pending registration
         pendingRegistrations.delete(email);
@@ -270,7 +280,7 @@ const login = async (req, res) => {
     try {
         const { email, pass } = req.body;
         console.log(pass);
-        
+
         // Validate required fields
         if (!email || !pass) {
             return res.status(400).json({
@@ -319,7 +329,7 @@ const login = async (req, res) => {
         }
 
         // Check if user is active
-        if (user.status !== 1) {
+        if (user.status === "Banned") {
             return res.status(401).json({
                 EC: 0,
                 EM: "Tài khoản đã bị vô hiệu hóa!"
@@ -431,36 +441,77 @@ const logout = async (req, res) => {
     });
 };
 
+const getRole = async (req, res) => {
+    try {
+        // Lấy ID của người dùng từ req.user (được xác thực từ verifyToken)
+        const userId = req.user.id;
+
+        // Tìm loại (type) role của người dùng từ bảng Role
+        const userRole = await Role.findOne({ user_id: userId }).select("type");
+
+        if (!userRole) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy vai trò cho người dùng này!",
+            });
+        }
+
+        // Trả về type của người dùng
+        return res.status(200).json({
+            EC: 1,
+            EM: "Lấy loại vai trò thành công!",
+            DT: userRole.type,  // xuất ra role người dùng
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+        });
+    }
+};
+
+
 
 ///Change password
 const changePassword = async (req, res) => {
     try {
-        const { email, pass, newPass, confirmNewPass } = req.body;
+        const { pass, newPass, confirmNewPass } = req.body;
+        const user_id = req.user.id;
 
-        if (!email || !pass || !newPass || !confirmNewPass) {
+        // Kiểm tra các trường dữ liệu yêu cầu
+        if (!pass || !newPass || !confirmNewPass) {
             return res.status(400).json({ EC: 0, EM: "Vui lòng nhập đầy đủ thông tin!" });
         }
 
+        // Kiểm tra sự khớp giữa mật khẩu mới và xác nhận mật khẩu mới
         if (newPass !== confirmNewPass) {
             return res.status(400).json({ EC: 0, EM: "Mật khẩu mới không khớp!" });
         }
 
+        // Kiểm tra độ dài mật khẩu mới
         if (newPass.length < 8) {
             return res.status(400).json({ EC: 0, EM: "Mật khẩu mới phải có ít nhất 8 ký tự!" });
         }
 
-        const user = await User.findOne({ email });
+        // Lấy thông tin người dùng từ database
+        const user = await User.findById(user_id);
+
         if (!user) {
-            return res.status(400).json({ EC: 0, EM: "Email không tồn tại!" });
+            return res.status(400).json({ EC: 0, EM: "Người dùng không tồn tại" });
         }
 
+        // So sánh mật khẩu cũ với mật khẩu trong cơ sở dữ liệu
         const validPassword = await bcrypt.compare(pass, user.pass);
         if (!validPassword) {
-            return res.status(400).json({ EC: 0, EM: "Mật khẩu không chính xác!" });
+            return res.status(400).json({ EC: 0, EM: "Mật khẩu cũ không chính xác!" });
         }
 
-        // Đổi mật khẩu với hàm hash đúng
-        user.pass = await hashPassword(newPass);
+        // Mã hóa mật khẩu mới
+        const hashedPassword = await hashPassword(newPass);
+
+        // Cập nhật mật khẩu mới vào cơ sở dữ liệu
+        user.pass = hashedPassword;
         await user.save();
 
         return res.status(200).json({ EC: 1, EM: "Đổi mật khẩu thành công!" });
@@ -470,6 +521,7 @@ const changePassword = async (req, res) => {
         res.status(500).json({ EC: 0, EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!" });
     }
 };
+
 
 const forgotPassword = async (req, res) => {
     try {
@@ -494,7 +546,7 @@ const forgotPassword = async (req, res) => {
 
         // Generate OTP
         const otp = generateOTP();
-        
+
         // Store OTP with expiration (5 minutes)
         otpStore.set(email, {
             code: otp,
@@ -642,69 +694,8 @@ const resetPassword = async (req, res) => {
     }
 };
 
-const updateInformation = async (req, res) => {
-    try {
-        const { email, firstName, lastName, phone, address, description } = req.body;
-        
-        // Validate required fields
-        if (!email || !firstName || !lastName || !phone) {
-            return res.status(400).json({
-                EC: 0,
-                EM: "Vui lòng nhập đầy đủ thông tin!"
-            });
-        }
-
-        // Tìm user theo email
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({
-                EC: 0,
-                EM: "Email không tồn tại trong hệ thống!"
-            });
-        }
-
-        // Upload ảnh mới nếu có
-        let imgAvt = user.imgAvt; // Mặc định giữ ảnh cũ
-        if (req.file) {
-            const result = await cloudinary.uploader.upload(req.file.path, {
-                folder: "user_avatars", // Upload vào thư mục user_avatars
-                transformation: [{ width: 500, height: 500, crop: "limit" }]
-            });
-            imgAvt = result.secure_url; // Lấy link ảnh từ Cloudinary
-        }
-
-        // Cập nhật thông tin người dùng
-        user.firstName = firstName;
-        user.lastName = lastName;
-        user.phone = phone;
-        user.imgAvt = imgAvt;
-        user.address = address || user.address;
-        user.description = description || user.description;
-
-        // Lưu cập nhật
-        await user.save();
-
-        // Xóa password trước khi trả về response
-        const userResponse = user.toObject();
-        delete userResponse.pass;
-
-        res.status(200).json({
-            EC: 1,
-            EM: "Cập nhật thông tin thành công!",
-            DT: userResponse
-        });
-
-    } catch (err) {
-        console.error("Update information error:", err);
-        res.status(500).json({
-            EC: 0,
-            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
-        });
-    }
-};
-
-
 module.exports = {
+    transporter,
     initRegister,
     verifyRegister,
     login,
@@ -714,5 +705,5 @@ module.exports = {
     forgotPassword,
     verifyOTP,
     resetPassword,
-    updateInformation
+    getRole,
 };
