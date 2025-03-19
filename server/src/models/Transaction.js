@@ -18,6 +18,8 @@ const TransactionSchema = new mongoose.Schema(
     status: {
       type: Number,
       required: true,
+      default: 0,
+      enum: [0, 1, 2], // 0: Pending, 1: Success, 2: Failed
     },
     transactionType: {
       type: String,
