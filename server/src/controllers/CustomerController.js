@@ -556,7 +556,7 @@ const getUserInfo = async (req, res) => {
     });
   }
 };
-const sendRequest = async (req, res, next) => {
+const sendRequest = async (req, res) => {
   try {
     const { serviceIndustry_id, description, address, radius } = req.body; // Lấy 'price' từ req.body
     //const gomapApiKey = process.env.GOMAPS_API_KEY;
@@ -609,8 +609,16 @@ const sendRequest = async (req, res, next) => {
     });
     const savedRequest = await newRequest.save();
     req.savedRequest = { requestId: savedRequest._id };
-
-    next();
+    
+    res.status(200).json({
+        EC: 1,
+        EM: "Gửi yêu cầu tìm thợ thành công!",
+        DT: {
+            
+            request: savedRequest
+        },
+      });
+    
   } catch (error) {
     console.error("Error creating service request:", error); // Cập nhật log error message
     res.status(500).json({
@@ -622,8 +630,12 @@ const sendRequest = async (req, res, next) => {
 
 const findRepairman = async (req, res) => {
   try {
-    const requestId = req.savedRequest.requestId;
-    const { radius, minPrice, maxPrice } = req.body; // Get radius from request parameters
+    // Correctly access requestId from req.savedRequest
+    //const requestId = sendRequest.req.savedRequest._id;
+    // Correctly access radius from req.body
+    const {requestId} = req.params;
+    const { radius, minPrice, maxPrice } = req.body; // radius is in req.body now
+
     const gomapApiKey = process.env.GOMAPS_API_KEY;
 
     if (!requestId || !minPrice || !maxPrice) {
@@ -855,6 +867,67 @@ const viewRepairHistory = async (req, res) => {
     });
   }
 };
+const viewRepairmanDeal = async (req, res) => {
+    try {
+        const { requestId } = req.params;
+        const userId = req.user.id;
+
+        const requests = await Request.find({
+            user_id: userId,
+            repairman_id: { $ne: null },
+            parentRequest: requestId,
+            status: 'Done deal price'
+        });
+
+        if (!requests || requests.length === 0) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy yêu cầu deal giá phù hợp!"
+            });
+        }
+
+        const repairmanDeals = [];
+
+        for (const request of requests) {
+            const repairman = await RepairmanUpgradeRequest.findById(request.repairman_id);
+            const repairmanInfor = await User.findById(repairman.user_id).select('firstName lastName email phone imgAvt address description');
+
+            const completedRequests = await Request.find({
+                repairman_id: request.repairman_id,
+                status: 'Completed'
+            });
+            const completedRequestIds = completedRequests.map(req => req._id);
+            const repairmanRatings = await Rating.find({
+                request_id: { $in: completedRequestIds }
+            }).populate('request_id', 'description status');
+
+            const duePrice = await DuePrice.findOne({ request_id: request._id });
+            let dealPriceInfo = null;
+            if (duePrice) {
+                dealPriceInfo = await Price.findOne({ duePrice_id: duePrice._id });
+            }
+
+            repairmanDeals.push({
+                //request: request,
+                repairman: repairmanInfor,
+                ratings: repairmanRatings,
+                dealPrice: dealPriceInfo
+            });
+        }
+
+        res.status(201).json({
+            EC: 1,
+            EM: "Hiển thị thông tin thợ thành công!",
+            DT: repairmanDeals
+        });
+    } catch (error) {
+        console.error("Error in dealPrice API:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
 
 module.exports = {
   getBalance,
@@ -873,4 +946,5 @@ module.exports = {
   getUserInfo,
   sendRequest,
   findRepairman,
+  viewRepairmanDeal
 };

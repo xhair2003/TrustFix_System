@@ -38,6 +38,7 @@ const RequestSchema = new mongoose.Schema(
         "Cancelled",
         "Requesting Details",
         "Deal price",
+        "Done deal price",
         "Make payment",
         "Proceed with repair",
       ],

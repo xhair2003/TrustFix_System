@@ -47,12 +47,12 @@ router.get("/get-request",authMiddleware.verifyToken,CustomerController.getAllRe
 //gửi yêu cầu tìm thợ
 router.post('/send-request',authMiddleware.verifyToken, CustomerController.sendRequest);
 
-router.post('/requests/find-repairman', authMiddleware.verifyToken, CustomerController.sendRequest, CustomerController.findRepairman);
+router.post('/requests/find-repairman/:requestId', authMiddleware.verifyToken, CustomerController.findRepairman);
 
 //view-repair-history
 router.get('/view-repair-history', authMiddleware.verifyToken, CustomerController.viewRepairHistory);
 router.get("/get-request", authMiddleware.verifyToken, CustomerController.getAllRequests)
 
-
+router.get('/viewRepairmanDeal/:requestId', authMiddleware.verifyToken, CustomerController.viewRepairmanDeal);
 
 module.exports = router;
