@@ -1166,32 +1166,32 @@ export const totalServiceIndustries = () => async (dispatch, getState) => {
 // Fetch total services by industry
 export const totalServicesByIndustry = () => async (dispatch, getState) => {
     try {
-        dispatch(request("REQUEST_TOTAL_SERVICES_BY_INDUSTRY"));
-        const token = getState().auth.token || localStorage.getItem('token');
-        const response = await axios.get('http://localhost:8080/api/admin/total-services-by-industry', {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-        if (response.data.EC === 1) {
-            dispatch({
-                type: "SUCCESS_TOTAL_SERVICES_BY_INDUSTRY",
-                payload: response.data.DT,
-            });
-        } else {
-            dispatch({
-                type: "ERROR_TOTAL_SERVICES_BY_INDUSTRY",
-                payload: response.data.EM,
-            });
-        }
-    } catch (error) {
+      dispatch(request("REQUEST_TOTAL_SERVICES_BY_INDUSTRY"));
+      const token = getState().auth.token || localStorage.getItem('token');
+      const response = await axios.get('http://localhost:8080/api/admin/total-services-by-industry', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log('API Response for totalServicesByIndustry:', response.data); // Log để kiểm tra
+      if (response.data.EC === 1) {
+        // Chuẩn hóa dữ liệu thành mảng
+        const data = Array.isArray(response.data.DT) ? response.data.DT : [];
         dispatch({
-            type: "ERROR_TOTAL_SERVICES_BY_INDUSTRY",
-            payload: error.response.data.EM,
+          type: "SUCCESS_TOTAL_SERVICES_BY_INDUSTRY",
+          payload: data,
         });
+      } else {
+        dispatch({
+          type: "ERROR_TOTAL_SERVICES_BY_INDUSTRY",
+          payload: response.data.EM,
+        });
+      }
+    } catch (error) {
+      dispatch({
+        type: "ERROR_TOTAL_SERVICES_BY_INDUSTRY",
+        payload: error.response?.data?.EM || 'Lỗi không xác định',
+      });
     }
-};
-
+  };
 // Fetch total service prices
 export const totalServicePrices = () => async (dispatch, getState) => {
     try {
