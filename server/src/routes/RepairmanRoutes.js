@@ -23,4 +23,6 @@ router.put("/toggle-status", AuthMiddleware.verifyRepairman, RepairmanController
 
 router.post("/deal-price", AuthMiddleware.verifyToken, RepairmanController.dealPrice);
 
+router.get("/process-monthly-fee", AuthMiddleware.verifyRepairman, RepairmanController.processMonthlyFee);
+
 module.exports = router;
