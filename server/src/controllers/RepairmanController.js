@@ -1,6 +1,6 @@
 const { User, Role, RepairmanUpgradeRequest, ServiceIndustry, Service, Vip, DuePrice, Price, Rating, Request, Transaction, Wallet } = require("../models");
 const cloudinary = require("../../config/cloudinary");
-const {MONTHLY_FEE, sendEmail}=require("../constants");
+const { MONTHLY_FEE, sendEmail } = require("../constants");
 
 // lấy type của ServiceIndustry
 // API GET để lấy tất cả các loại dịch vụ (type)
@@ -390,7 +390,7 @@ const dealPrice = async (req, res, next) => {
 
 const processMonthlyFee = async (req, res) => {
     try {
-        const { userId } = req.query;
+        const userId = req.user.id;
         if (!userId) {
             return res.status(400).json({ EC: 1, EM: "Thiếu ID người dùng!" });
         }

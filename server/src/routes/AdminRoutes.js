@@ -93,4 +93,6 @@ router.get("/total-services-by-industry", AuthMiddleware.verifyAdmin, AdminContr
 // total service prices
 router.get("/total-service-prices", AuthMiddleware.verifyAdmin, AdminController.totalServicePrices);
 
-module.exports = router;    
+module.exports = router;
+
+
