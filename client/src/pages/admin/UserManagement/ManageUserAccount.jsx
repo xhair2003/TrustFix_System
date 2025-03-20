@@ -18,7 +18,7 @@ const ManageUserAccount = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const [modalType, setModalType] = useState(null);
-    const [selectedUser, setSelectedUser] = useState(null);
+    const [selectedUser, setSelectedUser] = useState(null); 
     const [reason, setReason] = useState("");
 
     useEffect(() => {
@@ -141,7 +141,7 @@ const ManageUserAccount = () => {
                 user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 user._id.toLowerCase().includes(searchTerm.toLowerCase()); // Thêm điều kiện tìm kiếm theo _id
             const matchesRole = roleFilter === "All" || user.roles[0]?.type === roleFilter;
-            return matchesSearch && matchesRole;
+        return matchesSearch && matchesRole;
         })
         .sort((a, b) => {
             if (roleFilter === "All") {
@@ -246,10 +246,10 @@ const ManageUserAccount = () => {
                                         type="checkbox"
                                         onChange={() => {
                                             if (selectedUsers.length === paginatedUsers.length) {
-                                                setSelectedUsers([]);
-                                            } else {
+                                        setSelectedUsers([]);
+                                    } else {
                                                 setSelectedUsers(paginatedUsers.map((user) => user._id));
-                                            }
+                                    }
                                         }}
                                         checked={selectedUsers.length === paginatedUsers.length}
                                     />

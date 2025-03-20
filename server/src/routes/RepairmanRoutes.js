@@ -21,5 +21,6 @@ router.get("/list-vips", AuthMiddleware.verifyRepairman, RepairmanController.get
 router.get("/get-status", AuthMiddleware.verifyRepairman, RepairmanController.getStatusRepairman);
 router.put("/toggle-status", AuthMiddleware.verifyRepairman, RepairmanController.toggleStatusRepairman);
 
+router.post("/deal-price", AuthMiddleware.verifyToken, RepairmanController.dealPrice);
 
 module.exports = router;

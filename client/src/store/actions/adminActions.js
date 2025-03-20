@@ -787,10 +787,15 @@ const request = (type) => ({
 });
 
 // Fetch total users
-export const totalUsers = () => async (dispatch) => {
+export const totalUsers = () => async (dispatch, getState) => {
     try {
         dispatch(request("REQUEST_TOTAL_USERS"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-users');
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-users', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (response.data.EC === 1) {
             dispatch({
                 type: "SUCCESS_TOTAL_USERS",
@@ -811,10 +816,15 @@ export const totalUsers = () => async (dispatch) => {
 };
 
 // Fetch total banned users
-export const totalBannedUsers = () => async (dispatch) => {
+export const totalBannedUsers = () => async (dispatch, getState) => {
     try {
         dispatch(request("REQUEST_TOTAL_BANNED_USERS"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-banned-users');
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-banned-users', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (response.data.EC === 1) {
             dispatch({
                 type: "SUCCESS_TOTAL_BANNED_USERS",
@@ -835,10 +845,15 @@ export const totalBannedUsers = () => async (dispatch) => {
 };
 
 // Fetch total repairmen
-export const totalRepairmen = () => async (dispatch) => {
+export const totalRepairmen = () => async (dispatch, getState) => {
     try {
         dispatch(request("REQUEST_TOTAL_REPAIRMEN"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-repairmen');
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-repairmen', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (response.data.EC === 1) {
             dispatch({
                 type: "SUCCESS_TOTAL_REPAIRMEN",
@@ -859,10 +874,15 @@ export const totalRepairmen = () => async (dispatch) => {
 };
 
 // Fetch total customers
-export const totalCustomers = () => async (dispatch) => {
+export const totalCustomers = () => async (dispatch, getState) => {
     try {
         dispatch(request("REQUEST_TOTAL_CUSTOMERS"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-customers');
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-customers', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (response.data.EC === 1) {
             dispatch({
                 type: "SUCCESS_TOTAL_CUSTOMERS",
@@ -883,10 +903,15 @@ export const totalCustomers = () => async (dispatch) => {
 };
 
 // Fetch total completed requests
-export const totalCompletedRequests = () => async (dispatch) => {
+export const totalCompletedRequests = () => async (dispatch, getState) => {
     try {
         dispatch(request("REQUEST_TOTAL_COMPLETED_REQUESTS"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-completed-requests');
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-completed-requests', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (response.data.EC === 1) {
             dispatch({
                 type: "SUCCESS_TOTAL_COMPLETED_REQUESTS",
@@ -907,10 +932,15 @@ export const totalCompletedRequests = () => async (dispatch) => {
 };
 
 // Fetch total confirmed requests
-export const totalConfirmedRequests = () => async (dispatch) => {
+export const totalConfirmedRequests = () => async (dispatch, getState) => {
     try {
         dispatch(request("REQUEST_TOTAL_CONFIRMED_REQUESTS"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-confirmed-requests');
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-confirmed-requests', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (response.data.EC === 1) {
             dispatch({
                 type: "SUCCESS_TOTAL_CONFIRMED_REQUESTS",
@@ -931,10 +961,15 @@ export const totalConfirmedRequests = () => async (dispatch) => {
 };
 
 // Fetch total pending requests
-export const totalPendingRequests = () => async (dispatch) => {
+export const totalPendingRequests = () => async (dispatch, getState) => {
     try {
         dispatch(request("REQUEST_TOTAL_PENDING_REQUESTS"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-pending-requests');
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-pending-requests', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (response.data.EC === 1) {
             dispatch({
                 type: "SUCCESS_TOTAL_PENDING_REQUESTS",
@@ -955,10 +990,15 @@ export const totalPendingRequests = () => async (dispatch) => {
 };
 
 // Fetch total cancelled requests
-export const totalCancelledRequests = () => async (dispatch) => {
+export const totalCancelledRequests = () => async (dispatch, getState) => {
     try {
         dispatch(request("REQUEST_TOTAL_CANCELLED_REQUESTS"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-cancelled-requests');
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-cancelled-requests', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (response.data.EC === 1) {
             dispatch({
                 type: "SUCCESS_TOTAL_CANCELLED_REQUESTS",
@@ -979,10 +1019,15 @@ export const totalCancelledRequests = () => async (dispatch) => {
 };
 
 // Fetch total make payment requests
-export const totalMakePaymentRequests = () => async (dispatch) => {
+export const totalMakePaymentRequests = () => async (dispatch, getState) => {
     try {
         dispatch(request("REQUEST_TOTAL_MAKE_PAYMENT_REQUESTS"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-make-payment-requests');
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-make-payment-requests', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (response.data.EC === 1) {
             dispatch({
                 type: "SUCCESS_TOTAL_MAKE_PAYMENT_REQUESTS",
@@ -1003,10 +1048,15 @@ export const totalMakePaymentRequests = () => async (dispatch) => {
 };
 
 // Fetch total deal price requests
-export const totalDealPriceRequests = () => async (dispatch) => {
+export const totalDealPriceRequests = () => async (dispatch, getState) => {
     try {
         dispatch(request("REQUEST_TOTAL_DEAL_PRICE_REQUESTS"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-deal-price-requests');
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-deal-price-requests', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (response.data.EC === 1) {
             dispatch({
                 type: "SUCCESS_TOTAL_DEAL_PRICE_REQUESTS",
@@ -1027,10 +1077,15 @@ export const totalDealPriceRequests = () => async (dispatch) => {
 };
 
 // Fetch total pending complaints
-export const totalPendingComplaints = () => async (dispatch) => {
+export const totalPendingComplaints = () => async (dispatch, getState) => {
     try {
         dispatch(request("REQUEST_TOTAL_PENDING_COMPLAINTS"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-pending-complaints');
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-pending-complaints', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (response.data.EC === 1) {
             dispatch({
                 type: "SUCCESS_TOTAL_PENDING_COMPLAINTS",
@@ -1051,10 +1106,15 @@ export const totalPendingComplaints = () => async (dispatch) => {
 };
 
 // Fetch total pending upgrade requests
-export const totalPendingUpgradeRequests = () => async (dispatch) => {
+export const totalPendingUpgradeRequests = () => async (dispatch, getState) => {
     try {
         dispatch(request("REQUEST_TOTAL_PENDING_UPGRADE_REQUESTS"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-pending-upgrade-requests');
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-pending-upgrade-requests', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (response.data.EC === 1) {
             dispatch({
                 type: "SUCCESS_TOTAL_PENDING_UPGRADE_REQUESTS",
@@ -1075,10 +1135,15 @@ export const totalPendingUpgradeRequests = () => async (dispatch) => {
 };
 
 // Fetch total service industries
-export const totalServiceIndustries = () => async (dispatch) => {
+export const totalServiceIndustries = () => async (dispatch, getState) => {
     try {
         dispatch(request("REQUEST_TOTAL_SERVICE_INDUSTRIES"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-service-industries');
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-service-industries', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (response.data.EC === 1) {
             dispatch({
                 type: "SUCCESS_TOTAL_SERVICE_INDUSTRIES",
@@ -1099,34 +1164,44 @@ export const totalServiceIndustries = () => async (dispatch) => {
 };
 
 // Fetch total services by industry
-export const totalServicesByIndustry = () => async (dispatch) => {
+export const totalServicesByIndustry = () => async (dispatch, getState) => {
     try {
-        dispatch(request("REQUEST_TOTAL_SERVICES_BY_INDUSTRY"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-services-by-industry');
-        if (response.data.EC === 1) {
-            dispatch({
-                type: "SUCCESS_TOTAL_SERVICES_BY_INDUSTRY",
-                payload: response.data.DT,
-            });
-        } else {
-            dispatch({
-                type: "ERROR_TOTAL_SERVICES_BY_INDUSTRY",
-                payload: response.data.EM,
-            });
-        }
-    } catch (error) {
+      dispatch(request("REQUEST_TOTAL_SERVICES_BY_INDUSTRY"));
+      const token = getState().auth.token || localStorage.getItem('token');
+      const response = await axios.get('http://localhost:8080/api/admin/total-services-by-industry', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log('API Response for totalServicesByIndustry:', response.data); // Log để kiểm tra
+      if (response.data.EC === 1) {
+        // Chuẩn hóa dữ liệu thành mảng
+        const data = Array.isArray(response.data.DT) ? response.data.DT : [];
         dispatch({
-            type: "ERROR_TOTAL_SERVICES_BY_INDUSTRY",
-            payload: error.response.data.EM,
+          type: "SUCCESS_TOTAL_SERVICES_BY_INDUSTRY",
+          payload: data,
         });
+      } else {
+        dispatch({
+          type: "ERROR_TOTAL_SERVICES_BY_INDUSTRY",
+          payload: response.data.EM,
+        });
+      }
+    } catch (error) {
+      dispatch({
+        type: "ERROR_TOTAL_SERVICES_BY_INDUSTRY",
+        payload: error.response?.data?.EM || 'Lỗi không xác định',
+      });
     }
-};
-
+  };
 // Fetch total service prices
-export const totalServicePrices = () => async (dispatch) => {
+export const totalServicePrices = () => async (dispatch, getState) => {
     try {
         dispatch(request("REQUEST_TOTAL_SERVICE_PRICES"));
-        const response = await axios.get('http://localhost:8080/api/admin/total-service-prices');
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-service-prices', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (response.data.EC === 1) {
             dispatch({
                 type: "SUCCESS_TOTAL_SERVICE_PRICES",

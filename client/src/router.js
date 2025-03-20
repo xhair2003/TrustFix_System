@@ -29,6 +29,7 @@ import ViewDepositHistory from "./pages/admin/TransactionManagement/DepositHisto
 import ViewPaymentHistory from "./pages/admin/TransactionManagement/PaymentHistory/ViewPaymentHistory.jsx";
 import ManageServicePrices from "./pages/admin/ManageServicePrices/ManageServicePrices.jsx";
 import ViewRepairBooking from "./pages/admin/ViewRepairBooking/ViewRepairBooking.jsx";
+import Dashboard from "./pages/admin/Dashboard/Dashboard.jsx";
 
 const UserROUTERS = () => {
     const routers = [
@@ -94,8 +95,8 @@ const UserROUTERS = () => {
         },
         {
             path: ROUTERS.ADMIN.DASHBOARD,
-            // component: <Dashboard />,
-            layout: MasterLayoutAdmin,
+            component: <Dashboard />,
+            layout: MasterLayoutAdmin, 
         },
         {
             path: ROUTERS.ADMIN.VIEW_REPAIR_BOOKING,
