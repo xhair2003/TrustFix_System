@@ -102,7 +102,7 @@ const requestRepairmanUpgrade = async (req, res) => {
             imgCertificatePractice: imgCertificatePracticeUrls,
             imgCCCD: imgCCCDUrls,
             description: description,
-            status: 'Pending', // Default status: Pending
+            status: 'pending', // Default status: Pending
         });
 
         console.log("imgCertificatePracticeUrls", imgCertificatePracticeUrls);
