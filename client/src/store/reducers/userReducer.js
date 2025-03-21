@@ -17,6 +17,14 @@ const initialState = {
     status: null,
     errorToggleStatus: null,
     errorGetStatus: null,
+
+    errorFindRepairman: null,
+    errorViewRequest: null,
+    successFindRepairman: null,
+    request: null,
+    errorDealPrice: null,
+    successDealPrice: null,
+
 };
 
 const userReducer = (state = initialState, action) => {
@@ -227,6 +235,69 @@ const userReducer = (state = initialState, action) => {
             };
 
 
+        case "FIND_REPAIRMAN_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "FIND_REPAIRMAN_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                successFindRepairman: action.payload, // Lưu dữ liệu từ BE (VD: { EC: 1, EM: "Gửi yêu cầu thành công!" })
+                errorFindRepairman: null,
+            };
+        case "FIND_REPAIRMAN_FAIL":
+            return {
+                ...state,
+                loading: false,
+                successFindRepairman: null,
+                errorFindRepairman: action.payload, // Lưu thông báo lỗi
+            };
+
+
+        case "VIEW_REQUEST_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "VIEW_REQUEST_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                request: action.payload, // Lưu request từ BE
+                errorViewRequest: null,
+            };
+        case "VIEW_REQUEST_FAIL":
+            return {
+                ...state,
+                loading: false,
+                request: null,
+                errorViewRequest: action.payload, // Lưu thông báo lỗi
+            };
+
+
+        case "DEAL_PRICE_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "DEAL_PRICE_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                successDealPrice: action.payload, // Lưu dữ liệu từ BE (EC, EM, DT)
+                errorDealPrice: null,
+            };
+        case "DEAL_PRICE_FAIL":
+            return {
+                ...state,
+                loading: false,
+                successDealPrice: null,
+                errorDealPrice: action.payload, // Lưu thông báo lỗi
+            };
+
+
         case "RESET_ERROR":
             return {
                 ...state,
@@ -238,6 +309,11 @@ const userReducer = (state = initialState, action) => {
                 errorServiceTypes: null,
                 errorToggleStatus: null,
                 errorGetStatus: null,
+
+                errorFindRepairman: null,
+                errorViewRequest: null,
+                errorDealPrice: null,
+
             };
         case "RESET_SUCCESS":
             return {
@@ -246,6 +322,10 @@ const userReducer = (state = initialState, action) => {
                 complaintMessage: null,
                 repairHistory: null,
                 successUpgrade: null,
+
+                successFindRepairman: null,
+                successDealPrice: null,
+
             };
         default:
             return state;
