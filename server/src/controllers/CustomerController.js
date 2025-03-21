@@ -915,7 +915,7 @@ const viewRepairmanDeal = async (req, res) => {
 
     res.status(201).json({
       EC: 1,
-      EM: "Hiển thị thông tin thợ thành công!",
+      EM: "Hiển thị danh sách thợ đã deal giá cho đơn hàng sửa chữa đã tạo kèm mức giá deal thành công!",
       DT: repairmanDeals
     });
   } catch (error) {

@@ -604,3 +604,46 @@ export const dealPrice = (requestId, dealData) => async (dispatch, getState) => 
 };
 
 // api xem các danh sách thợ đã deal giá cho đơn hàng sửa chữa đã tạo kèm mức giá deal
+export const viewRepairmanDeal = (requestId) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "VIEW_REPAIRMAN_DEAL_REQUEST" });
+
+        // Lấy token từ state (giả sử lưu trong Redux từ quá trình đăng nhập)
+        const token = getState().auth.token || localStorage.getItem('token');
+
+        // Cấu hình request với header Authorization
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        };
+
+        // Gửi request GET tới API với requestId trong path
+        const response = await axios.get(
+            `http://localhost:8080/api/customer/viewRepairmanDeal/${requestId}`,
+            config
+        );
+
+        if (response.data.EC === 1) {
+            // Dispatch success với dữ liệu từ BE
+            dispatch({
+                type: "VIEW_REPAIRMAN_DEAL_SUCCESS",
+                payload: response.data.DT, // Lưu danh sách repairmanDeals từ response
+            });
+        } else {
+            dispatch({
+                type: 'DEAL_PRICE_FAIL',
+                payload: response.data.EM, // Lỗi từ API
+            });
+        }
+    } catch (error) {
+        // Dispatch fail với thông báo lỗi từ BE hoặc mặc định
+        dispatch({
+            type: "VIEW_REPAIRMAN_DEAL_FAIL",
+            payload:
+                error.response && error.response.data.EM
+                    ? error.response.data.EM
+                    : error.message,
+        });
+    }
+};

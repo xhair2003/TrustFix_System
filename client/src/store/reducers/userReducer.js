@@ -24,7 +24,8 @@ const initialState = {
     request: null,
     errorDealPrice: null,
     successDealPrice: null,
-
+    errorViewRepairmanDeal: null,
+    repairmanDeals: [],
 };
 
 const userReducer = (state = initialState, action) => {
@@ -298,6 +299,27 @@ const userReducer = (state = initialState, action) => {
             };
 
 
+        case "VIEW_REPAIRMAN_DEAL_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "VIEW_REPAIRMAN_DEAL_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                repairmanDeals: action.payload, // Lưu danh sách repairmanDeals từ BE
+                errorViewRepairmanDeal: null,
+            };
+        case "VIEW_REPAIRMAN_DEAL_FAIL":
+            return {
+                ...state,
+                loading: false,
+                repairmanDeals: [],
+                errorViewRepairmanDeal: action.payload, // Lưu thông báo lỗi
+            };
+
+
         case "RESET_ERROR":
             return {
                 ...state,
@@ -313,7 +335,7 @@ const userReducer = (state = initialState, action) => {
                 errorFindRepairman: null,
                 errorViewRequest: null,
                 errorDealPrice: null,
-
+                errorViewRepairmanDeal: null,
             };
         case "RESET_SUCCESS":
             return {
@@ -325,7 +347,6 @@ const userReducer = (state = initialState, action) => {
 
                 successFindRepairman: null,
                 successDealPrice: null,
-
             };
         default:
             return state;
