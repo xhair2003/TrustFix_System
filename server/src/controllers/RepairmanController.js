@@ -258,7 +258,7 @@ const toggleStatusRepairman = async (req, res) => {
         return res.status(500).json({ EC: 0, EM: "Lỗi hệ thống, vui lòng thử lại!" });
     }
 };
-const dealPrice = async (req, res, next) => {
+const dealPrice = async (req, res) => {
     try {
         const { deal_price, isDeal } = req.body; // Nhận thêm trường isDeal từ request body
         const userId = req.user.id; // Lấy user ID của thợ sửa chữa từ token
@@ -345,39 +345,41 @@ const dealPrice = async (req, res, next) => {
             });
             const savedPrice = await newPrice.save();
 
-            // Lấy thông tin repairman
-            const repairmanInfo = await User.findById(userId).select('firstName lastName email phone imgAvt address description'); // Vẫn lấy thông tin User dựa trên userId từ token
-            if (!repairmanInfo) {
-                return res.status(404).json({
-                    EC: 0,
-                    EM: "Không tìm thấy thông tin thợ sửa chữa!"
-                });
-            }
+            // // Lấy thông tin repairman
+            // const repairmanInfo = await User.findById(userId).select('firstName lastName email phone imgAvt address description'); // Vẫn lấy thông tin User dựa trên userId từ token
+            // if (!repairmanInfo) {
+            //     return res.status(404).json({
+            //         EC: 0,
+            //         EM: "Không tìm thấy thông tin thợ sửa chữa!"
+            //     });
+            // }
 
-            // Tìm các Request đã hoàn thành của repairman này
-            const completedRequests = await Request.find({
-                repairman_id: repairmanId, // Sử dụng repairmanId (_id của RepairmanUpgradeRequest)
-                status: 'Completed'
-            });
+            // // Tìm các Request đã hoàn thành của repairman này
+            // const completedRequests = await Request.find({
+            //     repairman_id: repairmanId, // Sử dụng repairmanId (_id của RepairmanUpgradeRequest)
+            //     status: 'Completed'
+            // });
 
-            // Lấy danh sách request_id từ các Request đã hoàn thành
-            const completedRequestIds = completedRequests.map(request => request._id);
+            // // Lấy danh sách request_id từ các Request đã hoàn thành
+            // const completedRequestIds = completedRequests.map(request => request._id);
 
-            // Lấy tất cả ratings của repairman dựa trên request_id và populate thông tin request
-            const repairmanRatings = await Rating.find({
-                request_id: { $in: completedRequestIds } // Lọc ratings theo request_id
-            }).populate('request_id', 'description status');
+            // // Lấy tất cả ratings của repairman dựa trên request_id và populate thông tin request
+            // const repairmanRatings = await Rating.find({
+            //     request_id: { $in: completedRequestIds } // Lọc ratings theo request_id
+            // }).populate('request_id', 'description status');
+            // Cập nhật trạng thái của dealPriceRequest thành 'Done deal price'
+            dealPriceRequest.status = 'Done deal price';
+            await dealPriceRequest.save();
 
             res.status(201).json({
                 EC: 1,
                 EM: "Deal giá thành công!",
                 DT: {
-                    repairman: repairmanInfo,
-                    ratings: repairmanRatings,
+                    // repairman: repairmanInfo,
+                    // ratings: repairmanRatings,
                     dealPrice: savedPrice
                 }
             });
-            next();
         }
     } catch (error) {
         console.error("Error in dealPrice API:", error);
@@ -387,6 +389,7 @@ const dealPrice = async (req, res, next) => {
         });
     }
 }
+
 
 const processMonthlyFee = async (req, res) => {
     try {
@@ -474,6 +477,7 @@ const processMonthlyFee = async (req, res) => {
         });
     }
 };
+
 
 module.exports = {
     requestRepairmanUpgrade,
