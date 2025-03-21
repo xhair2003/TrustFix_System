@@ -556,7 +556,7 @@ const getUserInfo = async (req, res) => {
     });
   }
 };
-const sendRequest = async (req, res) => {
+const sendRequest = async (req, res, next) => {
   try {
     const { serviceIndustry_id, description, address, radius } = req.body; // Lấy 'price' từ req.body
     //const gomapApiKey = process.env.GOMAPS_API_KEY;
@@ -609,16 +609,8 @@ const sendRequest = async (req, res) => {
     });
     const savedRequest = await newRequest.save();
     req.savedRequest = { requestId: savedRequest._id };
-    
-    res.status(200).json({
-        EC: 1,
-        EM: "Gửi yêu cầu tìm thợ thành công!",
-        DT: {
-            
-            request: savedRequest
-        },
-      });
-    
+
+    next();
   } catch (error) {
     console.error("Error creating service request:", error); // Cập nhật log error message
     res.status(500).json({
@@ -630,12 +622,8 @@ const sendRequest = async (req, res) => {
 
 const findRepairman = async (req, res) => {
   try {
-    // Correctly access requestId from req.savedRequest
-    //const requestId = sendRequest.req.savedRequest._id;
-    // Correctly access radius from req.body
-    const {requestId} = req.params;
-    const { radius, minPrice, maxPrice } = req.body; // radius is in req.body now
-
+    const requestId = req.savedRequest.requestId;
+    const { radius, minPrice, maxPrice } = req.body; // Get radius from request parameters
     const gomapApiKey = process.env.GOMAPS_API_KEY;
 
     if (!requestId || !minPrice || !maxPrice) {
@@ -686,13 +674,11 @@ const findRepairman = async (req, res) => {
     });
 
     if (!repairmenUsers || repairmenUsers.length === 0) {
-      return res.status(200).json({
-        EC: 1,
-        EM: "Không tìm thấy thợ sửa chữa nào trong khu vực!",
-        DT: {
-          nearbyRepairmen: [],
-          request: originalRequest, // Return originalRequest
-        },
+      await Request.deleteOne({ _id: originalRequest._id }); // <--- CÁCH PHỔ BIẾN VÀ RÕ RÀNG HƠN
+      return res.status(400).json({
+        EC: 0,
+        EM: `Không tìm thấy thợ sửa chữa nào trong khu vực bán kính ${radius}km!`, 
+        
       });
     }
 
@@ -810,11 +796,11 @@ const findRepairman = async (req, res) => {
 
     res.status(200).json({
       EC: 1,
-      EM: "Tìm kiếm thợ sửa chữa thành công!",
+      EM: "Gửi yêu cầu tìm kiếm thành công!",
       DT: {
-        nearbyRepairmen: nearbyRepairmen,
+        //nearbyRepairmen: nearbyRepairmen,
         request: originalRequest, // Vẫn trả về request gốc
-        assignedRepairman: assignedRepairman, // Vẫn trả về assignedRepairman (first one found)
+        //assignedRepairman: assignedRepairman, // Vẫn trả về assignedRepairman (first one found)
         deal_price: saveDuePrice,
         // newRequestsForRepairmen: newRequestsForRepairmen // Trả về array các request mới tạo
       },
