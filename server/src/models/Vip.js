@@ -27,13 +27,7 @@ const VipSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Virtual for user
-VipSchema.virtual('user', {
-    ref: 'User',
-    localField: 'user_id',
-    foreignField: '_id',
-    justOne: true
-});
+
 
 // Index for expiration
 VipSchema.index({ expiredAt: 1 });
