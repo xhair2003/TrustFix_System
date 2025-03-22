@@ -181,7 +181,7 @@ const UserROUTERS = () => {
         },
         {
             path: ROUTERS.REPAIRMAN.DETAIL_REQUEST,
-            component: <DetailRequest />,
+            component: < DetailRequest />,
             layout: null, // No layout for auth routes
         },
 

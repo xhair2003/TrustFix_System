@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { dealPrice, resetError } from "../../../store/actions/userActions";
 import Loading from "../../../component/Loading/Loading";
 import Swal from "sweetalert2";
 import "./DetailRequest.css";
 
 const DetailRequest = () => {
+    const navigate = useNavigate();
     const { requestId } = useParams();
     const location = useLocation(); // Lấy dữ liệu từ state của navigate
     const dispatch = useDispatch();
@@ -69,6 +70,7 @@ const DetailRequest = () => {
         };
         setDealPriceValue('');
         dispatch(dealPrice(request.parentRequest, dealData));
+        navigate(-1); // Quay lại trang trước trong history
     };
 
     if (loading) return <Loading />;
