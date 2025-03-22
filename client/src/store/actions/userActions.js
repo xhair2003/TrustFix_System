@@ -6,9 +6,7 @@ const API_URL_REPAIRMAN = 'http://localhost:8080/api/repairman'; // Địa chỉ
 export const getUserInfo = () => async (dispatch, getState) => {
     dispatch({ type: "GET_USER_INFO_REQUEST" }); // Bắt đầu loading
 
-    // Lấy token từ Redux store
-    const { auth } = getState(); // Lấy state auth từ Redux
-    const token = auth.token; // Giả sử token được lưu trong state.auth.token
+    const token = getState().auth.token || localStorage.getItem('token'); // Lấy token từ state auth hoặc localStorage
 
     //console.log('Token from Redux:', token); // In ra token để kiểm tra
 
@@ -355,8 +353,7 @@ export const requestRepairmanUpgrade = (formData) => async (dispatch, getState) 
 };
 
 export const getServiceIndustryTypes = () => async (dispatch, getState) => {
-    const { auth } = getState();
-    const token = auth.token; // Lấy token từ Redux store
+    const token = getState().auth.token || localStorage.getItem('token');
 
     try {
         dispatch({ type: 'SERVICE_INDUSTRY_TYPE_REQUEST' });
@@ -562,7 +559,7 @@ export const dealPrice = (requestId, dealData) => async (dispatch, getState) => 
         dispatch({ type: "DEAL_PRICE_REQUEST" });
 
         // Lấy token từ state (giả sử lưu trong Redux từ quá trình đăng nhập)
-        const token = getState().auth.token || localStorage.getItem('token'); // Lấy token từ state auth hoặc localStorage
+        const token = getState().auth.token || localStorage.getItem("token");
 
         // Cấu hình request với header Authorization
         const config = {
@@ -575,7 +572,7 @@ export const dealPrice = (requestId, dealData) => async (dispatch, getState) => 
         // Gửi request POST tới API với requestId trong path
         const response = await axios.post(
             `http://localhost:8080/api/repairman/deal-price/${requestId}`,
-            dealData,
+            dealData, // dealData bao gồm { deal_price, isDeal }
             config
         );
 
@@ -583,11 +580,22 @@ export const dealPrice = (requestId, dealData) => async (dispatch, getState) => 
             // Dispatch success với dữ liệu từ BE
             dispatch({
                 type: "DEAL_PRICE_SUCCESS",
-                payload: response.data.EM,
+                payload: {
+                    message: response.data.EM,
+                    isDeal: dealData.isDeal, // Lưu trạng thái isDeal để reducer xử lý
+                },
             });
+
+            // Nếu isDeal là false, có thể dispatch thêm action để xóa request khỏi state
+            if (dealData.isDeal === "false") {
+                dispatch({
+                    type: "REMOVE_REQUEST",
+                    payload: requestId,
+                });
+            }
         } else {
             dispatch({
-                type: 'DEAL_PRICE_FAIL',
+                type: "DEAL_PRICE_FAIL",
                 payload: response.data.EM, // Lỗi từ API
             });
         }

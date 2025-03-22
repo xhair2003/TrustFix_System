@@ -19,9 +19,9 @@ const HomePage = () => {
                     </p>
                 </div>
 
-                <div className="search-section">
+                {/* <div className="search-section">
                     <SearchBar />
-                </div>
+                </div> */}
 
                 <div className="content-section">
                     {/* Nội dung khác sẽ được thêm vào đây */}

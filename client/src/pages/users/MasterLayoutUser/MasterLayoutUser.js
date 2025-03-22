@@ -1,18 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './MasterLayoutUser.css';
-import userImage from '../../../assets/Images/user.jpg';
-import { FaUser, FaLock, FaHistory, FaExclamationCircle, FaStar, FaSignOutAlt, FaArrowLeft, FaWallet } from 'react-icons/fa';
+import { FaLevelUpAlt, FaWrench, FaUser, FaLock, FaHistory, FaExclamationCircle, FaStar, FaSignOutAlt, FaArrowLeft, FaWallet } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import logo from "../../../assets/Images/logo.png";
 import onlyLogo from "../../../assets/Images/onlyLogo.jpg";
 import { logout } from '../../../store/actions/authActions';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { getUserInfo } from '../../../store/actions/userActions';
+import Loading from '../../../component/Loading/Loading';
 
 const MasterLayoutUser = ({ children }) => {
+    const role = useSelector(state => state.auth.role) || localStorage.getItem('role');
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { userInfo, loading } = useSelector((state) => state.user); // Lấy thông tin từ Redux
+
+    // Nếu userInfo chưa có, hiển thị thông báo hoặc giá trị mặc định
+    useEffect(() => {
+        if (!userInfo) {
+            dispatch(getUserInfo()); // Gọi action để lấy thông tin người dùng nếu chưa có
+        }
+    }, [dispatch, userInfo]); // Thêm userInfo vào dependency để re-fetch nếu cần
 
     const toggleSidebar = () => {
         setIsCollapsed(!isCollapsed);
@@ -25,8 +35,17 @@ const MasterLayoutUser = ({ children }) => {
 
     const handleLogout = () => {
         dispatch(logout());
-        navigate('/');
+        // Sau khi đăng xuất thành công, điều hướng đến trang đăng nhập
+        navigate('/login');
     };
+
+    // if (loading) { return <Loading /> }
+
+    // Kiểm tra userInfo trước khi truy cập thuộc tính
+    const username = userInfo ? `${userInfo.firstName} ${userInfo.lastName}` : "Người dùng chưa đăng nhập";
+    const email = userInfo ? `${userInfo.email}` : "Chưa có email";
+
+    console.log(userInfo);
 
     return (
         <div className="master-layout">
@@ -36,11 +55,15 @@ const MasterLayoutUser = ({ children }) => {
                         <FaArrowLeft /> {/* Biểu tượng quay về */}
                     </button>
                     <div className="user-info">
-                        <img src={userImage} alt="User" className="user-image" />
+                        <img
+                            src={userInfo?.imgAvt}
+                            alt="User"
+                            className="user-image"
+                        />
                         {!isCollapsed && (
                             <>
-                                <h2>Nguyễn Văn Hoành</h2>
-                                <p>nvh01022003g@gmail.com</p>
+                                <h2>{username}</h2>
+                                <p>{email}</p>
                             </>
                         )}
                     </div>
@@ -51,6 +74,11 @@ const MasterLayoutUser = ({ children }) => {
                 </div>
 
                 <div className="menu-items">
+                    {role === 'repairman' &&
+                        <div className={`menu-item ${selectedItem === 'repairman/view-requests' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/repairman/view-requests", name: 'repairman/view-requests' })}>
+                            {isCollapsed ? <FaWrench /> : <> <FaWrench /> Đơn hàng sửa chữa</>}
+                        </div>
+                    }
                     <div className={`menu-item ${selectedItem === 'profile' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/profile", name: 'profile' })}>
                         {isCollapsed ? <FaUser /> : <> <FaUser /> Thông tin cá nhân</>}
                     </div>
@@ -66,9 +94,11 @@ const MasterLayoutUser = ({ children }) => {
                     <div className={`menu-item ${selectedItem === 'wallet' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/wallet", name: 'wallet' })}>
                         {isCollapsed ? <FaWallet /> : <> <FaWallet /> Ví tiền</>}
                     </div>
-                    <div className={`menu-item ${selectedItem === 'upgrade-repair-man' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/upgrade-repair-man", name: 'upgrade-repair-man' })}>
-                        {isCollapsed ? <FaStar /> : <> <FaStar /> Nâng cấp lên thợ</>}
-                    </div>
+                    {role === 'customer' &&
+                        <div className={`menu-item ${selectedItem === 'upgrade-repair-man' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/upgrade-repair-man", name: 'upgrade-repair-man' })}>
+                            {isCollapsed ? <FaLevelUpAlt /> : <> <FaLevelUpAlt /> Nâng cấp lên thợ</>}
+                        </div>
+                    }
                     <div className={`menu-item ${selectedItem === 'logout' ? 'active' : ''}`} onClick={handleLogout}>
                         {isCollapsed ? <FaSignOutAlt /> : <> <FaSignOutAlt /> Đăng xuất</>}
                     </div>

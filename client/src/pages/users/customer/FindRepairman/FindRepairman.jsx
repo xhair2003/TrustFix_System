@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import FindSearchBar from "../../../../component/users/customer/FindComponent/FindSearchBar";
+//import FindSearchBar from "../../../../component/users/customer/FindComponent/FindSearchBar";
 import MapView from "../../../../component/users/customer/FindComponent/MapView";
+import SearchBar from "../../../../component/users/SearchBar/SearchBar";
 
 const FindRepairman = () => {
   const [selectedRadius, setSelectedRadius] = useState(null);
@@ -21,7 +22,7 @@ const FindRepairman = () => {
 
   return (
     <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "20px" }}>
-      <FindSearchBar
+      <SearchBar
         setSelectedRadius={setSelectedRadius}
         selectedRadius={selectedRadius}
         onSearch={handleSearch}

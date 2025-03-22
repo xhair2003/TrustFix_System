@@ -391,6 +391,45 @@ const dealPrice = async (req, res) => {
         });
     }
 }
+// const viewRequest = async (req, res) => {
+//     try {
+//         const userId = req.user.id; // Lấy user ID của thợ sửa chữa từ token
+
+//         // Tìm RepairmanUpgradeRequest dựa trên user_id từ token
+//         const repairmanUpgradeRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId });
+
+//         if (!repairmanUpgradeRequest) {
+//             return res.status(404).json({
+//                 EC: 0,
+//                 EM: "Không tìm thấy thông tin nâng cấp thợ sửa chữa cho người dùng này!"
+//             });
+//         }
+
+//         // Sử dụng _id từ RepairmanUpgradeRequest làm repairmanId
+//         const repairmanId = repairmanUpgradeRequest._id;
+
+//         // Tìm Request có status 'Deal price' và được gán cho repairman này
+//         const dealPriceRequest = await Request.findOne({
+//             repairman_id: repairmanId,
+//             status: 'Deal price' // Hoặc trạng thái phù hợp của bạn
+//         }).sort({ createdAt: -1 }); // Lấy request mới nhất nếu có nhiều request
+//         console.log(repairmanId);
+//         if (!dealPriceRequest) {
+//             return res.status(404).json({
+//                 EC: 0,
+//                 EM: "Không tìm thấy yêu cầu deal giá nào cho thợ sửa chữa này!"
+//             });
+//         }
+//         res.status(201).json({
+//             EC: 1,
+//             EM: "Hiển thị đơn hàng thành công",
+//             DT: dealPriceRequest
+//         });
+//     } catch (error) {
+
+//     }
+// }
+
 const viewRequest = async (req, res) => {
     try {
         const userId = req.user.id; // Lấy user ID của thợ sửa chữa từ token
@@ -413,22 +452,45 @@ const viewRequest = async (req, res) => {
             repairman_id: repairmanId,
             status: 'Deal price' // Hoặc trạng thái phù hợp của bạn
         }).sort({ createdAt: -1 }); // Lấy request mới nhất nếu có nhiều request
-        console.log(repairmanId);
+
         if (!dealPriceRequest) {
             return res.status(404).json({
                 EC: 0,
                 EM: "Không tìm thấy yêu cầu deal giá nào cho thợ sửa chữa này!"
             });
         }
+
+        // Tìm DuePrice dựa trên request_id (là _id của dealPriceRequest)
+        const duePrice = await DuePrice.findOne({ request_id: dealPriceRequest._id });
+
+        // Nếu không tìm thấy DuePrice, có thể trả về giá trị mặc định hoặc thông báo lỗi
+        if (!duePrice) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy thông tin giá đề xuất cho yêu cầu này!"
+            });
+        }
+
+        // Thêm minPrice và maxPrice vào response
         res.status(201).json({
             EC: 1,
             EM: "Hiển thị đơn hàng thành công",
-            DT: dealPriceRequest
+            DT: {
+                ...dealPriceRequest._doc, // Lấy toàn bộ dữ liệu của dealPriceRequest
+                minPrice: duePrice.minPrice, // Thêm minPrice từ DuePrice
+                maxPrice: duePrice.maxPrice, // Thêm maxPrice từ DuePrice
+            }
         });
     } catch (error) {
-
+        res.status(500).json({
+            EC: -1,
+            EM: "Đã có lỗi xảy ra, vui lòng thử lại!",
+            DT: error.message
+        });
     }
-}
+};
+
+module.exports = { viewRequest };
 
 const processMonthlyFee = async (req, res) => {
     try {

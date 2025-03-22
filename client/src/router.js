@@ -30,6 +30,8 @@ import ViewPaymentHistory from "./pages/admin/TransactionManagement/PaymentHisto
 import ManageServicePrices from "./pages/admin/ManageServicePrices/ManageServicePrices.jsx";
 import ViewRepairBooking from "./pages/admin/ViewRepairBooking/ViewRepairBooking.jsx";
 import Dashboard from "./pages/admin/Dashboard/Dashboard.jsx";
+import ViewRequests from "./pages/users/ViewRequests/ViewRequests.js";
+import DetailRequest from "./pages/users/DetailRequest/DetailRequest.js";
 
 const UserROUTERS = () => {
     const routers = [
@@ -41,6 +43,11 @@ const UserROUTERS = () => {
         {
             path: ROUTERS.CUSTOMER.PROFILE,
             component: <PersonalInformation />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.REPAIRMAN.VIEW_REQUESTS,
+            component: <ViewRequests />,
             layout: MasterLayoutUser, // Routes using MasterLayout
         },
         {
@@ -96,7 +103,7 @@ const UserROUTERS = () => {
         {
             path: ROUTERS.ADMIN.DASHBOARD,
             component: <Dashboard />,
-            layout: MasterLayoutAdmin, 
+            layout: MasterLayoutAdmin,
         },
         {
             path: ROUTERS.ADMIN.VIEW_REPAIR_BOOKING,
@@ -172,7 +179,11 @@ const UserROUTERS = () => {
             component: <MasterLayoutAdmin />,
             layout: null, // No layout for auth routes
         },
-
+        {
+            path: ROUTERS.REPAIRMAN.DETAIL_REQUEST,
+            component: <DetailRequest />,
+            layout: null, // No layout for auth routes
+        },
 
         // Add more auth routes here....
     ];

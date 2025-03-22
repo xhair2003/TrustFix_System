@@ -31,11 +31,11 @@ const initialState = {
 const userReducer = (state = initialState, action) => {
     switch (action.type) {
         case "GET_USER_INFO_REQUEST":
-            return { ...state, loading: true, error: null };
+            return { ...state, loading: true };
         case "GET_USER_INFO_SUCCESS":
-            return { ...state, loading: false, userInfo: action.payload };
+            return { ...state, loading: false, userInfo: action.payload, error: null };
         case "GET_USER_INFO_FAIL":
-            return { ...state, loading: false, error: action.payload };
+            return { ...state, loading: false, error: action.payload, userInfo: null };
 
 
         // Xử lý updateUserInfo
@@ -183,17 +183,19 @@ const userReducer = (state = initialState, action) => {
 
 
         case 'SERVICE_INDUSTRY_TYPE_REQUEST':
-            return { ...state, loading: true, errorServiceTypes: null };
+            return { ...state, loading: true };
         case 'SERVICE_INDUSTRY_TYPE_SUCCESS':
             return {
                 ...state,
                 loading: false,
                 serviceTypes: action.payload, // Lưu danh sách loại dịch vụ vào store
+                errorServiceTypes: null
             };
         case 'SERVICE_INDUSTRY_TYPE_FAIL':
             return {
                 ...state,
                 loading: false,
+                serviceTypes: [],
                 errorServiceTypes: action.payload, // Lưu lỗi vào store nếu có
             };
 
@@ -260,21 +262,21 @@ const userReducer = (state = initialState, action) => {
         case "VIEW_REQUEST_REQUEST":
             return {
                 ...state,
-                loading: true,
+                //loading: true,
             };
         case "VIEW_REQUEST_SUCCESS":
             return {
                 ...state,
-                loading: false,
+                //loading: false,
                 request: action.payload, // Lưu request từ BE
-                errorViewRequest: null,
+                //errorViewRequest: null,
             };
         case "VIEW_REQUEST_FAIL":
             return {
                 ...state,
-                loading: false,
+                //loading: false,
                 request: null,
-                errorViewRequest: action.payload, // Lưu thông báo lỗi
+                //errorViewRequest: action.payload, // Lưu thông báo lỗi
             };
 
 
@@ -282,13 +284,20 @@ const userReducer = (state = initialState, action) => {
             return {
                 ...state,
                 loading: true,
+                successDealPrice: null,
+                errorDealPrice: null,
             };
         case "DEAL_PRICE_SUCCESS":
             return {
                 ...state,
                 loading: false,
-                successDealPrice: action.payload, // Lưu dữ liệu từ BE (EC, EM, DT)
+                successDealPrice: action.payload.message, // Lưu thông báo thành công
                 errorDealPrice: null,
+                // Nếu isDeal là true, cập nhật trạng thái request (nếu cần)
+                request:
+                    action.payload.isDeal === "true" && state.request
+                        ? { ...state.request, status: "Done deal price" }
+                        : state.request,
             };
         case "DEAL_PRICE_FAIL":
             return {
@@ -296,6 +305,11 @@ const userReducer = (state = initialState, action) => {
                 loading: false,
                 successDealPrice: null,
                 errorDealPrice: action.payload, // Lưu thông báo lỗi
+            };
+        case "REMOVE_REQUEST":
+            return {
+                ...state,
+                request: null, // Xóa request khỏi state khi hủy deal
             };
 
 

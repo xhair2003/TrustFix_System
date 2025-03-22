@@ -31,6 +31,8 @@ export const ROUTERS = {
         VIEW_SERVICE_PRICES: '/repairman/service-prices',
         BUY_RECOMMEND_BOOKING_PACKAGE: '/buy-recommend-booking-package',
         PAY_MONTHLY_ACCOUNT_MAINTENANCE_FEES: '/pay-monthly-account-maintenance-fees',
+        VIEW_REQUESTS: '/repairman/view-requests',
+        DETAIL_REQUEST: '/repairman/detail-request/:requestId',
     },
 
     ADMIN: {
