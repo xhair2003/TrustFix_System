@@ -93,4 +93,9 @@ router.get("/total-services-by-industry", AuthMiddleware.verifyAdmin, AdminContr
 // total service prices
 router.get("/total-service-prices", AuthMiddleware.verifyAdmin, AdminController.totalServicePrices);
 
+// get repairman monthly payment
+router.get("/view-detail-monthly-payment/:id", AuthMiddleware.verifyAdmin, AdminController.getRepairmanMonthlyPaymentById);
+
+router.get("/view-all-monthly-payment", AuthMiddleware.verifyAdmin, AdminController.getAllRepairmanMonthlyPayments);
+
 module.exports = router;    
