@@ -16,7 +16,7 @@ import ServicePrice from "./pages/users/Payment/ServicePrice/ServicePrice.js";
 import Deposit from "./pages/users/Payment/Deposit/Deposit.js";
 import Complain from "./pages/users/Complain/Complain.js";
 import MakePayment from "./pages/users/Payment/MakePayment/MakePayment.js";
-import ViewRepairmentHistories from "./pages/users/customer/ViewRepairmentHistoriesPage/ViewRepairmentHistories.js";
+import ViewRepairmentHistories from "./pages/users/ViewRepairmentHistories/ViewRepairmentHistories.js";
 import ForgotPassword from "./pages/users/ForgotPassword/ForgotPassword.js";
 import ResetPasswordForm from "./component/users/ForgotPassword/ResetPassword.js";
 import ManageUserAccount from "./pages/admin/UserManagement/ManageUserAccount.jsx";
@@ -32,12 +32,18 @@ import ViewRepairBooking from "./pages/admin/ViewRepairBooking/ViewRepairBooking
 import Dashboard from "./pages/admin/Dashboard/Dashboard.jsx";
 import ViewRequests from "./pages/users/ViewRequests/ViewRequests.js";
 import DetailRequest from "./pages/users/DetailRequest/DetailRequest.js";
+import FindRepairman from "./pages/users/FindRepairman/FindRepairman.jsx";
 
 const UserROUTERS = () => {
     const routers = [
         {
             path: ROUTERS.CUSTOMER.HOME,
             component: <HomePage />,
+            layout: MasterLayoutMain, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.CUSTOMER.FIND_REPAIRMAN,
+            component: <FindRepairman />,
             layout: MasterLayoutMain, // Routes using MasterLayout
         },
         {

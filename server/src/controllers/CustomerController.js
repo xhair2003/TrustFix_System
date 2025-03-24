@@ -816,6 +816,7 @@ const findRepairman = async (req, res) => {
       //   deal_price: saveDuePrice,
       //   // newRequestsForRepairmen: newRequestsForRepairmen // Trả về array các request mới tạo
       // },
+      DT: originalRequest._id, // Trả về ID của request gốc
     });
   } catch (error) {
     console.error("Error finding repairman and assigning:", error);
@@ -889,6 +890,20 @@ const viewRepairmanDeal = async (req, res) => {
     for (const request of requests) {
       const repairman = await RepairmanUpgradeRequest.findById(request.repairman_id);
       const repairmanInfor = await User.findById(repairman.user_id).select('firstName lastName email phone imgAvt address description');
+
+      // Lấy certificationImage từ RepairmanUpgradeRequest dựa trên user_id
+      const repairmanUpgrade = await RepairmanUpgradeRequest.findOne({ user_id: repairmanInfor._id });
+      const certificationImages = repairmanUpgrade ? repairmanUpgrade.imgCertificatePractice : []; // Giả định certificationImage là mảng
+
+      // Lấy số lần được booking thành công của thợ
+      const bookingCounts = await Request.find({ repairman_id: repairmanInfor._id, status: 'Completed' });
+      const bookingCount = bookingCounts ? bookingCounts.length : 0;
+
+      // Thêm certificationImages vào repairmanInfor
+      repairmanInfor._doc.certificationImages = certificationImages; // Thêm vào _doc để có thể sửa đổi
+
+      // Thêm bookingCount vào repairmanInfor
+      repairmanInfor._doc.bookingCount = bookingCount; // Thêm vào _doc để có thể sửa đổi
 
       const completedRequests = await Request.find({
         repairman_id: request.repairman_id,

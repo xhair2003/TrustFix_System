@@ -15,7 +15,7 @@ const RepairmanUpgradeRequestSchema = new mongoose.Schema(
     vip_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vip",
-      required: true,
+      // required: true,
       default: null,
     },
     imgCertificatePractice: {

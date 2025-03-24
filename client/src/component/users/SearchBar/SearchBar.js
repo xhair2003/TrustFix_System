@@ -1,26 +1,48 @@
 // import './SearchBar.css';
 // import { apiGetPubliccitys, apiGetPublicDistrict, apiGetPublicWard } from '../../../services/Address.js';
 // import React, { useEffect, useState } from 'react';
-// import { getServiceIndustryTypes } from "../../../store/actions/userActions.js";
+// import { getServiceIndustryTypes, findRepairman, resetError, resetSuccess } from "../../../store/actions/userActions.js";
 // import { useDispatch, useSelector } from "react-redux";
 // import Loading from "../../Loading/Loading.js";
+// import Swal from 'sweetalert2'; // Import SweetAlert2
 
-// const SearchBar = () => {
+// const SearchBar = ({
+//     setSelectedRadius,
+//     selectedRadius,
+//     onSearch,
+//     onDataChange
+// }) => {
 //     const [cities, setCities] = useState([]);
 //     const [districts, setDistricts] = useState([]);
 //     const [wards, setWards] = useState([]);
 //     const dispatch = useDispatch();
+
 //     const [city, setCity] = useState('');
 //     const [district, setDistrict] = useState('');
 //     const [ward, setWard] = useState('');
 //     const [detailAddress, setDetailAddress] = useState('');
+//     const [description, setDescription] = useState('');
+//     const [serviceIndustryId, setServiceIndustryId] = useState('');
+//     const [imageFiles, setImageFiles] = useState([]);
+
 //     const { loading, serviceTypes: serviceTypesFromStore } = useSelector(state => state.user);
-//     // Thêm biến state cho serviceTypes
+//     const { successFindRepairman, errorFindRepairman } = useSelector(state => state.user);
 //     const [serviceTypes, setServiceTypes] = useState([]);
 
-//     // Gọi API để lấy danh sách loại thợ khi component mount
+//     const [minPrice] = useState("2000000"); // Dữ liệu giả
+//     const [maxPrice] = useState("3000000"); // Dữ liệu giả
+
+//     const radiusOptions = [
+//         { value: "500", label: "500 m" },
+//         { value: "1000", label: "1 km" },
+//         { value: "2000", label: "2 km" },
+//         { value: "5000", label: "5 km" },
+//         { value: "10000", label: "10 km" },
+//         { value: "15000", label: "15 km" },
+//     ];
+
 //     useEffect(() => {
-//         dispatch(getServiceIndustryTypes()); // Dispatch action để lấy dữ liệu serviceTypes
+//         dispatch(getServiceIndustryTypes());
 //     }, [dispatch]);
 
 //     useEffect(() => {
@@ -32,7 +54,6 @@
 //                 console.error('Error fetching cities:', error);
 //             }
 //         };
-
 //         fetchCities();
 //     }, []);
 
@@ -66,14 +87,84 @@
 //         fetchWards();
 //     }, [district]);
 
-//     // Cập nhật lại serviceTypes từ Redux nếu có
 //     useEffect(() => {
 //         if (serviceTypesFromStore) {
 //             setServiceTypes(serviceTypesFromStore);
 //         }
 //     }, [serviceTypesFromStore]);
 
-//     console.log(serviceTypes);
+//     // Truyền dữ liệu lên FindRepairman mỗi khi có thay đổi
+//     useEffect(() => {
+//         const searchData = {
+//             description,
+//             serviceIndustryId,
+//             detailAddress,
+//             ward,
+//             district,
+//             city,
+//             selectedRadius,
+//         };
+//         onDataChange(searchData);
+//     }, [description, serviceIndustryId, detailAddress, ward, district, city, selectedRadius, onDataChange]);
+
+//     // Theo dõi successFindRepairman và errorFindRepairman để hiển thị thông báo
+//     useEffect(() => {
+//         if (successFindRepairman) {
+//             Swal.fire({
+//                 icon: 'success',
+//                 title: 'Thành công',
+//                 text: successFindRepairman,
+//                 showConfirmButton: false, // Không hiển thị nút OK
+//                 showCloseButton: false, // Không hiển thị nút đóng
+//                 timer: 5000, // Tự động đóng sau 5 giây
+//                 timerProgressBar: true, // Hiển thị thanh timeline
+//             }).then(() => {
+//                 dispatch(resetSuccess()); // Reset trạng thái success sau khi thông báo đóng
+//                 onSearch(); // Trigger animation sau khi thông báo thành công
+//             });
+//         }
+//     }, [successFindRepairman, dispatch, onSearch]);
+
+//     useEffect(() => {
+//         if (errorFindRepairman) {
+//             Swal.fire({
+//                 icon: 'error',
+//                 title: 'Lỗi',
+//                 text: errorFindRepairman,
+//                 showConfirmButton: false, // Không hiển thị nút OK
+//                 showCloseButton: false, // Không hiển thị nút đóng
+//                 timer: 5000, // Tự động đóng sau 5 giây
+//                 timerProgressBar: true, // Hiển thị thanh timeline
+//             }).then(() => {
+//                 dispatch(resetError()); // Reset trạng thái error sau khi thông báo đóng
+//             });
+//         }
+//     }, [errorFindRepairman, dispatch]);
+
+//     const handleSearchClick = () => {
+//         const selectedWard = wards.find(w => w.ward_id === ward)?.ward_name || '';
+//         const selectedDistrict = districts.find(d => d.district_id === district)?.district_name || '';
+//         const selectedCity = cities.find(c => c.province_id === city)?.province_name || '';
+
+//         const address = [detailAddress, selectedWard, selectedDistrict, selectedCity, "Việt Nam"]
+//             .filter(Boolean)
+//             .join(", ");
+
+//         const requestData = {
+//             description,
+//             serviceIndustry_id: serviceIndustryId,
+//             address,
+//             radius: selectedRadius ? selectedRadius.value : '',
+//             minPrice,
+//             maxPrice,
+//         };
+
+//         // Gọi API findRepairman
+//         dispatch(findRepairman(requestData, imageFiles));
+
+//         console.log("requestData:", requestData);
+//         console.log("imageFiles:", imageFiles);
+//     };
 
 //     if (loading) {
 //         return <Loading />;
@@ -82,12 +173,16 @@
 //     return (
 //         <div className="search-container">
 //             <div className="search-top">
-//                 <input type="text" placeholder="Mô tả tình trạng cần sửa chữa" className="search-input-description" />
-
+//                 <input
+//                     type="text"
+//                     placeholder="Mô tả tình trạng cần sửa chữa"
+//                     className="search-input-description"
+//                     value={description}
+//                     onChange={(e) => setDescription(e.target.value)}
+//                 />
 //                 <select
-//                     value={serviceTypes}
-//                     onChange={(e) => setServiceTypes(e.target.value)}
-//                     required
+//                     value={serviceIndustryId}
+//                     onChange={(e) => setServiceIndustryId(e.target.value)}
 //                     className="search-dropdown"
 //                 >
 //                     <option value="">Chọn loại thợ</option>
@@ -101,85 +196,137 @@
 //                         <option value="">Không có loại thợ nào</option>
 //                     )}
 //                 </select>
-
-//                 <select className="search-dropdown">
+//                 <select
+//                     value={selectedRadius ? selectedRadius.value : ''}
+//                     onChange={(e) => {
+//                         const selectedOption = radiusOptions.find(option => option.value === e.target.value);
+//                         setSelectedRadius(selectedOption || null);
+//                     }}
+//                     className="search-dropdown"
+//                 >
 //                     <option value="">Chọn bán kính</option>
-//                     <option value="5">5 km</option>
-//                     <option value="10">10 km</option>
-//                     <option value="20">20 km</option>
+//                     {radiusOptions.map((option) => (
+//                         <option key={option.value} value={option.value}>
+//                             {option.label}
+//                         </option>
+//                     ))}
 //                 </select>
-
-//                 <button className="search-button">Tìm Kiếm</button>
+//                 <button className="search-button" onClick={handleSearchClick}>
+//                     Tìm Kiếm
+//                 </button>
 //             </div>
 //             <div className="search-bottom">
-//                 <input type="text" placeholder="Số nhà và tên đường" className="search-input" />
-
-//                 <select className="search-dropdown" onChange={(e) => setWard(e.target.value)} value={ward}>
+//                 <input
+//                     type="text"
+//                     placeholder="Số nhà và tên đường"
+//                     className="search-input"
+//                     value={detailAddress}
+//                     onChange={(e) => setDetailAddress(e.target.value)}
+//                 />
+//                 <select
+//                     className="search-dropdown"
+//                     onChange={(e) => setWard(e.target.value)}
+//                     value={ward}
+//                 >
 //                     <option value="">Chọn phường/xã</option>
-//                     {wards.map((ward) => (
-//                         <option key={ward.ward_id} value={ward.ward_id}>{ward.ward_name}</option>
+//                     {wards.map((w) => (
+//                         <option key={w.ward_id} value={w.ward_id}>
+//                             {w.ward_name}
+//                         </option>
 //                     ))}
 //                 </select>
-
-//                 <select className="search-dropdown" onChange={(e) => setDistrict(e.target.value)} value={district}>
+//                 <select
+//                     className="search-dropdown"
+//                     onChange={(e) => setDistrict(e.target.value)}
+//                     value={district}
+//                 >
 //                     <option value="">Chọn quận/huyện</option>
-//                     {districts.map((district) => (
-//                         <option key={district.district_id} value={district.district_id}>{district.district_name}</option>
+//                     {districts.map((d) => (
+//                         <option key={d.district_id} value={d.district_id}>
+//                             {d.district_name}
+//                         </option>
 //                     ))}
 //                 </select>
-
-//                 <select className="search-dropdown" onChange={(e) => setCity(e.target.value)} value={city}>
+//                 <select
+//                     className="search-dropdown"
+//                     onChange={(e) => setCity(e.target.value)}
+//                     value={city}
+//                 >
 //                     <option value="">Chọn tỉnh/thành phố</option>
-//                     {cities.map((city) => (
-//                         <option key={city.province_id} value={city.province_id}>{city.province_name}</option>
+//                     {cities.map((c) => (
+//                         <option key={c.province_id} value={c.province_id}>
+//                             {c.province_name}
+//                         </option>
 //                     ))}
 //                 </select>
 //             </div>
+//             <input
+//                 type="file"
+//                 multiple
+//                 onChange={(e) => setImageFiles(Array.from(e.target.files))}
+//                 className="search-file-input"
+//             />
 //         </div>
 //     );
-// }
+// };
 
 // export default SearchBar;
 
 
 import './SearchBar.css';
 import { apiGetPubliccitys, apiGetPublicDistrict, apiGetPublicWard } from '../../../services/Address.js';
-import React, { useEffect, useState } from 'react';
-import { getServiceIndustryTypes } from "../../../store/actions/userActions.js";
+import React, { useEffect, useState, useCallback } from 'react';
+import { getServiceIndustryTypes, findRepairman, resetError, resetSuccess } from "../../../store/actions/userActions.js";
 import { useDispatch, useSelector } from "react-redux";
 import Loading from "../../Loading/Loading.js";
+import Swal from 'sweetalert2';
 
-const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch }) => {
+const SearchBar = ({
+    setSelectedRadius,
+    selectedRadius,
+    onSearch,
+    onDataChange
+}) => {
     const [cities, setCities] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
     const dispatch = useDispatch();
 
-    // State cho các trường dữ liệu
     const [city, setCity] = useState('');
     const [district, setDistrict] = useState('');
     const [ward, setWard] = useState('');
-    const [detailAddress, setDetailAddress] = useState(''); // Số nhà và tên đường
+    const [detailAddress, setDetailAddress] = useState('');
     const [description, setDescription] = useState('');
     const [serviceIndustryId, setServiceIndustryId] = useState('');
-    const [imageFiles, setImageFiles] = useState([]); // Mảng file ảnh
+    const [imageFiles, setImageFiles] = useState([]);
 
     const { loading, serviceTypes: serviceTypesFromStore } = useSelector(state => state.user);
+    const { successFindRepairman, errorFindRepairman } = useSelector(state => state.user);
     const [serviceTypes, setServiceTypes] = useState([]);
 
-    // Giá giả định mặc định
-    const [minPrice] = useState("2000000"); // Ví dụ: 2 triệu VND
-    const [maxPrice] = useState("3000000"); // Ví dụ: 3 triệu VND
+    const [minPrice] = useState("2000000");
+    const [maxPrice] = useState("3000000");
 
-    // Danh sách tùy chọn bán kính (object giống FindSearchBar)
     const radiusOptions = [
         { value: "500", label: "500 m" },
         { value: "1000", label: "1 km" },
         { value: "2000", label: "2 km" },
         { value: "5000", label: "5 km" },
+        { value: "10000", label: "10 km" },
+        { value: "15000", label: "15 km" },
     ];
 
-    // Gọi API để lấy danh sách loại thợ khi component mount
+    // Debounce để giảm tần suất gọi onDataChange
+    const debounce = (func, delay) => {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func(...args), delay);
+        };
+    };
+
+    const debouncedOnDataChange = useCallback(debounce(onDataChange, 500), [onDataChange]);
+
     useEffect(() => {
         dispatch(getServiceIndustryTypes());
     }, [dispatch]);
@@ -226,46 +373,82 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch }) => {
         fetchWards();
     }, [district]);
 
-    // Cập nhật serviceTypes từ Redux
     useEffect(() => {
         if (serviceTypesFromStore) {
             setServiceTypes(serviceTypesFromStore);
         }
     }, [serviceTypesFromStore]);
 
-    // Hàm xử lý khi nhấn nút "Tìm kiếm"
+    useEffect(() => {
+        const searchData = {
+            description,
+            serviceIndustryId,
+            detailAddress,
+            ward,
+            district,
+            city,
+            selectedRadius,
+        };
+        debouncedOnDataChange(searchData); // Dùng debounce thay vì gọi trực tiếp
+    }, [description, serviceIndustryId, detailAddress, ward, district, city, selectedRadius, debouncedOnDataChange]);
+
+    useEffect(() => {
+        if (successFindRepairman) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Thành công',
+                text: successFindRepairman,
+                showConfirmButton: false,
+                showCloseButton: false,
+                timer: 5000,
+                timerProgressBar: true,
+            }).then(() => {
+                dispatch(resetSuccess());
+                onSearch();
+            });
+        }
+    }, [successFindRepairman, dispatch, onSearch]);
+
+    useEffect(() => {
+        if (errorFindRepairman) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: errorFindRepairman,
+                showConfirmButton: false,
+                showCloseButton: false,
+                timer: 5000,
+                timerProgressBar: true,
+            }).then(() => {
+                dispatch(resetError());
+            });
+        }
+    }, [errorFindRepairman, dispatch]);
+
     const handleSearchClick = () => {
-        // Tìm tên phường, quận, tỉnh từ ID đã chọn
         const selectedWard = wards.find(w => w.ward_id === ward)?.ward_name || '';
         const selectedDistrict = districts.find(d => d.district_id === district)?.district_name || '';
         const selectedCity = cities.find(c => c.province_id === city)?.province_name || '';
 
-        // Gộp address
         const address = [detailAddress, selectedWard, selectedDistrict, selectedCity, "Việt Nam"]
-            .filter(Boolean) // Loại bỏ các giá trị rỗng
+            .filter(Boolean)
             .join(", ");
 
-        // Tạo requestData
         const requestData = {
             description,
             serviceIndustry_id: serviceIndustryId,
             address,
-            radius: selectedRadius ? selectedRadius.value : '', // Lấy value từ object selectedRadius
+            radius: selectedRadius ? selectedRadius.value : '',
             minPrice,
             maxPrice,
         };
 
-        // Log dữ liệu để kiểm tra
-        console.log("requestData:", requestData);
-        console.log("imageFiles:", imageFiles);
-
-        // Gọi hàm onSearch từ props để trigger logic trong FindRepairman
-        onSearch();
+        dispatch(findRepairman(requestData, imageFiles));
     };
 
-    // if (loading) {
-    //     return <Loading />;
-    // }
+    if (loading) {
+        return <Loading />;
+    }
 
     return (
         <div className="search-container">
@@ -277,11 +460,9 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch }) => {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                 />
-
                 <select
                     value={serviceIndustryId}
                     onChange={(e) => setServiceIndustryId(e.target.value)}
-                    required
                     className="search-dropdown"
                 >
                     <option value="">Chọn loại thợ</option>
@@ -295,12 +476,11 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch }) => {
                         <option value="">Không có loại thợ nào</option>
                     )}
                 </select>
-
                 <select
-                    value={selectedRadius ? selectedRadius.value : ''} // Đồng bộ với object
+                    value={selectedRadius ? selectedRadius.value : ''}
                     onChange={(e) => {
                         const selectedOption = radiusOptions.find(option => option.value === e.target.value);
-                        setSelectedRadius(selectedOption || null); // Cập nhật object hoặc null
+                        setSelectedRadius(selectedOption || null);
                     }}
                     className="search-dropdown"
                 >
@@ -311,7 +491,6 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch }) => {
                         </option>
                     ))}
                 </select>
-
                 <button className="search-button" onClick={handleSearchClick}>
                     Tìm Kiếm
                 </button>
@@ -324,7 +503,6 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch }) => {
                     value={detailAddress}
                     onChange={(e) => setDetailAddress(e.target.value)}
                 />
-
                 <select
                     className="search-dropdown"
                     onChange={(e) => setWard(e.target.value)}
@@ -337,7 +515,6 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch }) => {
                         </option>
                     ))}
                 </select>
-
                 <select
                     className="search-dropdown"
                     onChange={(e) => setDistrict(e.target.value)}
@@ -350,7 +527,6 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch }) => {
                         </option>
                     ))}
                 </select>
-
                 <select
                     className="search-dropdown"
                     onChange={(e) => setCity(e.target.value)}
@@ -364,7 +540,6 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch }) => {
                     ))}
                 </select>
             </div>
-
             <input
                 type="file"
                 multiple

@@ -485,10 +485,15 @@ export const findRepairman = (requestData, imageFiles) => async (dispatch, getSt
             config
         );
         if (response.data.EC === 1) {
+            localStorage.setItem("requestId", response.data.DT); // Lưu requestId vào localStorage
+
             // Dispatch success với dữ liệu từ BE
             dispatch({
                 type: "FIND_REPAIRMAN_SUCCESS",
-                payload: response.data.EM,
+                payload: {
+                    message: response.data.EM,
+                    requestId: response.data.DT // ID đơn hàng
+                },
             });
         } else {
             dispatch({

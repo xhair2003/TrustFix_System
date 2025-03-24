@@ -26,7 +26,7 @@
     outline: none;
 }
 
-.search-input, .search-dropdown {
+.search-input, .search-dropdown, .search-file-input {
     flex: 1;
     padding: 10px;
     border: 1px solid #ccc;
@@ -52,49 +52,63 @@
 .search-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.search-top, .search-bottom {
+    gap: 15px;
+    padding: 0; /* Loại bỏ padding mặc định để phù hợp với search-section */
+  }
+  
+  .search-top,
+  .search-bottom {
     display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 15px;
+    margin-bottom: 0; /* Loại bỏ margin-bottom mặc định */
     width: 100%;
-}
-
-.search-input-description {
+  }
+  
+  .search-input-description {
     flex: 3;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
     outline: none;
-}
-
-.search-input, .search-dropdown, .search-file-input {
+    font-size: 16px;
+    transition: border-color 0.3s;
+  }
+  
+  .search-input-description:focus,
+  .search-input:focus,
+  .search-dropdown:focus {
+    border-color: #3961fb;
+  }
+  
+  .search-input,
+  .search-dropdown,
+  .search-file-input {
     flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
     outline: none;
-}
-
-.search-button {
-    padding: 10px 20px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+  }
+  
+  .search-button {
+    padding: 12px 25px;
     background-color: #3961fb;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.search-button:hover {
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  
+  .search-button:hover {
     background-color: #2f4fc2;
-}
+    transform: translateY(-2px);
+  }
+  
+  .search-button:active {
+    transform: translateY(0);
+  }

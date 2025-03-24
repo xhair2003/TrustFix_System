@@ -1,8 +1,6 @@
 import React from 'react';
 import './HomePage.css';
 import introductionImage from '../../../assets/Images/introduction.jpg';
-import SearchBar from '../../../component/users/SearchBar/SearchBar';
-import FindRepairman from '../customer/FindRepairman/FindRepairman';
 
 const HomePage = () => {
     return (
@@ -19,16 +17,9 @@ const HomePage = () => {
                     </p>
                 </div>
 
-                {/* <div className="search-section">
-                    <SearchBar />
-                </div> */}
-
                 <div className="content-section">
                     {/* Nội dung khác sẽ được thêm vào đây */}
                 </div>
-            </div>
-            <div>
-                <FindRepairman />
             </div>
         </div>
     );

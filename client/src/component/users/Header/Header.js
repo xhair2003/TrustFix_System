@@ -58,12 +58,17 @@ const Header = () => {
 
     const handleButtonClick = (index, path) => {
         setActiveIndex(index);
-        navigate(path);
+        // Kiểm tra nếu click vào "Tìm thợ" (index === 1) và chưa đăng nhập
+        if (index === 1 && (isAuthenticated !== true && isAuthenticated !== 'true')) {
+            navigate('/login');
+        } else {
+            navigate(path);
+        }
     };
 
     const menuItems = [
-        { name: 'Giới Thiệu', path: '/menu1' },
-        { name: 'Danh Mục', path: '/menu2' },
+        { name: 'Giới Thiệu', path: '/' },
+        { name: 'Tìm thợ', path: '/find-repairman' },
         { name: 'Hệ Thống', path: '/menu3' },
         { name: 'Liên Hệ', path: '/menu4' }
     ];

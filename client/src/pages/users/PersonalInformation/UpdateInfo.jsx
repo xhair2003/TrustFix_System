@@ -19,7 +19,7 @@ const UpdateInfo = ({ initialData, onSave }) => {
     balance: initialData.balance || 0,
     type: initialData.type || '',
   });
-  console.log(personalInfo);
+  //console.log(personalInfo);
   const [phoneError, setPhoneError] = useState('');
   const [phoneValid, setPhoneValid] = useState(false);
   const handleChange = (e) => {

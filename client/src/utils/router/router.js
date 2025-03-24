@@ -10,7 +10,7 @@ export const ROUTERS = {
         CHANGE_PASSWORD: '/change-password',
         FORGOT_PASSWORD: '/forgot-password',
         RESET_PASSWORD: '/reset-password',
-        FIND_REPAIR: '/find-repair',
+        FIND_REPAIRMAN: '/find-repairman',
         BOOKING: '/booking',
         VIEW_REPAIR_INFO: '/view-repair-info',
         RATE_REPAIRMAN: '/rate-repair-man',
@@ -22,6 +22,7 @@ export const ROUTERS = {
         VIEW_HISTORY_PAYMENT: '/history-payment',
         PAY_FOR_REPAIR: '/pay-for-repair',
         WALLET: '/wallet',
+
     },
 
     REPAIRMAN: {

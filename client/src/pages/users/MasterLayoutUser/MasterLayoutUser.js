@@ -45,7 +45,7 @@ const MasterLayoutUser = ({ children }) => {
     const username = userInfo ? `${userInfo.firstName} ${userInfo.lastName}` : "Người dùng chưa đăng nhập";
     const email = userInfo ? `${userInfo.email}` : "Chưa có email";
 
-    console.log(userInfo);
+    //console.log(userInfo);
 
     return (
         <div className="master-layout">

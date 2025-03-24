@@ -1,9 +1,10 @@
 import React from "react";
-import { useNavigate } from "react-router-dom"; // Thêm useNavigate
+import { useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom"; // Thêm React Portal
 import "./RepairmanInforModal.css";
 
 const RepairmanInfoModal = ({ isOpen, onClose, repairman }) => {
-    const navigate = useNavigate(); // Thêm useNavigate để chuyển hướng
+    const navigate = useNavigate();
 
     if (!isOpen) return null;
 
@@ -12,21 +13,20 @@ const RepairmanInfoModal = ({ isOpen, onClose, repairman }) => {
         profileImage = null,
         description = "Không có mô tả",
         dealPrice = 0,
-        certificationImage = null,
+        certificationImages = [],
         bookingCount = 0,
         reviews = [],
     } = repairman || {};
 
-    // Xử lý khi nhấn "Đặt thợ"
     const handleBook = () => {
-        onClose(); // Đóng modal
-        // Chuyển hướng đến trang thanh toán với thông tin thợ và số tiền
+        onClose();
         navigate("/make-payment", { state: { repairman, dealPrice } });
         console.log(repairman);
         console.log(dealPrice);
     };
 
-    return (
+    // Nội dung modal
+    const modalContent = (
         <div className="modal-overlay">
             <div className="modal-container">
                 <div className="modal-header">
@@ -50,21 +50,22 @@ const RepairmanInfoModal = ({ isOpen, onClose, repairman }) => {
                         {profileImage && (
                             <div className="info-section">
                                 <label className="info-label">Ảnh thợ:</label>
-                                <img
-                                    src={profileImage}
-                                    alt="Ảnh thợ"
-                                    className="profile-image"
-                                />
+                                <img src={profileImage} alt="Ảnh thợ" className="profile-image" />
                             </div>
                         )}
-                        {certificationImage && (
+                        {certificationImages.length > 0 && (
                             <div className="info-section">
                                 <label className="info-label">Giấy chứng chỉ hành nghề:</label>
-                                <img
-                                    src={certificationImage}
-                                    alt="Chứng chỉ hành nghề"
-                                    className="certification-image"
-                                />
+                                <div className="certification-images">
+                                    {certificationImages.map((image, index) => (
+                                        <img
+                                            key={index}
+                                            src={image}
+                                            alt={`Chứng chỉ ${index + 1}`}
+                                            className="certification-image"
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -74,9 +75,7 @@ const RepairmanInfoModal = ({ isOpen, onClose, repairman }) => {
                         <div className="info-row">
                             <div className="info-section">
                                 <label className="info-label">Giá đã deal:</label>
-                                <p className="info-value">
-                                    {dealPrice.toLocaleString("vi-VN")} VNĐ
-                                </p>
+                                <p className="info-value">{dealPrice.toLocaleString("vi-VN")} VNĐ</p>
                             </div>
                             <div className="info-section">
                                 <label className="info-label">Tổng số lần được đặt:</label>
@@ -121,6 +120,9 @@ const RepairmanInfoModal = ({ isOpen, onClose, repairman }) => {
             </div>
         </div>
     );
+
+    // Sử dụng Portal để render modal vào body
+    return createPortal(modalContent, document.body);
 };
 
 export default RepairmanInfoModal;

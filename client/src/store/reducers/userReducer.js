@@ -18,6 +18,7 @@ const initialState = {
     errorToggleStatus: null,
     errorGetStatus: null,
 
+    requestId: null,
     errorFindRepairman: null,
     errorViewRequest: null,
     successFindRepairman: null,
@@ -26,6 +27,8 @@ const initialState = {
     successDealPrice: null,
     errorViewRepairmanDeal: null,
     repairmanDeals: [],
+
+
 };
 
 const userReducer = (state = initialState, action) => {
@@ -247,7 +250,8 @@ const userReducer = (state = initialState, action) => {
             return {
                 ...state,
                 loading: false,
-                successFindRepairman: action.payload, // Lưu dữ liệu từ BE (VD: { EC: 1, EM: "Gửi yêu cầu thành công!" })
+                requestId: action.payload.requestId, // Lưu dữ liệu từ BE
+                successFindRepairman: action.payload.message, // Lưu dữ liệu từ BE (VD: { EC: 1, EM: "Gửi yêu cầu thành công!" })
                 errorFindRepairman: null,
             };
         case "FIND_REPAIRMAN_FAIL":
@@ -255,6 +259,7 @@ const userReducer = (state = initialState, action) => {
                 ...state,
                 loading: false,
                 successFindRepairman: null,
+                requestId: null,
                 errorFindRepairman: action.payload, // Lưu thông báo lỗi
             };
 
@@ -329,7 +334,6 @@ const userReducer = (state = initialState, action) => {
             return {
                 ...state,
                 loading: false,
-                repairmanDeals: [],
                 errorViewRepairmanDeal: action.payload, // Lưu thông báo lỗi
             };
 
