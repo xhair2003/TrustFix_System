@@ -9,7 +9,7 @@ const TransactionSchema = new mongoose.Schema(
     },
     payCode: {
       type: String,
-      required: true,
+      //required: true,
     },
     amount: {
       type: Number,
@@ -31,7 +31,7 @@ const TransactionSchema = new mongoose.Schema(
     },
     balanceAfterTransact: {
       type: Number,
-      required: true,
+      //required: true,
     },
 
     request_id: { // New field to link the transaction to a specific request

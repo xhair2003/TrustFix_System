@@ -33,6 +33,8 @@ const generateAccessToken = (user) => {
     return jwt.sign(
         {
             id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
             email: user.email,
             role: user.role
         },
@@ -45,6 +47,8 @@ const generateRefreshToken = (user) => {
     return jwt.sign(
         {
             id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
             email: user.email,
             role: user.role
         },

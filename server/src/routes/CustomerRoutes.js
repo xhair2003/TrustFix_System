@@ -54,5 +54,5 @@ router.get('/view-repair-history', authMiddleware.verifyToken, CustomerControlle
 router.get("/get-request", authMiddleware.verifyToken, CustomerController.getAllRequests)
 
 router.get('/viewRepairmanDeal/:requestId', authMiddleware.verifyToken, CustomerController.viewRepairmanDeal);
-
+router.post('/assignedRepairman/:requestId/:repairmanId', authMiddleware.verifyToken, CustomerController.viewRepairmanDeal, CustomerController.assignedRepairman);
 module.exports = router;
