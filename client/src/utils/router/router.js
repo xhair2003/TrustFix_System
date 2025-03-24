@@ -10,7 +10,7 @@ export const ROUTERS = {
         CHANGE_PASSWORD: '/change-password',
         FORGOT_PASSWORD: '/forgot-password',
         RESET_PASSWORD: '/reset-password',
-        FIND_REPAIR: '/find-repair',
+        FIND_REPAIRMAN: '/find-repairman',
         BOOKING: '/booking',
         VIEW_REPAIR_INFO: '/view-repair-info',
         RATE_REPAIRMAN: '/rate-repair-man',
@@ -22,6 +22,7 @@ export const ROUTERS = {
         VIEW_HISTORY_PAYMENT: '/history-payment',
         PAY_FOR_REPAIR: '/pay-for-repair',
         WALLET: '/wallet',
+
     },
 
     REPAIRMAN: {
@@ -31,6 +32,8 @@ export const ROUTERS = {
         VIEW_SERVICE_PRICES: '/repairman/service-prices',
         BUY_RECOMMEND_BOOKING_PACKAGE: '/buy-recommend-booking-package',
         PAY_MONTHLY_ACCOUNT_MAINTENANCE_FEES: '/pay-monthly-account-maintenance-fees',
+        VIEW_REQUESTS: '/repairman/view-requests',
+        DETAIL_REQUEST: '/repairman/detail-request/:requestId',
     },
 
     ADMIN: {

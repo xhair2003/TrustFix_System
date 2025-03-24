@@ -1,0 +1,37 @@
+.repairman-requests-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .request-card {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: white;
+    margin-bottom: 10px;
+  }
+  
+  .view-detail-button {
+    padding: 8px 15px;
+    background-color: #3961fb;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .view-detail-button:hover {
+    background-color: #2f4fc2;
+  }
+
+  .request-card p {
+    margin: 5px 0;
+  }
+  
+  .request-card strong {
+    color: #1a202c;
+  }

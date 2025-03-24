@@ -529,10 +529,18 @@ const adminReducer = (state = initialState, action) => {
             return { ...state, loading: true };
 
         case "SUCCESS_TOTAL_SERVICES_BY_INDUSTRY":
-            return { ...state, totalServicesByIndustry: action.payload, loading: false };
-
+            return {
+                ...state,
+                totalServicesByIndustry: Array.isArray(action.payload) ? action.payload : [],
+                loading: false
+            };
         case "ERROR_TOTAL_SERVICES_BY_INDUSTRY":
-            return { ...state, error: action.payload, loading: false };
+            return {
+                ...state,
+                error: action.payload,
+                loading: false,
+                totalServicesByIndustry: [] // Reset để tránh dữ liệu cũ gây lỗi
+             };
 
         // Handle total service prices
         case "REQUEST_TOTAL_SERVICE_PRICES":

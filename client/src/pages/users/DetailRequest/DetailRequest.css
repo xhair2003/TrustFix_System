@@ -1,0 +1,214 @@
+.request-detail-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f4f8, #e2e8f0); /* Gradient nền đẹp */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+.request-detail-container {
+  width: 90%;
+  max-width: 1200px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  padding: 30px;
+  margin-top: 20px;
+}
+
+.request-title {
+  font-size: 2rem;
+  color: #2d3748;
+  text-align: center;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #3961fb;
+  padding-bottom: 10px;
+}
+
+/* Animation fade-in cho container */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Section styles */
+.request-section {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.request-section:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.request-section h3 {
+  font-size: 1.5rem;
+  color: #4a5568;
+  margin-bottom: 15px;
+  border-left: 4px solid #3961fb;
+  padding-left: 10px;
+}
+
+/* Grid cho thông tin cơ bản */
+.request-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.request-info-grid p {
+  font-size: 1rem;
+  color: #2d3748;
+  margin: 5px 0;
+}
+
+.request-info-grid strong {
+  color: #1a202c;
+}
+
+/* Hình ảnh */
+.image-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.request-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+.request-image:hover {
+  transform: scale(1.05);
+}
+
+.animate-image-load {
+  animation: imageLoad 0.5s ease-in-out;
+}
+
+@keyframes imageLoad {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Deal giá */
+.deal-section {
+  background-color: #eef2ff;
+}
+
+.deal-info p {
+  font-size: 1.1rem;
+  color: #2d3748;
+  margin-bottom: 15px;
+}
+
+.deal-input-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.deal-input {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  width: 200px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.deal-input:focus {
+  border-color: #3961fb;
+  box-shadow: 0 0 5px rgba(57, 97, 251, 0.5);
+  outline: none;
+}
+
+.animate-input-focus {
+  animation: inputFocus 0.3s ease-in-out;
+}
+
+@keyframes inputFocus {
+  0% { border-color: #e2e8f0; }
+  100% { border-color: #3961fb; }
+}
+
+.deal-buttons {
+  display: flex;
+  gap: 700px;
+}
+
+.confirm-button,
+.cancel-button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.confirm-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.confirm-button:hover {
+  background-color: #218838;
+  transform: translateY(-2px);
+}
+
+.cancel-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #c82333;
+  transform: translateY(-2px);
+}
+
+.animate-button {
+  animation: buttonPop 0.5s ease-in-out;
+}
+
+@keyframes buttonPop {
+  0% { transform: scale(0.95); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+
+.confirm-button,
+.cancel-button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.confirm-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.confirm-button:hover {
+  background-color: #218838;
+  transform: translateY(-2px);
+}
