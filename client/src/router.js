@@ -30,6 +30,7 @@ import ViewPaymentHistory from "./pages/admin/TransactionManagement/PaymentHisto
 import ManageServicePrices from "./pages/admin/ManageServicePrices/ManageServicePrices.jsx";
 import ViewRepairBooking from "./pages/admin/ViewRepairBooking/ViewRepairBooking.jsx";
 import Dashboard from "./pages/admin/Dashboard/Dashboard.jsx";
+import ManagePracticeSertificates from "./pages/admin/ManagePracticeSertificates/ManagePracticeSertificates.jsx";
 
 const UserROUTERS = () => {
     const routers = [
@@ -140,7 +141,7 @@ const UserROUTERS = () => {
         },
         {
             path: ROUTERS.ADMIN.MANAGE_PRACTICE_SERTIFICATES,
-            // component: <ManagePracticeSertificates />,
+            component: <ManagePracticeSertificates />,
             layout: MasterLayoutAdmin,
         },
 
