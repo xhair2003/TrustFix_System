@@ -853,7 +853,7 @@ const viewRepairHistory = async (req, res) => {
     });
   }
 };
-const viewRepairmanDeal = async (req, res, next) => {
+const viewRepairmanDeal = async (req, res) => {
     try {
         const { requestId } = req.params;
         const userId = req.user.id;
@@ -901,12 +901,12 @@ const viewRepairmanDeal = async (req, res, next) => {
             });
         }
         req.repairmanDeals = repairmanDeals;
-        next();
-        // res.status(201).json({
-        //     EC: 1,
-        //     EM: "Hiển thị thông tin thợ thành công!",
-        //     DT: repairmanDeals
-        // });
+        
+        res.status(201).json({
+            EC: 1,
+            EM: "Hiển thị thông tin thợ thành công!",
+            DT: repairmanDeals
+        });
     } catch (error) {
         console.error("Error in dealPrice API:", error);
         res.status(500).json({
@@ -1003,6 +1003,13 @@ const assignedRepairman = async (req, res) => {
     // session.startTransaction();
     //request gốc
     const requestParent = await Request.findById(requestId);
+    //request con
+    const requestChild = await Request.find({
+      parentRequest: requestId,
+    });
+    const Due_Price = await DuePrice.findOne({
+      request_id: requestId,
+    })
     try {
       // Deduct from customer wallet
       customerWallet.balance -= dealPriceValue;
@@ -1014,9 +1021,42 @@ const assignedRepairman = async (req, res) => {
 
       
       // Update request status to 'Assigned' and set repairman_id
-      requestParent.status = 'Proceed with repair'; // Or 'Processing', choose appropriate status
-      requestParent.repairman_id = repairmanId; // Keep track of assigned repairman upgrade request id
+      requestParent.status = 'Proceed with repair'; 
+      requestParent.repairman_id = repairmanId; 
+      //Thay đổi trạng thái thợ
+      
+      // Tạo mới bảng Price và thêm price của thợ vào
+      const newPrice = new Price({
+        duePrice_id: Due_Price._id,
+        priceToPay: dealPriceValue, // Lấy giá từ dealPriceValue
+      });
+      await newPrice.save(); // Lưu Price mới và lấy _id
+
       await requestParent.save();
+
+      // Cập nhật trạng thái RepairmanUpgradeRequest cho thợ được chọn thành 'Proceed with repair'
+      //const selectedRepairmanUpgradeRequest = await RepairmanUpgradeRequest.findById(repairmanId);
+      repairmanUpgradeRequest.status = 'Proceed with repair';
+      await repairmanUpgradeRequest.save();
+        
+      // Cập nhật trạng thái RepairmanUpgradeRequest cho các thợ không được chọn (trở lại 'Active')
+      if (requestChild && requestChild.length > 0) {
+        await Promise.all(requestChild.map(async (childRequest) => {
+          const repairmanUpgradeRequest = await RepairmanUpgradeRequest.findById(childRequest.repairman_id);
+          if (repairmanUpgradeRequest && childRequest.repairman_id.toString() !== repairmanId) { // Check if not the selected repairman
+            repairmanUpgradeRequest.status = "Active";
+            await repairmanUpgradeRequest.save();
+          }
+          // Tìm và xóa Price liên quan đến DuePrice liên quan đến childRequest
+          const duePrice = await DuePrice.findOne({ request_id: childRequest._id });
+          if (duePrice) {
+            await Price.deleteMany({ duePrice_id: duePrice._id });
+            await DuePrice.deleteOne({ _id: duePrice._id });
+          }
+          // Xóa childRequest
+          await Request.deleteOne({ _id: childRequest._id });
+        }));
+      }
 
       // Create transaction records for both customer and repairman
       const customerTransaction = new Transaction({
@@ -1037,10 +1077,23 @@ const assignedRepairman = async (req, res) => {
       });
       await repairmanTransaction.save();
 
-      // Commit transaction if started
-      // await session.commitTransaction();
-      // session.endSession();
-
+      // Xóa các request con và dữ liệu liên quan sau khi thanh toán thành công
+      if (requestChild && requestChild.length > 0) {
+        await Promise.all(requestChild.map(async (childRequest) => {
+          const repairman = await RepairmanUpgradeRequest.findById(childRequest.repairman_id);
+          if(repairman){
+            repairman.status = "Active";
+          }
+          // Tìm và xóa Price liên quan đến DuePrice liên quan đến childRequest
+          const duePrice = await DuePrice.findOne({ request_id: childRequest._id });
+          if (duePrice) {
+            await Price.deleteMany({ duePrice_id: duePrice._id });
+            await DuePrice.deleteOne({ _id: duePrice._id });
+          }
+          // Xóa childRequest
+          await Request.deleteOne({ _id: childRequest._id });
+        }));
+      }
 
       res.status(200).json({
         EC: 1,

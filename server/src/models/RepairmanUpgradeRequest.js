@@ -28,7 +28,7 @@ const RepairmanUpgradeRequestSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Active", "Inactive", "pending", "Deal price", "Done deal price"],
+      enum: ["Active", "Inactive", "pending", "Deal price", "Done deal price","Proceed with repair"],
       default: "pending",
     },
     serviceTypes: {
