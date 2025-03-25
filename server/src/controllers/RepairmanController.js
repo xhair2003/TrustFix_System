@@ -1,16 +1,6 @@
-const {
-  User,
-  Role,
-  RepairmanUpgradeRequest,
-  ServiceIndustry,
-  Service,
-  Vip,
-  DuePrice,
-  Price,
-  Rating,
-  Request,
-} = require("../models");
+const { User, Role, RepairmanUpgradeRequest, ServiceIndustry, Service, Vip, DuePrice, Price, Rating, Request, Transaction, Wallet } = require("../models");
 const cloudinary = require("../../config/cloudinary");
+const { MONTHLY_FEE, sendEmail } = require("../constants");
 
 // lấy type của ServiceIndustry
 // API GET để lấy tất cả các loại dịch vụ (type)
@@ -294,7 +284,7 @@ const dealPrice = async (req, res) => {
     if (!repairmanUpgradeRequest) {
       return res.status(404).json({
         EC: 0,
-        EM: "Không tìm thấy thông tin nâng cấp thợ sửa chữa cho người dùng này!",
+        EM: "Không tìm thấy thông tin nâng cấp thợ sửa chữa cho người dùng này!"
       });
     }
 
@@ -304,31 +294,29 @@ const dealPrice = async (req, res) => {
     // Tìm Request có status 'Deal price' và được gán cho repairman này
     const dealPriceRequest = await Request.findOne({
       repairman_id: repairmanId,
-      status: "Deal price", // Hoặc trạng thái phù hợp của bạn
-      parentRequest: requestId,
-    });
+      status: 'Deal price', // Hoặc trạng thái phù hợp của bạn
+      parentRequest: requestId
+    })
 
     if (!dealPriceRequest) {
       return res.status(404).json({
         EC: 0,
-        EM: "Không tìm thấy yêu cầu deal giá nào cho thợ sửa chữa này!",
+        EM: "Không tìm thấy yêu cầu deal giá nào cho thợ sửa chữa này!"
       });
     }
 
     // Lấy duePrice_id từ Request tìm được
-    const duePrice = await DuePrice.findOne({
-      request_id: dealPriceRequest._id,
-    });
+    const duePrice = await DuePrice.findOne({ request_id: dealPriceRequest._id });
     if (!duePrice) {
       return res.status(404).json({
         EC: 0,
-        EM: "Không tìm thấy DuePrice cho yêu cầu deal giá này!",
+        EM: "Không tìm thấy DuePrice cho yêu cầu deal giá này!"
       });
     }
     const duePrice_id = duePrice._id; // Lấy _id của DuePrice
 
-    if (isDeal === "false") {
-      // Kiểm tra nếu isDeal là false, tức là không deal giá
+
+    if (isDeal === 'false') { // Kiểm tra nếu isDeal là false, tức là không deal giá
       // Xóa DuePrice
       await DuePrice.findByIdAndDelete(duePrice_id);
       // Xóa Request
@@ -337,23 +325,23 @@ const dealPrice = async (req, res) => {
       return res.status(200).json({
         EC: 1,
         EM: "Đã hủy bỏ deal giá và xóa yêu cầu thành công!",
-        DT: {}, // Không cần trả về DT trong trường hợp hủy deal
+        DT: {} // Không cần trả về DT trong trường hợp hủy deal
       });
-    } else {
-      // Nếu isDeal không phải false hoặc không được cung cấp, tiến hành deal giá như bình thường
+    } else { // Nếu isDeal không phải false hoặc không được cung cấp, tiến hành deal giá như bình thường
       if (!deal_price) {
         return res.status(400).json({
           EC: 0,
-          EM: "Vui lòng cung cấp giá deal!",
+          EM: "Vui lòng cung cấp giá deal!"
         });
       }
 
       if (isNaN(deal_price)) {
         return res.status(400).json({
           EC: 0,
-          EM: "Giá deal phải là một số!",
+          EM: "Giá deal phải là một số!"
         });
       }
+
 
       const minPrice = parseFloat(duePrice.minPrice);
       const maxPrice = parseFloat(duePrice.maxPrice);
@@ -362,14 +350,14 @@ const dealPrice = async (req, res) => {
       if (parsedDealPrice < minPrice || parsedDealPrice > maxPrice) {
         return res.status(400).json({
           EC: 0,
-          EM: `Giá deal phải nằm trong khoảng từ ${minPrice} đến ${maxPrice}!`,
+          EM: `Giá deal phải nằm trong khoảng từ ${minPrice} đến ${maxPrice}!`
         });
       }
 
       const newPrice = new Price({
         duePrice_id: duePrice_id,
         repairman_id: repairmanId,
-        priceToPay: deal_price,
+        priceToPay: deal_price
       });
       const savedPrice = await newPrice.save();
 
@@ -396,40 +384,77 @@ const dealPrice = async (req, res) => {
       //     request_id: { $in: completedRequestIds } // Lọc ratings theo request_id
       // }).populate('request_id', 'description status');
       // Cập nhật trạng thái của dealPriceRequest thành 'Done deal price'
-      dealPriceRequest.status = "Done deal price";
+      dealPriceRequest.status = 'Done deal price';
       await dealPriceRequest.save();
 
       res.status(201).json({
         EC: 1,
         EM: "Deal giá thành công!",
-        DT: {
-          // repairman: repairmanInfo,
-          // ratings: repairmanRatings,
-          dealPrice: savedPrice,
-        },
+        // DT: {
+        //     // repairman: repairmanInfo,
+        //     // ratings: repairmanRatings,
+        //     dealPrice: savedPrice
+        // }
       });
     }
   } catch (error) {
     console.error("Error in dealPrice API:", error);
     res.status(500).json({
       EC: 0,
-      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
     });
   }
-};
+}
+// const viewRequest = async (req, res) => {
+//     try {
+//         const userId = req.user.id; // Lấy user ID của thợ sửa chữa từ token
+
+//         // Tìm RepairmanUpgradeRequest dựa trên user_id từ token
+//         const repairmanUpgradeRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId });
+
+//         if (!repairmanUpgradeRequest) {
+//             return res.status(404).json({
+//                 EC: 0,
+//                 EM: "Không tìm thấy thông tin nâng cấp thợ sửa chữa cho người dùng này!"
+//             });
+//         }
+
+//         // Sử dụng _id từ RepairmanUpgradeRequest làm repairmanId
+//         const repairmanId = repairmanUpgradeRequest._id;
+
+//         // Tìm Request có status 'Deal price' và được gán cho repairman này
+//         const dealPriceRequest = await Request.findOne({
+//             repairman_id: repairmanId,
+//             status: 'Deal price' // Hoặc trạng thái phù hợp của bạn
+//         }).sort({ createdAt: -1 }); // Lấy request mới nhất nếu có nhiều request
+//         console.log(repairmanId);
+//         if (!dealPriceRequest) {
+//             return res.status(404).json({
+//                 EC: 0,
+//                 EM: "Không tìm thấy yêu cầu deal giá nào cho thợ sửa chữa này!"
+//             });
+//         }
+//         res.status(201).json({
+//             EC: 1,
+//             EM: "Hiển thị đơn hàng thành công",
+//             DT: dealPriceRequest
+//         });
+//     } catch (error) {
+
+//     }
+// }
+
 const viewRequest = async (req, res) => {
   try {
     const userId = req.user.id; // Lấy user ID của thợ sửa chữa từ token
 
     // Tìm RepairmanUpgradeRequest dựa trên user_id từ token
-    const repairmanUpgradeRequest = await RepairmanUpgradeRequest.findOne({
-      user_id: userId,
-    });
+    const repairmanUpgradeRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId });
 
     if (!repairmanUpgradeRequest) {
       return res.status(404).json({
         EC: 0,
-        EM: "Không tìm thấy thông tin nâng cấp thợ sửa chữa cho người dùng này!",
+        EM: "Không tìm thấy thông tin nâng cấp thợ sửa chữa cho người dùng này!"
       });
     }
 
@@ -439,28 +464,133 @@ const viewRequest = async (req, res) => {
     // Tìm Request có status 'Deal price' và được gán cho repairman này
     const dealPriceRequest = await Request.findOne({
       repairman_id: repairmanId,
-      status: "Deal price", // Hoặc trạng thái phù hợp của bạn
+      status: 'Deal price' // Hoặc trạng thái phù hợp của bạn
     }).sort({ createdAt: -1 }); // Lấy request mới nhất nếu có nhiều request
-    console.log(repairmanId);
+
     if (!dealPriceRequest) {
       return res.status(404).json({
         EC: 0,
-        EM: "Không tìm thấy yêu cầu deal giá nào cho thợ sửa chữa này!",
+        EM: "Không tìm thấy yêu cầu deal giá nào cho thợ sửa chữa này!"
       });
     }
-    const dealPrice = await DuePrice.findOne({
-      request_id: dealPriceRequest._id,
-    });
+
+    // Tìm DuePrice dựa trên request_id (là _id của dealPriceRequest)
+    const duePrice = await DuePrice.findOne({ request_id: dealPriceRequest._id });
+
+    // Nếu không tìm thấy DuePrice, có thể trả về giá trị mặc định hoặc thông báo lỗi
+    if (!duePrice) {
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy thông tin giá đề xuất cho yêu cầu này!"
+      });
+    }
+
+    // Thêm minPrice và maxPrice vào response
     res.status(201).json({
       EC: 1,
       EM: "Hiển thị đơn hàng thành công",
       DT: {
-        Request: dealPriceRequest,
-        DealPrice: dealPrice,
-      },
+        ...dealPriceRequest._doc, // Lấy toàn bộ dữ liệu của dealPriceRequest
+        minPrice: duePrice.minPrice, // Thêm minPrice từ DuePrice
+        maxPrice: duePrice.maxPrice, // Thêm maxPrice từ DuePrice
+      }
     });
-  } catch (error) {}
+  } catch (error) {
+    res.status(500).json({
+      EC: -1,
+      EM: "Đã có lỗi xảy ra, vui lòng thử lại!",
+      DT: error.message
+    });
+  }
 };
+
+const processMonthlyFee = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    if (!userId) {
+      return res.status(400).json({ EC: 1, EM: "Thiếu ID người dùng!" });
+    }
+
+    // Lấy thông tin user, wallet và VIP
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ EC: 1, EM: "Không tìm thấy người dùng!" });
+    }
+
+    const wallet = await Wallet.findOne({ user_id: userId });
+    if (!wallet) {
+      return res.status(404).json({ EC: 1, EM: "Người dùng chưa có ví!" });
+    }
+
+    const vipRecord = await Vip.findOne({ user_id: userId }).sort({ createdAt: 1 });
+
+    // Kiểm tra miễn phí tháng đầu tiên
+    const currentDate = new Date();
+    const firstVipDate = vipRecord ? new Date(vipRecord.createdAt) : null;
+    const isFirstMonthFree = firstVipDate && (currentDate.getMonth() === firstVipDate.getMonth() && currentDate.getFullYear() === firstVipDate.getFullYear());
+
+    if (isFirstMonthFree) {
+      return res.status(200).json({
+        EC: 0,
+        EM: "Miễn phí tháng đầu tiên, không trừ phí!",
+        DT: { balance: wallet.balance }
+      });
+    }
+
+    // Kiểm tra số dư trong ví
+    if (wallet.balance >= MONTHLY_FEE) {
+      // Trừ tiền trong ví
+      wallet.balance -= MONTHLY_FEE;
+      await wallet.save();
+
+      // Lưu lại lịch sử giao dịch
+      const transaction = new Transaction({
+        wallet_id: wallet._id,
+        payCode: `VIPFEE-${Date.now()}`,
+        amount: MONTHLY_FEE,
+        status: 1,
+        transactionType: "payment",
+        content: "Thanh toán phí thành viên hàng tháng",
+        balanceAfterTransact: wallet.balance
+      });
+      await transaction.save();
+
+      // Gửi email xác nhận
+      await sendEmail(user.email, "Thanh toán thành công", `
+                <p>Chào ${user.firstName} ${user.lastName},</p>
+                <p>Bạn đã thanh toán thành công phí tháng này với số tiền <strong>100,000 VND</strong>.</p>
+                <p>Số dư còn lại trong ví: <strong>${wallet.balance} VND</strong>.</p>
+                <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+            `);
+
+      return res.status(200).json({
+        EC: 0,
+        EM: "Thanh toán thành công!",
+        DT: { balance: wallet.balance, transaction }
+      });
+    } else {
+      // Gửi email thông báo trễ hạn
+      await sendEmail(user.email, "Cảnh báo: Không đủ số dư thanh toán", `
+                <p>Chào ${user.firstName} ${user.lastName},</p>
+                <p>Bạn chưa thanh toán phí tháng này (<strong>100,000 VND</strong>) do số dư ví không đủ.</p>
+                <p>Vui lòng nạp tiền vào ví để duy trì trạng thái của bạn.</p>
+            `);
+
+      return res.status(400).json({
+        EC: 1,
+        EM: "Số dư không đủ để thanh toán phí!",
+        DT: { balance: wallet.balance }
+      });
+    }
+  } catch (error) {
+    console.error("Lỗi xử lý phí hàng tháng:", error);
+    return res.status(500).json({
+      EC: 1,
+      EM: "Lỗi server, vui lòng thử lại sau!"
+    });
+  }
+};
+
 module.exports = {
   requestRepairmanUpgrade,
   getAllVips,
@@ -468,5 +598,6 @@ module.exports = {
   toggleStatusRepairman,
   getStatusRepairman,
   dealPrice,
+  processMonthlyFee,
   viewRequest,
 };

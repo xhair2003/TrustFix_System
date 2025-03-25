@@ -17,19 +17,16 @@ const PersonalInfomation = () => {
   const { loading, userInfo, error, updateInfoSuccess, updateInfoError } = useSelector((state) => state.user); // Lấy thông tin từ Redux
 
   //console.log(userInfo);
-  console.log(updateInfoSuccess);
-  console.log(updateInfoError);
-  console.log(loading);
+  // console.log(updateInfoSuccess);
+  // console.log(updateInfoError);
+  // console.log(loading);
 
-  // Nếu userInfo chưa có, hiển thị thông báo hoặc giá trị mặc định
+  // Hiển thị Loading nếu chưa có dữ liệu
   if (!userInfo) {
-    return <Loading />; // Hiển thị Loading khi đang chờ API
+    return <Loading />;
   }
 
   const handleSave = (updatedInfo) => {
-    dispatch(resetError());
-    dispatch(resetSuccess());
-
     dispatch(updateUserInfo(updatedInfo)).then(() => {
       // Check for success or error after the dispatch completes
       if (updateInfoSuccess) {
@@ -40,6 +37,8 @@ const PersonalInfomation = () => {
           timer: 5000,
           showConfirmButton: false,
         });
+        dispatch(resetSuccess());
+        dispatch(getUserInfo()); // Cập nhật lại userInfo sau khi thành công
       } else if (updateInfoError) {
         Swal.fire({
           title: "Lỗi",
@@ -48,9 +47,8 @@ const PersonalInfomation = () => {
           timer: 5000,
           showConfirmButton: false,
         });
+        dispatch(resetError());
       }
-      // Fetch user info again after update
-      dispatch(getUserInfo());
     });
   };
 
@@ -73,7 +71,7 @@ const PersonalInfomation = () => {
             email={userInfo?.email || "Chưa có email"} // Cung cấp giá trị mặc định
             phone={userInfo?.phone || "Chưa có số điện thoại"} // Cung cấp giá trị mặc định
             type={userInfo?.type === "repairman" ? 'Thợ' : 'Khách hàng'}
-            avatar={userInfo?.imgAvt || "default-avatar.png"} // Cung cấp giá trị mặc định
+            avatar={userInfo ? `${userInfo.imgAvt}` : "default-avatar.png"} // Cung cấp giá trị mặc định
             address={userInfo?.address || "Chưa có địa chỉ"} // Cung cấp giá trị mặc định
             description={userInfo?.description || "Chưa có mô tả"} // Cung cấp giá trị mặc định
           />

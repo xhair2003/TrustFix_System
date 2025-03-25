@@ -42,12 +42,13 @@ router.delete("/delete-rating/:id", authMiddleware.verifyToken, CustomerControll
 router.post('/repairmen/nearby', authMiddleware.verifyToken, CustomerController.findNearbyRepairmen);
 //user-information
 router.get('/user-info', authMiddleware.verifyToken, CustomerController.getUserInfo);
-router.get("/get-request",authMiddleware.verifyToken,CustomerController.getAllRequests);
+
+router.get("/get-request", authMiddleware.verifyToken, CustomerController.getAllRequests);
 
 //gửi yêu cầu tìm thợ
-router.post('/send-request',authMiddleware.verifyToken, CustomerController.sendRequest);
+router.post('/send-request', authMiddleware.verifyToken, CustomerController.sendRequest);
 
-router.post('/requests/find-repairman', authMiddleware.verifyToken, CustomerController.sendRequest, CustomerController.findRepairman);
+router.post('/requests/find-repairman', authMiddleware.verifyToken, upload.array('image'), CustomerController.sendRequest, CustomerController.findRepairman);
 
 //view-repair-history
 router.get('/view-repair-history', authMiddleware.verifyToken, CustomerController.viewRepairHistory);
@@ -56,3 +57,4 @@ router.get("/get-request", authMiddleware.verifyToken, CustomerController.getAll
 router.get('/viewRepairmanDeal/:requestId', authMiddleware.verifyToken, CustomerController.viewRepairmanDeal);
 router.post('/assignedRepairman/:requestId/:repairmanId', authMiddleware.verifyToken, CustomerMiddleware.viewRepairmanDeal, CustomerController.assignedRepairman);
 module.exports = router;
+

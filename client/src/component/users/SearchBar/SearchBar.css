@@ -1,4 +1,4 @@
-.search-container {
+/* .search-container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -26,7 +26,7 @@
     outline: none;
 }
 
-.search-input, .search-dropdown {
+.search-input, .search-dropdown, .search-file-input {
     flex: 1;
     padding: 10px;
     border: 1px solid #ccc;
@@ -46,4 +46,69 @@
 
 .search-button:hover {
     background-color: #2f4fc2;
-}
+} */
+
+
+.search-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 0; /* Loại bỏ padding mặc định để phù hợp với search-section */
+  }
+  
+  .search-top,
+  .search-bottom {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 0; /* Loại bỏ margin-bottom mặc định */
+    width: 100%;
+  }
+  
+  .search-input-description {
+    flex: 3;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+    font-size: 16px;
+    transition: border-color 0.3s;
+  }
+  
+  .search-input-description:focus,
+  .search-input:focus,
+  .search-dropdown:focus {
+    border-color: #3961fb;
+  }
+  
+  .search-input,
+  .search-dropdown,
+  .search-file-input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+    font-size: 16px;
+    transition: border-color 0.3s;
+  }
+  
+  .search-button {
+    padding: 12px 25px;
+    background-color: #3961fb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  
+  .search-button:hover {
+    background-color: #2f4fc2;
+    transform: translateY(-2px);
+  }
+  
+  .search-button:active {
+    transform: translateY(0);
+  }

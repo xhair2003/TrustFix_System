@@ -11,9 +11,9 @@ const VipSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    name: {
-        type: String
-    },
+    // name: {
+    //     type: String
+    // },
     description: {
         type: String
     },

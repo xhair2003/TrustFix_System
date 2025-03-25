@@ -454,9 +454,8 @@ const findNearbyRepairmen = async (req, res) => {
       if (repairman.address) {
         const gomapApiUrl = `https://maps.gomaps.pro/maps/api/distancematrix/json?destinations=${encodeURIComponent(
           repairman.address
-        )}&origins=${encodeURIComponent(address)}&key=${
-          process.env.GOMAPS_API_KEY
-        }`;
+        )}&origins=${encodeURIComponent(address)}&key=${process.env.GOMAPS_API_KEY
+          }`;
 
         try {
           const gomapResponse = await fetch(gomapApiUrl);
@@ -482,10 +481,8 @@ const findNearbyRepairmen = async (req, res) => {
             }
           } else {
             console.warn(
-              `GoMap API error for repairman ${repairman._id}: ${
-                gomapData.status
-              } - ${
-                gomapData.error_message || gomapData.rows[0].elements[0].status
+              `GoMap API error for repairman ${repairman._id}: ${gomapData.status
+              } - ${gomapData.error_message || gomapData.rows[0].elements[0].status
               }`
             );
           }
@@ -559,6 +556,10 @@ const getUserInfo = async (req, res) => {
 const sendRequest = async (req, res, next) => {
   try {
     const { serviceIndustry_id, description, address, radius } = req.body; // Lấy 'price' từ req.body
+    //console.log("serviceIndustry_id", serviceIndustry_id);
+    //console.log("description", description);
+    //console.log("address", address);
+    //console.log("radius", radius);
     //const gomapApiKey = process.env.GOMAPS_API_KEY;
     const userId = req.user.id; // Lấy user ID từ token
 
@@ -588,15 +589,28 @@ const sendRequest = async (req, res, next) => {
     }
 
     // Upload ảnh mới nếu có - Tương tự như createComplaint
-    let image = null; // Mặc định không có ảnh
-    console.log(req.file); // Kiểm tra xem file có được upload không
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "request_images", // Upload vào thư mục request_images - thư mục khác với complaint
-        transformation: [{ width: 500, height: 500, crop: "limit" }],
-      });
-      image = result.secure_url; // Lấy link ảnh từ Cloudinary
+    // let image = null; // Mặc định không có ảnh
+    // console.log(req.file); // Kiểm tra xem file có được upload không
+    // if (req.file) {
+    //   const result = await cloudinary.uploader.upload(req.file.path, {
+    //     folder: "request_images", // Upload vào thư mục request_images - thư mục khác với complaint
+    //     transformation: [{ width: 500, height: 500, crop: "limit" }],
+    //   });
+    //   image = result.secure_url; // Lấy link ảnh từ Cloudinary
+    // }
+
+    let image = [];
+    if (req.files) { // req.files sẽ là mảng các file
+      for (const file of req.files) {
+        const result = await cloudinary.uploader.upload(file.path, {
+          folder: "request_images",
+          transformation: [{ width: 500, height: 500, crop: "limit" }]
+        });
+        image.push(result.secure_url);
+      }
     }
+
+    //console.log("image", image);
 
     // Tạo Request mới
     const newRequest = new Request({
@@ -604,7 +618,7 @@ const sendRequest = async (req, res, next) => {
       serviceIndustry_id: serviceIndustry_id,
       description: description,
       address: address,
-      image: image || null, // Lưu image, có thể null nếu không có - đã được upload ở trên
+      image: image.length ? image : [], // Lưu mảng URL hoặc mảng rỗng
       status: "Requesting Details", // Trạng thái mặc định
     });
     const savedRequest = await newRequest.save();
@@ -677,8 +691,8 @@ const findRepairman = async (req, res) => {
       await Request.deleteOne({ _id: originalRequest._id }); // <--- CÁCH PHỔ BIẾN VÀ RÕ RÀNG HƠN
       return res.status(400).json({
         EC: 0,
-        EM: `Không tìm thấy thợ sửa chữa nào trong khu vực bán kính ${radius}km!`, 
-        
+        EM: `Không tìm thấy thợ sửa chữa nào trong khu vực bán kính ${radius}km!`,
+
       });
     }
 
@@ -714,10 +728,8 @@ const findRepairman = async (req, res) => {
             }
           } else {
             console.warn(
-              `GoMap API error for repairman ${repairman._id}: ${
-                gomapData.status
-              } - ${
-                gomapData.error_message || gomapData.rows[0].elements[0].status
+              `GoMap API error for repairman ${repairman._id}: ${gomapData.status
+              } - ${gomapData.error_message || gomapData.rows[0].elements[0].status
               }`
             );
           }
@@ -797,13 +809,14 @@ const findRepairman = async (req, res) => {
     res.status(200).json({
       EC: 1,
       EM: "Gửi yêu cầu tìm kiếm thành công!",
-      DT: {
-        //nearbyRepairmen: nearbyRepairmen,
-        request: originalRequest, // Vẫn trả về request gốc
-        //assignedRepairman: assignedRepairman, // Vẫn trả về assignedRepairman (first one found)
-        deal_price: saveDuePrice,
-        // newRequestsForRepairmen: newRequestsForRepairmen // Trả về array các request mới tạo
-      },
+      // DT: {
+      //   //nearbyRepairmen: nearbyRepairmen,
+      //   request: originalRequest, // Vẫn trả về request gốc
+      //   //assignedRepairman: assignedRepairman, // Vẫn trả về assignedRepairman (first one found)
+      //   deal_price: saveDuePrice,
+      //   // newRequestsForRepairmen: newRequestsForRepairmen // Trả về array các request mới tạo
+      // },
+      DT: originalRequest._id, // Trả về ID của request gốc
     });
   } catch (error) {
     console.error("Error finding repairman and assigning:", error);
@@ -854,66 +867,79 @@ const viewRepairHistory = async (req, res) => {
   }
 };
 const viewRepairmanDeal = async (req, res) => {
-    try {
-        const { requestId } = req.params;
-        const userId = req.user.id;
+  try {
+    const { requestId } = req.params;
+    const userId = req.user.id;
 
-        const requests = await Request.find({
-            user_id: userId,
-            repairman_id: { $ne: null },
-            parentRequest: requestId,
-            status: 'Done deal price'
-        });
+    const requests = await Request.find({
+      user_id: userId,
+      repairman_id: { $ne: null },
+      parentRequest: requestId,
+      status: 'Done deal price'
+    });
 
-        if (!requests || requests.length === 0) {
-            return res.status(404).json({
-                EC: 0,
-                EM: "Không tìm thấy yêu cầu deal giá phù hợp!"
-            });
-        }
-
-        const repairmanDeals = [];
-
-        for (const request of requests) {
-            const repairman = await RepairmanUpgradeRequest.findById(request.repairman_id);
-            const repairmanInfor = await User.findById(repairman.user_id).select('firstName lastName email phone imgAvt address description');
-
-            const completedRequests = await Request.find({
-                repairman_id: request.repairman_id,
-                status: 'Completed'
-            });
-            const completedRequestIds = completedRequests.map(req => req._id);
-            const repairmanRatings = await Rating.find({
-                request_id: { $in: completedRequestIds }
-            }).populate('request_id', 'description status');
-
-            const duePrice = await DuePrice.findOne({ request_id: request._id });
-            let dealPriceInfo = null;
-            if (duePrice) {
-                dealPriceInfo = await Price.findOne({ duePrice_id: duePrice._id });
-            }
-
-            repairmanDeals.push({
-                request: request,
-                repairman: repairmanInfor,
-                ratings: repairmanRatings,
-                dealPrice: dealPriceInfo
-            });
-        }
-        req.repairmanDeals = repairmanDeals;
-        
-        res.status(201).json({
-            EC: 1,
-            EM: "Hiển thị thông tin thợ thành công!",
-            DT: repairmanDeals
-        });
-    } catch (error) {
-        console.error("Error in dealPrice API:", error);
-        res.status(500).json({
-            EC: 0,
-            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
-        });
+    if (!requests || requests.length === 0) {
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy yêu cầu deal giá phù hợp!"
+      });
     }
+
+    const repairmanDeals = [];
+
+    for (const request of requests) {
+      const repairman = await RepairmanUpgradeRequest.findById(request.repairman_id);
+      const repairmanInfor = await User.findById(repairman.user_id).select('firstName lastName email phone imgAvt address description');
+
+      // Lấy certificationImage từ RepairmanUpgradeRequest dựa trên user_id
+      const repairmanUpgrade = await RepairmanUpgradeRequest.findOne({ user_id: repairmanInfor._id });
+      const certificationImages = repairmanUpgrade ? repairmanUpgrade.imgCertificatePractice : []; // Giả định certificationImage là mảng
+
+      // Lấy số lần được booking thành công của thợ
+      const bookingCounts = await Request.find({ repairman_id: repairmanInfor._id, status: 'Completed' });
+      const bookingCount = bookingCounts ? bookingCounts.length : 0;
+
+      // Thêm certificationImages vào repairmanInfor
+      repairmanInfor._doc.certificationImages = certificationImages; // Thêm vào _doc để có thể sửa đổi
+
+      // Thêm bookingCount vào repairmanInfor
+      repairmanInfor._doc.bookingCount = bookingCount; // Thêm vào _doc để có thể sửa đổi
+
+      const completedRequests = await Request.find({
+        repairman_id: request.repairman_id,
+        status: 'Completed'
+      });
+      const completedRequestIds = completedRequests.map(req => req._id);
+      const repairmanRatings = await Rating.find({
+        request_id: { $in: completedRequestIds }
+      }).populate('request_id', 'description status');
+
+      const duePrice = await DuePrice.findOne({ request_id: request._id });
+      let dealPriceInfo = null;
+      if (duePrice) {
+        dealPriceInfo = await Price.findOne({ duePrice_id: duePrice._id });
+      }
+
+      repairmanDeals.push({
+        //request: request,
+        repairman: repairmanInfor,
+        ratings: repairmanRatings,
+        dealPrice: dealPriceInfo
+      });
+    }
+
+    res.status(201).json({
+      EC: 1,
+      EM: "Hiển thị danh sách thợ đã deal giá cho đơn hàng sửa chữa đã tạo kèm mức giá deal thành công!",
+      DT: repairmanDeals
+    });
+  } catch (error) {
+    console.error("Error in dealPrice API:", error);
+    res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+    });
+  }
 };
 const assignedRepairman = async (req, res) => {
   try {

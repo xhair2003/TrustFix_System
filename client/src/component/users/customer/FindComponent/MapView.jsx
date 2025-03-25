@@ -61,10 +61,7 @@ const MapView = ({ selectedRadius, setUserLocation, userLocation, triggerSearch,
         const map = mapRef.current;
         if (map) {
           const zoom = selectedRadius ? getZoomLevelFromRadius(selectedRadius) : 16;
-          map.flyTo(newLocation, zoom, {
-            duration: 1.5,
-            easeLinearity: 0.25,
-          });
+          map.flyTo(newLocation, zoom, { duration: 1.5, easeLinearity: 0.25 });
           const point = map.latLngToContainerPoint(newLocation);
           setPixelPosition({ x: point.x, y: point.y });
         }
@@ -74,13 +71,22 @@ const MapView = ({ selectedRadius, setUserLocation, userLocation, triggerSearch,
         console.error("Lỗi khi lấy vị trí:", error.message);
         setIsLoading(false);
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
-      }
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
   }, [setUserLocation, selectedRadius]);
+
+  useEffect(() => {
+    updateUserLocation();
+
+    const map = mapRef.current;
+    if (map && userLocation && selectedRadius) {
+      const newZoom = getZoomLevelFromRadius(selectedRadius);
+      map.flyTo(userLocation, newZoom, { duration: 1.5, easeLinearity: 0.25 });
+      setZoomLevel(newZoom);
+    }
+
+    return () => { };
+  }, [updateUserLocation, selectedRadius]);
 
   useEffect(() => {
     let animationFrameId;
@@ -101,40 +107,6 @@ const MapView = ({ selectedRadius, setUserLocation, userLocation, triggerSearch,
     };
   }, [triggerSearch, selectedRadius]);
 
-  useEffect(() => {
-    updateUserLocation();
-
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const newLocation = [latitude, longitude];
-        setUserLocation(newLocation);
-        const map = mapRef.current;
-        if (map) {
-          const point = map.latLngToContainerPoint(newLocation);
-          setPixelPosition({ x: point.x, y: point.y });
-        }
-      },
-      (error) => console.error("Lỗi watchPosition:", error),
-      {
-        enableHighAccuracy: true,
-        maximumAge: 1000,
-      }
-    );
-
-    const map = mapRef.current;
-    if (map && userLocation && selectedRadius) {
-      const newZoom = getZoomLevelFromRadius(selectedRadius);
-      map.flyTo(userLocation, newZoom, {
-        duration: 1.5,
-        easeLinearity: 0.25,
-      });
-      setZoomLevel(newZoom);
-    }
-
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [updateUserLocation, selectedRadius]);
-
   const handleZoomIn = () => {
     const map = mapRef.current;
     if (map) map.setZoom(map.getZoom() + 1);
@@ -145,8 +117,8 @@ const MapView = ({ selectedRadius, setUserLocation, userLocation, triggerSearch,
     if (map) map.setZoom(map.getZoom() - 1);
   };
 
-  const handleCancelSearch = () => {
-    setTriggerSearch(false); // Dừng radar và chữ
+  const handleStopSearch = () => {
+    setTriggerSearch(false); // Dừng tìm kiếm
   };
 
   return (
@@ -205,12 +177,8 @@ const MapView = ({ selectedRadius, setUserLocation, userLocation, triggerSearch,
       )}
 
       {triggerSearch && (
-        <button
-          className="cancel-button"
-          onClick={handleCancelSearch}
-          title="Hủy tìm kiếm"
-        >
-          ✕ Hủy
+        <button className="cancel-button" onClick={handleStopSearch} title="Dừng tìm kiếm">
+          ✕ Dừng tìm
         </button>
       )}
 

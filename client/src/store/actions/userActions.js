@@ -6,9 +6,7 @@ const API_URL_REPAIRMAN = 'http://localhost:8080/api/repairman'; // Địa chỉ
 export const getUserInfo = () => async (dispatch, getState) => {
     dispatch({ type: "GET_USER_INFO_REQUEST" }); // Bắt đầu loading
 
-    // Lấy token từ Redux store
-    const { auth } = getState(); // Lấy state auth từ Redux
-    const token = auth.token; // Giả sử token được lưu trong state.auth.token
+    const token = getState().auth.token || localStorage.getItem('token'); // Lấy token từ state auth hoặc localStorage
 
     //console.log('Token from Redux:', token); // In ra token để kiểm tra
 
@@ -355,8 +353,7 @@ export const requestRepairmanUpgrade = (formData) => async (dispatch, getState) 
 };
 
 export const getServiceIndustryTypes = () => async (dispatch, getState) => {
-    const { auth } = getState();
-    const token = auth.token; // Lấy token từ Redux store
+    const token = getState().auth.token || localStorage.getItem('token');
 
     try {
         dispatch({ type: 'SERVICE_INDUSTRY_TYPE_REQUEST' });
@@ -442,6 +439,224 @@ export const toggleStatusRepairman = () => async (dispatch, getState) => {
         dispatch({
             type: "TOGGLE_STATUS_REPAIRMAN_FAIL",
             payload: error.response ? error.response.data.EM : 'Lỗi hệ thống, vui lòng thử lại!',
+        });
+    }
+};
+
+
+
+
+// API Find repairman to book repairment
+// Action Creator để tìm thợ sửa chữa
+export const findRepairman = (requestData, imageFiles) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "FIND_REPAIRMAN_REQUEST" });
+
+        // Lấy token từ state 
+        const token = getState().auth.token || localStorage.getItem('token'); // Lấy token từ state auth hoặc localStorage
+
+        // Chuẩn bị FormData để gửi dữ liệu multipart/form-data
+        const formData = new FormData();
+        formData.append("serviceIndustry_id", requestData.serviceIndustry_id);
+        formData.append("description", requestData.description);
+        formData.append("address", requestData.address);
+        formData.append("radius", requestData.radius);
+        formData.append("minPrice", requestData.minPrice);
+        formData.append("maxPrice", requestData.maxPrice);
+
+        // Thêm các file ảnh vào FormData
+        if (imageFiles && imageFiles.length > 0) {
+            imageFiles.forEach((file) => {
+                formData.append("image", file); // "image" phải khớp với upload.array('image') ở BE
+            });
+        }
+
+        // Gửi request tới API
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`, // Token từ Redux state
+                // Không cần "Content-Type" vì FormData tự động set multipart/form-data
+            },
+        };
+
+        const response = await axios.post(
+            "http://localhost:8080/api/customer/requests/find-repairman",
+            formData,
+            config
+        );
+        if (response.data.EC === 1) {
+            localStorage.setItem("requestId", response.data.DT); // Lưu requestId vào localStorage
+
+            // Dispatch success với dữ liệu từ BE
+            dispatch({
+                type: "FIND_REPAIRMAN_SUCCESS",
+                payload: {
+                    message: response.data.EM,
+                    requestId: response.data.DT // ID đơn hàng
+                },
+            });
+        } else {
+            dispatch({
+                type: 'FIND_REPAIRMAN_FAIL',
+                payload: response.data.EM, // Lỗi từ API
+            });
+        }
+    } catch (error) {
+        // Dispatch fail với thông báo lỗi từ BE hoặc mặc định
+        dispatch({
+            type: "FIND_REPAIRMAN_FAIL",
+            payload: error.response && error.response.data.EM
+                ? error.response.data.EM
+                : error.message,
+        });
+    }
+};
+
+//API hiển thị thông tin đơn hàng khách hàng tạo yêu cầu tìm thợ sửa chữa(Thợ xem)
+export const viewRequest = () => async (dispatch, getState) => {
+
+    try {
+        dispatch({ type: "VIEW_REQUEST_REQUEST" });
+
+        // Lấy token từ state 
+        const token = getState().auth.token || localStorage.getItem('token'); // Lấy token từ state auth hoặc localStorage
+
+        // Cấu hình request với header Authorization
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        };
+
+        // Gửi request GET tới API
+        const response = await axios.get(
+            "http://localhost:8080/api/repairman/viewRequest",
+            config
+        );
+
+        if (response.data.EC === 1) {
+            // Dispatch success với dữ liệu từ BE
+            dispatch({
+                type: "VIEW_REQUEST_SUCCESS",
+                payload: response.data.DT, // Lưu dealPriceRequest từ response
+            });
+        } else {
+            dispatch({
+                type: 'VIEW_REQUEST_FAIL',
+                payload: response.data.EM, // Lỗi từ API
+            });
+        }
+    } catch (error) {
+        // Dispatch fail với thông báo lỗi từ BE hoặc mặc định
+        dispatch({
+            type: "VIEW_REQUEST_FAIL",
+            payload:
+                error.response && error.response.data.EM
+                    ? error.response.data.EM
+                    : error.message,
+        });
+    }
+};
+
+// api deal giá của thợ tới khách hàng
+export const dealPrice = (requestId, dealData) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "DEAL_PRICE_REQUEST" });
+
+        // Lấy token từ state (giả sử lưu trong Redux từ quá trình đăng nhập)
+        const token = getState().auth.token || localStorage.getItem("token");
+
+        // Cấu hình request với header Authorization
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        };
+
+        // Gửi request POST tới API với requestId trong path
+        const response = await axios.post(
+            `http://localhost:8080/api/repairman/deal-price/${requestId}`,
+            dealData, // dealData bao gồm { deal_price, isDeal }
+            config
+        );
+
+        if (response.data.EC === 1) {
+            // Dispatch success với dữ liệu từ BE
+            dispatch({
+                type: "DEAL_PRICE_SUCCESS",
+                payload: {
+                    message: response.data.EM,
+                    isDeal: dealData.isDeal, // Lưu trạng thái isDeal để reducer xử lý
+                },
+            });
+
+            // Nếu isDeal là false, có thể dispatch thêm action để xóa request khỏi state
+            if (dealData.isDeal === "false") {
+                dispatch({
+                    type: "REMOVE_REQUEST",
+                    payload: requestId,
+                });
+            }
+        } else {
+            dispatch({
+                type: "DEAL_PRICE_FAIL",
+                payload: response.data.EM, // Lỗi từ API
+            });
+        }
+    } catch (error) {
+        // Dispatch fail với thông báo lỗi từ BE hoặc mặc định
+        dispatch({
+            type: "DEAL_PRICE_FAIL",
+            payload:
+                error.response && error.response.data.EM
+                    ? error.response.data.EM
+                    : error.message,
+        });
+    }
+};
+
+// api xem các danh sách thợ đã deal giá cho đơn hàng sửa chữa đã tạo kèm mức giá deal
+export const viewRepairmanDeal = (requestId) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "VIEW_REPAIRMAN_DEAL_REQUEST" });
+
+        // Lấy token từ state (giả sử lưu trong Redux từ quá trình đăng nhập)
+        const token = getState().auth.token || localStorage.getItem('token');
+
+        // Cấu hình request với header Authorization
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        };
+
+        // Gửi request GET tới API với requestId trong path
+        const response = await axios.get(
+            `http://localhost:8080/api/customer/viewRepairmanDeal/${requestId}`,
+            config
+        );
+
+        if (response.data.EC === 1) {
+            // Dispatch success với dữ liệu từ BE
+            dispatch({
+                type: "VIEW_REPAIRMAN_DEAL_SUCCESS",
+                payload: response.data.DT, // Lưu danh sách repairmanDeals từ response
+            });
+        } else {
+            dispatch({
+                type: 'DEAL_PRICE_FAIL',
+                payload: response.data.EM, // Lỗi từ API
+            });
+        }
+    } catch (error) {
+        // Dispatch fail với thông báo lỗi từ BE hoặc mặc định
+        dispatch({
+            type: "VIEW_REPAIRMAN_DEAL_FAIL",
+            payload:
+                error.response && error.response.data.EM
+                    ? error.response.data.EM
+                    : error.message,
         });
     }
 };
