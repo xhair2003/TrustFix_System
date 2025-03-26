@@ -16,10 +16,11 @@ const LoginForm = () => {
   const dispatch = useDispatch();
   const { loading, errorLogin, successLogin, role } = useSelector(state => state.auth);
   const navigate = useNavigate();
+  // console.log(errorLogin);
+  // console.log(successLogin);
 
   useEffect(() => {
-    if (errorLogin) {
-      // Hiển thị thông báo lỗi khi có lỗi
+    if (errorLogin && typeof errorLogin === 'string') {
       Swal.fire({
         icon: 'error',
         title: 'Lỗi!',
@@ -29,22 +30,27 @@ const LoginForm = () => {
         showCloseButton: true,
         showConfirmButton: false,
       });
+      dispatch(resetError());
     }
 
-    if (successLogin) {
-      if (!role) {
-        return <Loading />;
-      } else if (role === 'admin') {
-        navigate('/admin');
+    if (successLogin && role) {
+      if (role === 'admin') {
+        dispatch(resetSuccess());
+        navigate('/admin/dashboard');
       } else {
+        dispatch(resetSuccess());
         navigate('/');
       }
     }
-  }, [errorLogin, navigate, successLogin, role]);
+  }, [errorLogin, successLogin, role, dispatch, navigate]);
+
+  // Render logic
+  if (successLogin && !role) {
+    return <Loading />;
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(resetError()); // Đặt lại lỗi trước khi gọi đăng nhập
     dispatch(login(email, password));
   };
 

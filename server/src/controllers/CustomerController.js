@@ -24,21 +24,21 @@ const getBalance = async (req, res) => {
 
     if (!wallet) {
       return res.status(404).json({
-        EC: 1,
+        EC: 0,
         EM: "Không tìm thấy ví cho người dùng này!",
         balance: 0,
       });
     }
 
     return res.status(200).json({
-      EC: 0,
+      EC: 1,
       EM: "Lấy số dư thành công!",
       DT: wallet.balance, // Trả về số dư
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
-      EC: 1,
+      EC: 0,
       EM: "Lỗi server, vui lòng thử lại sau!",
     });
   }
@@ -949,25 +949,25 @@ const assignedRepairman = async (req, res) => {
     const repairmanDeals = req.repairmanDeals;
 
     if (!repairmanId) {
-        return res.status(400).json({
-            EC: 0,
-            EM: "Vui lòng cung cấp ID thợ sửa chữa!"
-        });
+      return res.status(400).json({
+        EC: 0,
+        EM: "Vui lòng cung cấp ID thợ sửa chữa!"
+      });
     }
 
     const selectedRepairmanDeal = repairmanDeals.find(deal => deal.request.repairman_id.toString() === repairmanId);
 
     if (!selectedRepairmanDeal) {
-        return res.status(404).json({
-            EC: 0,
-            EM: "Không tìm thấy thông tin deal giá cho thợ sửa chữa này!",
-            repairmanDeals
-        });
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy thông tin deal giá cho thợ sửa chữa này!",
+        repairmanDeals
+      });
     }
     const repairmanInfor = selectedRepairmanDeal.repairman;
     const dealPriceInfo = selectedRepairmanDeal.dealPrice;
 
-    
+
     // Find the specific request for deal price and ensure it belongs to the customer
     const requestDeal = await Request.findOne({
       user_id: userId,
@@ -980,7 +980,7 @@ const assignedRepairman = async (req, res) => {
       return res.status(404).json({
         EC: 0,
         EM: "Không tìm thấy yêu cầu deal giá phù hợp hoặc yêu cầu không hợp lệ!",
-        
+
       });
     }
 
@@ -1010,17 +1010,17 @@ const assignedRepairman = async (req, res) => {
       user_id: repairmanInfor._id,
     })
     if (!repairmanUpgradeRequest || !repairmanUpgradeRequest.user_id) {
-        return res.status(404).json({
-            EC: 0,
-            EM: "Không tìm thấy thông tin thợ sửa chữa!"
-        });
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy thông tin thợ sửa chữa!"
+      });
     }
     const repairmanWallet = await Wallet.findOne({ user_id: repairmanInfor._id });
     if (!repairmanWallet) {
-        return res.status(404).json({
-            EC: 0,
-            EM: "Không tìm thấy ví của thợ sửa chữa!"
-        });
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy ví của thợ sửa chữa!"
+      });
     }
 
 
@@ -1041,16 +1041,16 @@ const assignedRepairman = async (req, res) => {
       customerWallet.balance -= dealPriceValue;
       await customerWallet.save();
 
-      // Credit to repairman wallet
-      repairmanWallet.balance += dealPriceValue;
-      await repairmanWallet.save();
+      // // Credit to repairman wallet
+      // repairmanWallet.balance += dealPriceValue;
+      // await repairmanWallet.save();
 
-      
+
       // Update request status to 'Assigned' and set repairman_id
-      requestParent.status = 'Proceed with repair'; 
-      requestParent.repairman_id = repairmanId; 
+      requestParent.status = 'Proceed with repair';
+      requestParent.repairman_id = repairmanId;
       //Thay đổi trạng thái thợ
-      
+
       // Tạo mới bảng Price và thêm price của thợ vào
       const newPrice = new Price({
         duePrice_id: Due_Price._id,
@@ -1064,7 +1064,7 @@ const assignedRepairman = async (req, res) => {
       //const selectedRepairmanUpgradeRequest = await RepairmanUpgradeRequest.findById(repairmanId);
       repairmanUpgradeRequest.status = 'Proceed with repair';
       await repairmanUpgradeRequest.save();
-        
+
       // Cập nhật trạng thái RepairmanUpgradeRequest cho các thợ không được chọn (trở lại 'Active')
       if (requestChild && requestChild.length > 0) {
         await Promise.all(requestChild.map(async (childRequest) => {
@@ -1094,20 +1094,20 @@ const assignedRepairman = async (req, res) => {
       });
       await customerTransaction.save();
 
-      const repairmanTransaction = new Transaction({
-        wallet_id: repairmanWallet._id,
-        transactionType: 'deposite',
-        amount: dealPriceValue,
-        content: `Nhận thanh toán cho yêu cầu sửa chữa mã số ${requestId} từ khách hàng ${req.user.firstName} ${req.user.lastName}`,
-        request_id: requestId,
-      });
-      await repairmanTransaction.save();
+      // const repairmanTransaction = new Transaction({
+      //   wallet_id: repairmanWallet._id,
+      //   transactionType: 'deposite',
+      //   amount: dealPriceValue,
+      //   content: `Nhận thanh toán cho yêu cầu sửa chữa mã số ${requestId} từ khách hàng ${req.user.firstName} ${req.user.lastName}`,
+      //   request_id: requestId,
+      // });
+      // await repairmanTransaction.save();
 
       // Xóa các request con và dữ liệu liên quan sau khi thanh toán thành công
       if (requestChild && requestChild.length > 0) {
         await Promise.all(requestChild.map(async (childRequest) => {
           const repairman = await RepairmanUpgradeRequest.findById(childRequest.repairman_id);
-          if(repairman){
+          if (repairman) {
             repairman.status = "Active";
           }
           // Tìm và xóa Price liên quan đến DuePrice liên quan đến childRequest
@@ -1126,8 +1126,7 @@ const assignedRepairman = async (req, res) => {
         EM: "Thanh toán thành công và yêu cầu đã được giao cho thợ sửa chữa!",
         DT: {
           customerBalance: customerWallet.balance,
-          repairmanBalance: repairmanWallet.balance,
-          requestStatus: requestDeal.status,
+
         },
       });
 
@@ -1150,6 +1149,41 @@ const assignedRepairman = async (req, res) => {
     });
   }
 }
+const getRequestCompleted = async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const request = await Request.findOne({
+      _id: requestId,
+      status: "Completed"
+    }).select('repairman_id updatedAt')
+    if (!request) {
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy đơn hàng!"
+      });
+    }
+    const repairman = await RepairmanUpgradeRequest.findById(request.repairman_id);
+    const repairmanInfo = await User.findById(repairman.user_id).select('firstName lastName');
+
+
+
+    res.status(200).json({
+      EC: 1,
+      EM: "Hiển thị thông tin thợ và đơn hàng thành công",
+      DT: {
+        request: request,
+        repairman: repairmanInfo,
+      }
+    })
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+    });
+  }
+}
+
 module.exports = {
   getBalance,
   getAllHistoryPayment,
@@ -1168,5 +1202,6 @@ module.exports = {
   sendRequest,
   findRepairman,
   viewRepairmanDeal,
-  assignedRepairman
+  assignedRepairman,
+  getRequestCompleted
 };

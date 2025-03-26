@@ -17,7 +17,7 @@ const initialState = {
     status: null,
     errorToggleStatus: null,
     errorGetStatus: null,
-
+    errorFetchBalance: null,
     requestId: null,
     errorFindRepairman: null,
     errorViewRequest: null,
@@ -28,7 +28,14 @@ const initialState = {
     errorViewRepairmanDeal: null,
     repairmanDeals: [],
 
+    errorMonthlyFee: null,
+    successMonthlyFee: null,
 
+    successPurchaseVip: null,
+    errorPurchaseVip: null,
+
+    errorSupplementary: null,
+    successSupplementary: null,
 };
 
 const userReducer = (state = initialState, action) => {
@@ -120,20 +127,20 @@ const userReducer = (state = initialState, action) => {
             return {
                 ...state,
                 loading: true,
-                error: null,
+
             };
         case "FETCH_BALANCE_SUCCESS":
             return {
                 ...state,
                 loading: false,
                 balance: action.payload, // Cập nhật số dư
+                errorFetchBalance: null,
             };
         case "FETCH_BALANCE_FAIL":
             return {
                 ...state,
                 loading: false,
-                complaintError: null,
-                complaintMessage: null,
+                errorFetchBalance: action.payload,
             };
 
 
@@ -338,6 +345,72 @@ const userReducer = (state = initialState, action) => {
             };
 
 
+        case "PROCESS_MONTHLY_FEE_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "PROCESS_MONTHLY_FEE_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                successMonthlyFee: action.payload,
+                errorMonthlyFee: null,
+            };
+        case "PROCESS_MONTHLY_FEE_FAIL":
+            return {
+                ...state,
+                loading: false,
+                errorMonthlyFee: action.payload,
+                successMonthlyFee: null,
+            };
+
+
+        case "PURCHASE_VIP_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "PURCHASE_VIP_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                successPurchaseVip: action.payload,
+                errorPurchaseVip: null,
+            };
+        case "PURCHASE_VIP_FAIL":
+            return {
+                ...state,
+                loading: false,
+                successPurchaseVip: null,
+                errorPurchaseVip: action.payload,
+            };
+
+
+        case 'SUPPLEMENTARY_PRACTICE_CERTIFICATE_REQUEST':
+            return {
+                ...state,
+                loading: true,
+            };
+        case 'SUPPLEMENTARY_PRACTICE_CERTIFICATE_SUCCESS':
+            return {
+                ...state,
+                loading: false,
+                successSupplementary: action.payload,
+                errorSupplementary: null,
+            };
+        case 'SUPPLEMENTARY_PRACTICE_CERTIFICATE_FAIL':
+            return {
+                ...state,
+                loading: false,
+                successSupplementary: null,
+                errorSupplementary: action.payload,
+            };
+
+
+
+
+
         case "RESET_ERROR":
             return {
                 ...state,
@@ -349,11 +422,17 @@ const userReducer = (state = initialState, action) => {
                 errorServiceTypes: null,
                 errorToggleStatus: null,
                 errorGetStatus: null,
-
+                errorFetchBalance: null,
                 errorFindRepairman: null,
                 errorViewRequest: null,
                 errorDealPrice: null,
                 errorViewRepairmanDeal: null,
+
+                errorMonthlyFee: null,
+
+                errorPurchaseVip: null,
+
+                errorSupplementary: null,
             };
         case "RESET_SUCCESS":
             return {
@@ -365,6 +444,12 @@ const userReducer = (state = initialState, action) => {
 
                 successFindRepairman: null,
                 successDealPrice: null,
+
+                successMonthlyFee: null,
+
+                successPurchaseVip: null,
+
+                successSupplementary: null,
             };
         default:
             return state;

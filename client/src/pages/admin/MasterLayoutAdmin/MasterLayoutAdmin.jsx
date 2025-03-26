@@ -25,7 +25,7 @@ const MasterLayoutAdmin = ({ children }) => {
 
     const handleLogout = () => {
         dispatch(logout());
-        navigate('/');
+        navigate('/login');
     };
 
     return (
@@ -103,7 +103,7 @@ const MasterLayoutAdmin = ({ children }) => {
                         className={`menu-item ${selectedItem === 'manage-practice-certificates' ? 'active' : ''}`}
                         onClick={() => handleItemClick({ path: '/admin/manage-practice-certificates', name: 'manage-practice-certificates' })}
                     >
-                        {isCollapsed ? <FaCertificate /> : <> <FaCertificate /> Quản lý yêu cầu</>}
+                        {isCollapsed ? <FaCertificate /> : <> <FaCertificate /> Quản lý chứng chỉ hành nghề</>}
                     </div>
                     <div
                         className={`menu-item ${selectedItem === 'report' ? 'active' : ''}`}

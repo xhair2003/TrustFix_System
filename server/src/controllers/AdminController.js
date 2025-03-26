@@ -1854,6 +1854,91 @@ const verifyPracticeCertificate = async (req, res) => {
         });
     }
 };
+//View repairman monthly payment
+const getRepairmanMonthlyPaymentById = async (req, res) => {
+    try {
+        const monthlyPaymentId = req.params.id;
+        const transaction = await Transaction.findById(monthlyPaymentId)
+            .populate({
+                path: 'wallet_id',
+                populate: { path: 'user_id', select: 'firstName lastName email' }
+            });
+
+        if (!transaction) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy giao dịch!"
+            });
+        }
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy thông tin giao dịch thành công!",
+            DT: transaction
+        });
+    } catch (error) {
+        console.error("Lấy thông tin giao dịch thất bại:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+
+const getAllRepairmanMonthlyPayments = async (req, res) => {
+    try {
+        let { page = 1, limit = 10, search = "", balance = "" } = req.query;
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        const filter = {
+            content: "Thanh toán phí thành viên hàng tháng",
+            status: 1
+        };
+
+        // Search theo content
+        if (search) {
+            filter.content = { $regex: search, $options: "i" };
+        }
+
+        // Tìm kiếm theo số dư sau giao dịch
+        if (!isNaN(balance) && balance.trim() !== "") {
+            filter.balanceAfterTransact = parseFloat(balance);
+        }
+
+        const transactions = await Transaction.find(filter)
+            .populate({
+                path: 'wallet_id',
+                populate: { path: 'user_id', select: 'firstName lastName email' }
+            })
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .sort({ createdAt: -1 });
+
+        const totalTransactions = await Transaction.countDocuments(filter);
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy danh sách giao dịch thành công!",
+            DT: {
+                transactions,
+                currentPage: page,
+                totalPages: Math.ceil(totalTransactions / limit),
+                totalTransactions
+            }
+        });
+    } catch (error) {
+        console.error("Lấy danh sách giao dịch thất bại:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+
+
 module.exports = {
     totalServicePrices,
     totalServicesByIndustry,
@@ -1898,5 +1983,9 @@ module.exports = {
     unlockUserByUserId,
     viewRepairBookingHistory,
     viewPendingSupplementaryCertificates,
-    verifyPracticeCertificate
+    verifyPracticeCertificate,
+    viewPendingSupplementaryCertificates,
+    getRepairmanMonthlyPaymentById,
+    getAllRepairmanMonthlyPayments
 };
+

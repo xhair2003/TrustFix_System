@@ -189,14 +189,14 @@ const getAllVips = async (req, res) => {
     const vips = await Vip.find({}).sort({ createdAt: -1 }); // Sắp xếp theo ngày tạo
 
     return res.status(200).json({
-      EC: 0,
+      EC: 1,
       EM: "Lấy danh sách VIP thành công!",
       DT: vips,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
-      EC: 1,
+      EC: 0,
       EM: "Lỗi server, vui lòng thử lại sau!",
     });
   }
@@ -511,7 +511,7 @@ const processMonthlyFee = async (req, res) => {
       return res.status(400).json({ EC: 1, EM: "Thiếu ID người dùng!" });
     }
 
-    // Lấy thông tin user, wallet và VIP
+    // Lấy thông tin user và ví
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ EC: 1, EM: "Không tìm thấy người dùng!" });
@@ -522,12 +522,12 @@ const processMonthlyFee = async (req, res) => {
       return res.status(404).json({ EC: 1, EM: "Người dùng chưa có ví!" });
     }
 
-    const vipRecord = await Vip.findOne({ user_id: userId }).sort({ createdAt: 1 });
-
-    // Kiểm tra miễn phí tháng đầu tiên
+    // Kiểm tra miễn phí tháng đầu tiên dựa vào ngày tạo tài khoản
     const currentDate = new Date();
-    const firstVipDate = vipRecord ? new Date(vipRecord.createdAt) : null;
-    const isFirstMonthFree = firstVipDate && (currentDate.getMonth() === firstVipDate.getMonth() && currentDate.getFullYear() === firstVipDate.getFullYear());
+    const userCreatedAt = new Date(user.createdAt);
+    const isFirstMonthFree =
+      currentDate.getMonth() === userCreatedAt.getMonth() &&
+      currentDate.getFullYear() === userCreatedAt.getFullYear();
 
     if (isFirstMonthFree) {
       return res.status(200).json({
@@ -537,13 +537,32 @@ const processMonthlyFee = async (req, res) => {
       });
     }
 
+    // Kiểm tra xem đã thanh toán phí trong tháng này chưa
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const existingTransaction = await Transaction.findOne({
+      wallet_id: wallet._id,
+      transactionType: "payment",
+      content: "Thanh toán phí thành viên hàng tháng",
+      balanceAfterTransact: wallet.balance,
+      createdAt: { $gte: startOfMonth }
+    });
+
+    if (existingTransaction) {
+      return res.status(200).json({
+        EC: 0,
+        EM: "Bạn đã thanh toán phí tháng này rồi!",
+        EX: "Dưới đây là lịch sử thanh toán tháng này",
+        DT: { balance: wallet.balance, transaction: existingTransaction }
+      });
+    }
+
     // Kiểm tra số dư trong ví
     if (wallet.balance >= MONTHLY_FEE) {
       // Trừ tiền trong ví
       wallet.balance -= MONTHLY_FEE;
       await wallet.save();
 
-      // Lưu lại lịch sử giao dịch
+      // Lưu lịch sử giao dịch
       const transaction = new Transaction({
         wallet_id: wallet._id,
         payCode: `VIPFEE-${Date.now()}`,
@@ -553,15 +572,16 @@ const processMonthlyFee = async (req, res) => {
         content: "Thanh toán phí thành viên hàng tháng",
         balanceAfterTransact: wallet.balance
       });
+
       await transaction.save();
 
       // Gửi email xác nhận
-      await sendEmail(user.email, "Thanh toán thành công", `
-                <p>Chào ${user.firstName} ${user.lastName},</p>
-                <p>Bạn đã thanh toán thành công phí tháng này với số tiền <strong>100,000 VND</strong>.</p>
-                <p>Số dư còn lại trong ví: <strong>${wallet.balance} VND</strong>.</p>
-                <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
-            `);
+      await sendEmail(user.email, "Thanh toán thành công",
+        `<p>Chào ${user.firstName} ${user.lastName},</p>
+              <p>Bạn đã thanh toán thành công phí tháng này với số tiền <strong>${MONTHLY_FEE} VND</strong>.</p>
+              <p>Số dư còn lại trong ví: <strong>${wallet.balance} VND</strong>.</p>
+              <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>`
+      );
 
       return res.status(200).json({
         EC: 0,
@@ -570,11 +590,11 @@ const processMonthlyFee = async (req, res) => {
       });
     } else {
       // Gửi email thông báo trễ hạn
-      await sendEmail(user.email, "Cảnh báo: Không đủ số dư thanh toán", `
-                <p>Chào ${user.firstName} ${user.lastName},</p>
-                <p>Bạn chưa thanh toán phí tháng này (<strong>100,000 VND</strong>) do số dư ví không đủ.</p>
-                <p>Vui lòng nạp tiền vào ví để duy trì trạng thái của bạn.</p>
-            `);
+      await sendEmail(user.email, "Cảnh báo: Không đủ số dư thanh toán",
+        `<p>Chào ${user.firstName} ${user.lastName},</p>
+              <p>Bạn chưa thanh toán phí tháng này (<strong>${MONTHLY_FEE} VND</strong>) do số dư ví không đủ.</p>
+              <p>Vui lòng nạp tiền vào ví để duy trì trạng thái của bạn.</p>`
+      );
 
       return res.status(400).json({
         EC: 1,

@@ -84,7 +84,7 @@ const authReducer = (state = initialState, action) => {
 
 
         case "LOGIN_FAIL":
-            return { ...state, loading: false, errorLogin: action.payload.EM, successLogin: null };
+            return { ...state, loading: false, errorLogin: action.payload, successLogin: null };
         case "FORGOT_PASSWORD_FAIL":
             return { ...state, loading: false, errorForgotPassword: action.payload.EM, successForgotPassword: null };
         case "VERIFY_OTP_FAIL":

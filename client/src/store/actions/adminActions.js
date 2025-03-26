@@ -1,4 +1,5 @@
 import axios from 'axios';
+const API_URL_ADMIN = 'http://localhost:8080/api/admin';
 
 // Fetch users action
 export const fetchUsers = () => async (dispatch, getState) => {
@@ -1166,32 +1167,32 @@ export const totalServiceIndustries = () => async (dispatch, getState) => {
 // Fetch total services by industry
 export const totalServicesByIndustry = () => async (dispatch, getState) => {
     try {
-      dispatch(request("REQUEST_TOTAL_SERVICES_BY_INDUSTRY"));
-      const token = getState().auth.token || localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8080/api/admin/total-services-by-industry', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      console.log('API Response for totalServicesByIndustry:', response.data); // Log để kiểm tra
-      if (response.data.EC === 1) {
-        // Chuẩn hóa dữ liệu thành mảng
-        const data = Array.isArray(response.data.DT) ? response.data.DT : [];
-        dispatch({
-          type: "SUCCESS_TOTAL_SERVICES_BY_INDUSTRY",
-          payload: data,
+        dispatch(request("REQUEST_TOTAL_SERVICES_BY_INDUSTRY"));
+        const token = getState().auth.token || localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/admin/total-services-by-industry', {
+            headers: { Authorization: `Bearer ${token}` }
         });
-      } else {
-        dispatch({
-          type: "ERROR_TOTAL_SERVICES_BY_INDUSTRY",
-          payload: response.data.EM,
-        });
-      }
+        console.log('API Response for totalServicesByIndustry:', response.data); // Log để kiểm tra
+        if (response.data.EC === 1) {
+            // Chuẩn hóa dữ liệu thành mảng
+            const data = Array.isArray(response.data.DT) ? response.data.DT : [];
+            dispatch({
+                type: "SUCCESS_TOTAL_SERVICES_BY_INDUSTRY",
+                payload: data,
+            });
+        } else {
+            dispatch({
+                type: "ERROR_TOTAL_SERVICES_BY_INDUSTRY",
+                payload: response.data.EM,
+            });
+        }
     } catch (error) {
-      dispatch({
-        type: "ERROR_TOTAL_SERVICES_BY_INDUSTRY",
-        payload: error.response?.data?.EM || 'Lỗi không xác định',
-      });
+        dispatch({
+            type: "ERROR_TOTAL_SERVICES_BY_INDUSTRY",
+            payload: error.response?.data?.EM || 'Lỗi không xác định',
+        });
     }
-  };
+};
 // Fetch total service prices
 export const totalServicePrices = () => async (dispatch, getState) => {
     try {
@@ -1221,6 +1222,80 @@ export const totalServicePrices = () => async (dispatch, getState) => {
     }
 };
 
+
+// Action để lấy danh sách các yêu cầu bổ sung chứng chỉ đang pending
+export const getPendingSupplementaryCertificateRequests = () => async (dispatch, getState) => {
+    try {
+        const token = getState().auth.token || localStorage.getItem('token');
+        dispatch({ type: 'GET_PENDING_SUPPLEMENTARY_CERTIFICATE_REQUESTS_REQUEST' });
+
+        const response = await axios.get(
+            `${API_URL_ADMIN}/supplementary-practice-certificate-requests/pending`,
+            {
+                headers: { Authorization: `Bearer ${token}` },
+            }
+        );
+
+        if (response.data.EC === 1) {
+            dispatch({
+                type: 'GET_PENDING_SUPPLEMENTARY_CERTIFICATE_REQUESTS_SUCCESS',
+                payload: response.data.DT, // Dữ liệu danh sách yêu cầu
+            });
+        } else {
+            dispatch({
+                type: 'GET_PENDING_SUPPLEMENTARY_CERTIFICATE_REQUESTS_FAIL',
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching pending supplementary certificate requests:', error);
+        dispatch({
+            type: 'GET_PENDING_SUPPLEMENTARY_CERTIFICATE_REQUESTS_FAIL',
+            payload:
+                error.response?.data?.EM ||
+                'An error occurred while fetching pending supplementary certificate requests.',
+        });
+    }
+};
+
+// Action để xác minh (approve/reject) một yêu cầu bổ sung chứng chỉ
+export const verifySupplementaryCertificateRequest = (requestId, action, rejectReason) => async (
+    dispatch,
+    getState
+) => {
+    try {
+        const token = getState().auth.token || localStorage.getItem('token');
+        dispatch({ type: 'VERIFY_SUPPLEMENTARY_CERTIFICATE_REQUEST_REQUEST' });
+
+        const response = await axios.put(
+            `${API_URL_ADMIN}/supplementary-practice-certificate-requests/${requestId}/verify`,
+            { action, rejectReason }, // action: 'approve' hoặc 'reject', rejectReason nếu từ chối
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (response.data.EC === 1) {
+            dispatch({
+                type: 'VERIFY_SUPPLEMENTARY_CERTIFICATE_REQUEST_SUCCESS',
+                payload: response.data.EM,
+            });
+            // Sau khi verify thành công, gọi lại danh sách pending để cập nhật
+            dispatch(getPendingSupplementaryCertificateRequests());
+        } else {
+            dispatch({
+                type: 'VERIFY_SUPPLEMENTARY_CERTIFICATE_REQUEST_FAIL',
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        console.error('Error verifying supplementary certificate request:', error);
+        dispatch({
+            type: 'VERIFY_SUPPLEMENTARY_CERTIFICATE_REQUEST_FAIL',
+            payload:
+                error.response?.data?.EM ||
+                'An error occurred while verifying the supplementary certificate request.',
+        });
+    }
+};
 
 
 

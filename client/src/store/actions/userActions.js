@@ -660,3 +660,117 @@ export const viewRepairmanDeal = (requestId) => async (dispatch, getState) => {
         });
     }
 };
+
+
+// Action creator để xử lý thanh toán phí hàng tháng
+export const processMonthlyFee = () => async (dispatch, getState) => {
+    // Lấy token từ state (giả sử lưu trong Redux từ quá trình đăng nhập)
+    const token = getState().auth.token || localStorage.getItem('token');
+    try {
+        dispatch({ type: "PROCESS_MONTHLY_FEE_REQUEST" });
+
+        const response = await axios.get('http://localhost:8080/api/repairman/process-monthly-fee', {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "PROCESS_MONTHLY_FEE_SUCCESS",
+                payload: response.data.EM,
+            });
+        } else {
+            dispatch({
+                type: 'PROCESS_MONTHLY_FEE_FAIL',
+                payload: response.data.EM, // Lỗi từ API
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "PROCESS_MONTHLY_FEE_FAIL",
+            payload:
+                error.response && error.response.data.EM
+                    ? error.response.data.EM
+                    : error.message,
+        });
+    }
+};
+
+
+// Action creator để thanh toán dịch vụ VIP
+export const purchaseVip = (vipId) => async (dispatch, getState) => {
+    // Lấy token từ state (giả sử lưu trong Redux từ quá trình đăng nhập)
+    const token = getState().auth.token || localStorage.getItem('token');
+    try {
+        dispatch({ type: "PURCHASE_VIP_REQUEST" });
+
+        // Gọi API thực tế
+        const response = await axios.post(
+            'http://localhost:8080/api/repairman/purchase-vip', // Ví dụ endpoint
+            { vipId }, // Dữ liệu gửi lên (nếu có, bạn có thể thêm vào đây)
+            {
+                headers: { Authorization: `Bearer ${token}` },
+            }
+        );
+
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "PURCHASE_VIP_SUCCESS",
+                payload: response.data.EM,
+            });
+        } else {
+            dispatch({
+                type: "PURCHASE_VIP_FAIL",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        // Xử lý lỗi từ server hoặc mạng
+        const errorMessage = error.response?.data?.EM || 'Lỗi server, vui lòng thử lại sau!';
+        dispatch({
+            type: "PURCHASE_VIP_FAIL",
+            payload: errorMessage,
+        });
+    }
+};
+
+
+// Action creator để bổ sung giấy chứng chỉ hành nghề
+export const requestSupplementaryPracticeCertificate = (supplementaryPracticeCertificates) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: 'SUPPLEMENTARY_PRACTICE_CERTIFICATE_REQUEST' });
+
+        const { auth } = getState();
+        const token = auth.token;
+
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`, // Thêm token vào header
+                'Content-Type': 'multipart/form-data', // Gửi file
+            },
+        };
+
+        // Gửi yêu cầu lên API
+        const response = await axios.post(
+            `${API_URL_REPAIRMAN}/supplementary-practice-certificate`,
+            supplementaryPracticeCertificates,
+            config
+        );
+
+        if (response.data.EC === 1) {
+            dispatch({
+                type: 'SUPPLEMENTARY_PRACTICE_CERTIFICATE_SUCCESS',
+                payload: response.data.EM,
+            });
+        } else {
+            dispatch({
+                type: 'SUPPLEMENTARY_PRACTICE_CERTIFICATE_FAIL',
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: 'SUPPLEMENTARY_PRACTICE_CERTIFICATE_FAIL',
+            payload: error.response?.data?.EM || 'Lỗi server, vui lòng thử lại sau!',
+        });
+    }
+};

@@ -56,5 +56,8 @@ router.get("/get-request", authMiddleware.verifyToken, CustomerController.getAll
 
 router.get('/viewRepairmanDeal/:requestId', authMiddleware.verifyToken, CustomerController.viewRepairmanDeal);
 router.post('/assignedRepairman/:requestId/:repairmanId', authMiddleware.verifyToken, CustomerMiddleware.viewRepairmanDeal, CustomerController.assignedRepairman);
+
+router.get('/viewRepairmanCompleted/:requestId', authMiddleware.verifyToken, CustomerController.getRequestCompleted);
+
 module.exports = router;
 
