@@ -95,6 +95,11 @@ router.get("/total-service-prices", AuthMiddleware.verifyAdmin, AdminController.
 
 //get Pending Requests
 router.get("/pending-2nd-certification", AuthMiddleware.verifyAdmin, AdminController.viewPendingPracticeCertificateRequests);
-module.exports = router;
+
+// get repairman monthly payment
+router.get("/view-detail-monthly-payment/:id", AuthMiddleware.verifyAdmin, AdminController.getRepairmanMonthlyPaymentById);
 
 
+router.get("/view-all-monthly-payment", AuthMiddleware.verifyAdmin, AdminController.getAllRepairmanMonthlyPayments);
+
+module.exports = router;    

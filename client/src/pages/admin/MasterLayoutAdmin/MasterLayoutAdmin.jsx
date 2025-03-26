@@ -25,7 +25,7 @@ const MasterLayoutAdmin = ({ children }) => {
 
     const handleLogout = () => {
         dispatch(logout());
-        navigate('/');
+        navigate('/login');
     };
 
     return (
