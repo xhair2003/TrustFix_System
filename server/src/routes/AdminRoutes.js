@@ -93,6 +93,8 @@ router.get("/total-services-by-industry", AuthMiddleware.verifyAdmin, AdminContr
 // total service prices
 router.get("/total-service-prices", AuthMiddleware.verifyAdmin, AdminController.totalServicePrices);
 
+//get Pending Requests
+router.get("/pending-2nd-certification", AuthMiddleware.verifyAdmin, AdminController.viewPendingPracticeCertificateRequests);
 module.exports = router;
 
 
