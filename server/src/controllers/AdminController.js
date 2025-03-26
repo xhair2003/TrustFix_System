@@ -1264,8 +1264,6 @@ const viewRepairBookingHistory = async (req, res) => {
 };
 
 
-
-
 const getPendingUpgradeRequests = async (req, res) => {
     try {
         const pendingRequests = await RepairmanUpgradeRequest.find({ status: 'pending' })
@@ -1767,7 +1765,37 @@ const totalServicePrices = async (req, res) => {
         });
     }
 }
+const viewPendingPracticeCertificateRequests = async (req, res) => {
+    try {
+        const pendingRequests = await RepairmanUpgradeRequest.find({ status: 'pending' })
+            .populate('user_id', 'firstName lastName email phone address imgAvt') // Populate user details
+            .populate('serviceIndustry_id', 'type') // Populate service industry type
+            .populate('vip_id', 'name') // Populate VIP details
+            .populate('serviceTypes', 'name') // Populate service types
+            .populate({
+                path: 'user_id',
+                populate: {
+                    path: 'upgradeRequests',
+                    model: 'UpgradeRequest'
+                }
+            });
 
+        // Lọc các yêu cầu có bổ sung ảnh chứng chỉ hành nghề
+        const filteredRequests = pendingRequests.filter(request => request.supplementaryPracticeCertificate && request.supplementaryPracticeCertificate.length > 0);
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy danh sách yêu cầu bổ sung ảnh chứng chỉ hành nghề thành công!",
+            DT: filteredRequests
+        });
+    } catch (err) {
+        console.error('Get pending practice certificate requests error:', err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
 
 module.exports = {
     totalServicePrices,
@@ -1812,4 +1840,5 @@ module.exports = {
     lockUserByUserId,
     unlockUserByUserId,
     viewRepairBookingHistory,
+    viewPendingPracticeCertificateRequests
 };

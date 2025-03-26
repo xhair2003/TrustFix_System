@@ -21,6 +21,12 @@ const RepairmanUpgradeRequestSchema = new mongoose.Schema(
     imgCertificatePractice: {
       type: [String],
       required: true,
+      timestamps: true,
+    },
+    supplementaryPracticeCertificate: {
+      type: [String],
+      default: null,
+      timestamps: true,
     },
     imgCCCD: {
       type: [String],

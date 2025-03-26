@@ -1,8 +1,8 @@
-import nodemailer from 'nodemailer'; // Import nodemailer để gửi email
+const nodemailer = require('nodemailer'); // Import nodemailer để gửi email
 
-export const MONTHLY_FEE = 100000; // 100,000 VND per month
+const MONTHLY_FEE = 100000; // 100,000 VND per month
 
-export const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
@@ -10,7 +10,7 @@ export const transporter = nodemailer.createTransport({
     }
 });
 
-export const sendEmail = async (to, subject, htmlContent) => {
+const sendEmail = async (to, subject, htmlContent) => {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -28,3 +28,5 @@ export const sendEmail = async (to, subject, htmlContent) => {
 
     await transporter.sendMail(mailOptions);
 };
+
+module.exports = { MONTHLY_FEE, transporter, sendEmail };
