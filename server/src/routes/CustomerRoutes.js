@@ -4,7 +4,7 @@ const AuthMiddleware = require("../middlewares/authMiddleware");
 const CustomerController = require("../controllers/CustomerController");
 const upload = require("../middlewares/upload_IMG");
 const authMiddleware = require("../middlewares/authMiddleware");
-
+const CustomerMiddleware = require("../middlewares/CustomerMiddleware");
 
 router.get(
   "/depositeHistory",
@@ -55,6 +55,6 @@ router.get('/view-repair-history', authMiddleware.verifyToken, CustomerControlle
 router.get("/get-request", authMiddleware.verifyToken, CustomerController.getAllRequests)
 
 router.get('/viewRepairmanDeal/:requestId', authMiddleware.verifyToken, CustomerController.viewRepairmanDeal);
-
+router.post('/assignedRepairman/:requestId/:repairmanId', authMiddleware.verifyToken, CustomerMiddleware.viewRepairmanDeal, CustomerController.assignedRepairman);
 module.exports = router;
 

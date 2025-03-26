@@ -15,7 +15,7 @@ const RepairmanUpgradeRequestSchema = new mongoose.Schema(
     vip_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vip",
-      // required: true,
+      //required: true,
       default: null,
     },
     imgCertificatePractice: {
@@ -34,7 +34,7 @@ const RepairmanUpgradeRequestSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Active", "Inactive", "pending", "Deal price", "Done deal price"],
+      enum: ["Active", "Inactive", "pending", "Deal price", "Done deal price","Proceed with repair"],
       default: "pending",
     },
     serviceTypes: {
