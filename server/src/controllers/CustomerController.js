@@ -83,14 +83,14 @@ const getAllHistoryPayment = async (req, res) => {
 };
 
 const getAllDepositeHistory = async (req, res) => {
-  try {
-    const userId = req.user.id; // Get user ID from verified token
+    try {
+        const userId = req.user.id; // Get user ID from verified token
 
-    // Find the user's wallet
-    const wallet = await Wallet.findOne({ user_id: userId });
-    if (!wallet) {
-      return res.status(404).json({
-        EC: 0,
+        // Find the user's wallet
+        const wallet = await Wallet.findOne({ user_id: userId });
+        if (!wallet) {
+            return res.status(404).json({
+                EC: 0,
         EM: "Không tìm thấy ví của người dùng!",
       });
     }
@@ -100,29 +100,29 @@ const getAllDepositeHistory = async (req, res) => {
       wallet_id: wallet._id,
       transactionType: "deposite",
     })
-      .populate({
+            .populate({
         path: "wallet_id",
         populate: { path: "user_id", select: "firstName lastName email" }, // Populate user info in wallet
-      })
-      .sort({ createdAt: -1 }); // Sort by createdAt in descending order ( mới nhất trước)
+            })
+            .sort({ createdAt: -1 }); // Sort by createdAt in descending order ( mới nhất trước)
 
-    res.status(200).json({
-      EC: 1,
-      EM: "Lấy lịch sử giao dịch thành công!",
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy lịch sử giao dịch thành công!",
       DT: transactions,
-    });
-  } catch (error) {
-    console.error("Error getting user transaction history:", error);
-    res.status(500).json({
-      EC: 0,
+        });
+    } catch (error) {
+        console.error("Error getting user transaction history:", error);
+        res.status(500).json({
+            EC: 0,
       EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
-    });
-  }
+        });
+    }
 };
 
 const createComplaint = async (req, res) => {
-  try {
-    const userId = req.user.id; // Lấy user ID từ token
+    try {
+        const userId = req.user.id; // Lấy user ID từ token
     const { request_id, complaintContent, complaintType, requestResolution } =
       req.body;
 
@@ -133,17 +133,17 @@ const createComplaint = async (req, res) => {
       !complaintType ||
       !requestResolution
     ) {
-      return res.status(400).json({
-        EC: 0,
+            return res.status(400).json({
+                EC: 0,
         EM: "Vui lòng nhập đầy đủ mã yêu cầu, nội dung, loại khiếu nại và yêu cầu giải quyết!",
-      });
-    }
+            });
+        }
 
     // Kiểm tra mã yêu cầu
-    const request = await Request.findOne({ _id: request_id, user_id: userId });
-    if (!request) {
-      return res.status(400).json({
-        EC: 0,
+        const request = await Request.findOne({ _id: request_id, user_id: userId });
+        if (!request) {
+            return res.status(400).json({
+                EC: 0,
         EM: "Mã yêu cầu không hợp lệ hoặc không thuộc về người dùng này.",
       });
     }
@@ -160,27 +160,27 @@ const createComplaint = async (req, res) => {
     }
 
     // Tạo mới khiếu nại
-    const newComplaint = new Complaint({
-      request_id: request_id,
-      complaintContent: complaintContent,
-      complaintType: complaintType,
-      requestResolution: requestResolution,
+        const newComplaint = new Complaint({
+            request_id: request_id,
+            complaintContent: complaintContent,
+            complaintType: complaintType,
+            requestResolution: requestResolution,
       image: image, // Lưu đường dẫn ảnh
-    });
+        });
 
     console.log(image);
 
-    await newComplaint.save();
+        await newComplaint.save();
 
-    res.status(201).json({
-      EC: 1,
-      EM: "Gửi khiếu nại thành công! Chúng tôi sẽ sớm phản hồi lại bạn.",
+        res.status(201).json({
+            EC: 1,
+            EM: "Gửi khiếu nại thành công! Chúng tôi sẽ sớm phản hồi lại bạn.",
       DT: newComplaint,
-    });
-  } catch (error) {
-    console.error("Error creating complaint:", error);
-    res.status(500).json({
-      EC: 0,
+        });
+    } catch (error) {
+        console.error("Error creating complaint:", error);
+        res.status(500).json({
+            EC: 0,
       EM: "Đã có lỗi xảy ra khi gửi khiếu nại. Vui lòng thử lại sau!",
     });
   }
@@ -823,8 +823,8 @@ const findRepairman = async (req, res) => {
     res.status(500).json({
       EC: 0,
       EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
-    });
-  }
+        });
+    }
 };
 
 const viewRepairHistory = async (req, res) => {
@@ -1041,9 +1041,9 @@ const assignedRepairman = async (req, res) => {
       customerWallet.balance -= dealPriceValue;
       await customerWallet.save();
 
-      // Credit to repairman wallet
-      repairmanWallet.balance += dealPriceValue;
-      await repairmanWallet.save();
+      // // Credit to repairman wallet
+      // repairmanWallet.balance += dealPriceValue;
+      // await repairmanWallet.save();
 
       
       // Update request status to 'Assigned' and set repairman_id
@@ -1094,14 +1094,14 @@ const assignedRepairman = async (req, res) => {
       });
       await customerTransaction.save();
 
-      const repairmanTransaction = new Transaction({
-        wallet_id: repairmanWallet._id,
-        transactionType: 'deposite',
-        amount: dealPriceValue,
-        content: `Nhận thanh toán cho yêu cầu sửa chữa mã số ${requestId} từ khách hàng ${req.user.firstName} ${req.user.lastName}`,
-        request_id: requestId,
-      });
-      await repairmanTransaction.save();
+      // const repairmanTransaction = new Transaction({
+      //   wallet_id: repairmanWallet._id,
+      //   transactionType: 'deposite',
+      //   amount: dealPriceValue,
+      //   content: `Nhận thanh toán cho yêu cầu sửa chữa mã số ${requestId} từ khách hàng ${req.user.firstName} ${req.user.lastName}`,
+      //   request_id: requestId,
+      // });
+      // await repairmanTransaction.save();
 
       // Xóa các request con và dữ liệu liên quan sau khi thanh toán thành công
       if (requestChild && requestChild.length > 0) {
@@ -1126,8 +1126,7 @@ const assignedRepairman = async (req, res) => {
         EM: "Thanh toán thành công và yêu cầu đã được giao cho thợ sửa chữa!",
         DT: {
           customerBalance: customerWallet.balance,
-          repairmanBalance: repairmanWallet.balance,
-          requestStatus: requestDeal.status,
+          
         },
       });
 
@@ -1150,11 +1149,46 @@ const assignedRepairman = async (req, res) => {
     });
   }
 }
+const getRequestCompleted = async (req, res) => {
+  try {
+    const {requestId} = req.params;
+    const request = await Request.findOne({
+      _id: requestId,
+      status: "Completed"
+    }).select('repairman_id updatedAt')
+    if(!request){
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy đơn hàng!"
+      });
+    }
+    const repairman = await RepairmanUpgradeRequest.findById(request.repairman_id);
+    const repairmanInfo = await User.findById(repairman.user_id).select('firstName lastName');
+
+    
+
+    res.status(200).json({
+      EC: 1,
+      EM: "Hiển thị thông tin thợ và đơn hàng thành công",
+      DT: {
+        request: request,
+        repairman: repairmanInfo,
+      }
+    })
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+    });
+  }
+}
+
 module.exports = {
   getBalance,
   getAllHistoryPayment,
-  getAllDepositeHistory,
-  createComplaint,
+    getAllDepositeHistory,
+    createComplaint,
   getAllRequests,
   getRatingById,
   addRating,
@@ -1168,5 +1202,6 @@ module.exports = {
   sendRequest,
   findRepairman,
   viewRepairmanDeal,
-  assignedRepairman
+  assignedRepairman,
+  getRequestCompleted
 };
