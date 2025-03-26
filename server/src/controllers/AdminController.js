@@ -1,7 +1,7 @@
-const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip } = require("../models");
+const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip , SecondCertificate } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
 const nodemailer = require('nodemailer'); // Import nodemailer để gửi email
-
+const {sendEmail} = require('../constants/index');
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -1765,38 +1765,95 @@ const totalServicePrices = async (req, res) => {
         });
     }
 }
-const viewPendingPracticeCertificateRequests = async (req, res) => {
+const viewPendingSupplementaryCertificates = async (req, res) => {
     try {
-        const pendingRequests = await RepairmanUpgradeRequest.find({ status: 'pending' })
+        const pendingCertificates = await SecondCertificate.find({ status: 'pending' })
             .populate('user_id', 'firstName lastName email phone address imgAvt') // Populate user details
-            .populate('serviceIndustry_id', 'type') // Populate service industry type
-            .populate('vip_id', 'name') // Populate VIP details
-            .populate('serviceTypes', 'name') // Populate service types
-            .populate({
-                path: 'user_id',
-                populate: {
-                    path: 'upgradeRequests',
-                    model: 'UpgradeRequest'
-                }
-            });
-
-        // Lọc các yêu cầu có bổ sung ảnh chứng chỉ hành nghề
-        const filteredRequests = pendingRequests.filter(request => request.supplementaryPracticeCertificate && request.supplementaryPracticeCertificate.length > 0);
+            .populate('service_industry', 'type'); // Populate service industry details
 
         res.status(200).json({
             EC: 1,
-            EM: "Lấy danh sách yêu cầu bổ sung ảnh chứng chỉ hành nghề thành công!",
-            DT: filteredRequests
+            EM: "Lấy danh sách chứng chỉ bổ sung đang chờ duyệt thành công!",
+            DT: pendingCertificates
         });
     } catch (err) {
-        console.error('Get pending practice certificate requests error:', err);
+        console.error('Get pending supplementary certificates error:', err);
         res.status(500).json({
             EC: 0,
             EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
         });
     }
 };
+const verifyPracticeCertificate = async (req, res) => {
+    const { certificateId, action, rejectionReason } = req.body;
 
+    try {
+        const certificate = await SecondCertificate.findById(certificateId).populate('user_id', 'email firstName lastName');
+
+        if (!certificate) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Chứng chỉ không tồn tại!"
+            });
+        }
+
+        if (action === 'approve') {
+            certificate.status = 'approved';
+            await certificate.save();
+
+            // Find the corresponding RepairmanUpgradeRequest and update it
+            const upgradeRequest = await RepairmanUpgradeRequest.findOne({ user_id: certificate.user_id._id });
+            if (upgradeRequest) {
+                if (!upgradeRequest.supplementaryPracticeCertificate) {
+                    upgradeRequest.supplementaryPracticeCertificate = [];
+                }
+                // Check if the image URL is already in the array
+                if (!upgradeRequest.supplementaryPracticeCertificate.includes(certificate.img2ndCertificate)) {
+                    upgradeRequest.supplementaryPracticeCertificate.push(certificate.img2ndCertificate);
+                }
+                await upgradeRequest.save();
+            }
+
+            // Send approval email
+            const subject = "Chứng chỉ hành nghề của bạn đã được phê duyệt";
+            const htmlContent = `<p>Chào ${certificate.user_id.firstName} ${certificate.user_id.lastName},</p>
+                                 <p>Chứng chỉ hành nghề của bạn đã được phê duyệt.</p>`;
+            await sendEmail(certificate.user_id.email, subject, htmlContent);
+
+            res.status(200).json({
+                EC: 1,
+                EM: "Chứng chỉ đã được phê duyệt thành công!",
+                DT: upgradeRequest
+            });
+        } else if (action === 'reject') {
+            certificate.status = 'rejected';
+            await certificate.save();
+
+            // Send rejection email
+            const subject = "Chứng chỉ hành nghề của bạn đã bị từ chối";
+            const htmlContent = `<p>Chào ${certificate.user_id.firstName} ${certificate.user_id.lastName},</p>
+                                 <p>Chứng chỉ hành nghề của bạn đã bị từ chối.</p>
+                                 <p>Lý do: ${rejectionReason}</p>`;
+            await sendEmail(certificate.user_id.email, subject, htmlContent);
+
+            res.status(200).json({
+                EC: 1,
+                EM: "Chứng chỉ đã bị từ chối thành công!"
+            });
+        } else {
+            res.status(400).json({
+                EC: 0,
+                EM: "Hành động không hợp lệ!"
+            });
+        }
+    } catch (err) {
+        console.error('Error verifying practice certificate:', err);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
 module.exports = {
     totalServicePrices,
     totalServicesByIndustry,
@@ -1840,5 +1897,6 @@ module.exports = {
     lockUserByUserId,
     unlockUserByUserId,
     viewRepairBookingHistory,
-    viewPendingPracticeCertificateRequests
+    viewPendingSupplementaryCertificates,
+    verifyPracticeCertificate
 };

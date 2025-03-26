@@ -17,6 +17,7 @@ const Address = require('./Address');
 const Image = require('./Image');
 const VeriMail = require('./VeriMail');
 const Complaint = require('./Complaint');
+const SecondCertificate = require("./SupplementaryPracticeCertifcate")
 
 // Collection of all models
 const models = {
@@ -36,6 +37,7 @@ const models = {
     Image,
     VeriMail,
     Complaint,
+    SecondCertificate
 };
 
 // Connect to MongoDB

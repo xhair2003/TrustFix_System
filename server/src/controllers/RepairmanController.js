@@ -1,4 +1,4 @@
-const { User, Role, RepairmanUpgradeRequest, ServiceIndustry, Service, Vip, DuePrice, Price, Rating, Request, Transaction, Wallet } = require("../models");
+const { User, Role, RepairmanUpgradeRequest, ServiceIndustry, Service, Vip, DuePrice, Price, Rating, Request, Transaction, Wallet ,SecondCertificate} = require("../models");
 const cloudinary = require("../../config/cloudinary");
 const { MONTHLY_FEE, sendEmail } = require("../constants");
 
@@ -590,6 +590,151 @@ const processMonthlyFee = async (req, res) => {
     });
   }
 };
+const registerVipPackage = async (req, res) => {
+  try {
+      const userId = req.user.id; 
+      const { vip_id, months = 1 } = req.body; // Mặc định số tháng là 1 nếu không được cung cấp
+
+      // Kiểm tra xem vip_id có được cung cấp hay không
+      if (!vip_id) {
+          return res.status(400).json({
+              EC: 0,
+              EM: "Vui lòng cung cấp ID của gói VIP!"
+          });
+      }
+
+      // Kiểm tra nếu months không phải là số hoặc nhỏ hơn 1
+      if (isNaN(months) || months < 1) {
+          return res.status(400).json({
+              EC: 0,
+              EM: "Số tháng đăng ký phải là một số lớn hơn hoặc bằng 1!"
+          });
+      }
+
+      
+      const repairmanUpgradeRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId });
+
+      if (!repairmanUpgradeRequest) {
+          return res.status(404).json({
+              EC: 0,
+              EM: "Không tìm thấy thông tin nâng cấp thợ sửa chữa cho người dùng này!"
+          });
+      }
+
+      // Tìm gói VIP dựa trên vip_id
+      const vipPackage = await Vip.findById(vip_id);
+      if (!vipPackage) {
+          return res.status(404).json({
+              EC: 0,
+              EM: "Không tìm thấy gói VIP!"
+          });
+      }
+
+      // Tìm ví của thợ sửa chữa
+      const wallet = await Wallet.findOne({ user_id: userId });
+      if (!wallet) {
+          return res.status(404).json({
+              EC: 0,
+              EM: "Không tìm thấy ví của thợ sửa chữa!"
+          });
+      }
+
+      // Kiểm tra nếu đây là tháng đầu tiên
+      const currentDate = new Date();
+      const firstMonthDate = new Date(repairmanUpgradeRequest.createdAt);
+      firstMonthDate.setMonth(firstMonthDate.getMonth() + 1);
+
+      let totalCost = vipPackage.price * months;
+
+      if (currentDate <= firstMonthDate) {
+          // Tháng đầu tiên miễn phí
+          totalCost -= vipPackage.price;
+      }
+
+      // Kiểm tra số dư ví
+      if (wallet.balance < totalCost) {
+          return res.status(400).json({
+              EC: 0,
+              EM: "Số dư ví không đủ để thanh toán gói VIP!"
+          });
+      }
+
+      // Trừ số dư ví
+      wallet.balance -= totalCost;
+      await wallet.save();
+
+      // Cập nhật vip_id và thời gian hết hạn cho RepairmanUpgradeRequest
+      repairmanUpgradeRequest.vip_id = vip_id;
+      const newExpiryDate = new Date(repairmanUpgradeRequest.updatedAt);
+      newExpiryDate.setMonth(newExpiryDate.getMonth() + months);
+      repairmanUpgradeRequest.expiredAt = newExpiryDate;
+      await repairmanUpgradeRequest.save();
+
+      // Lưu thông tin giao dịch
+      const transaction = new Transaction({
+          user_id: userId,
+          amount: totalCost,
+          description: `Thanh toán gói VIP: ${vipPackage.name} cho ${months} tháng`,
+          status: 1 // Thành công
+      });
+      await transaction.save();
+
+      res.status(200).json({
+          EC: 1,
+          EM: "Đăng ký gói VIP thành công!",
+          DT: repairmanUpgradeRequest
+      });
+
+  } catch (error) {
+      console.error("Lỗi:", error);
+      res.status(500).json({
+          EC: 0,
+          EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+      });
+  }
+};
+
+const addSecondCertificate = async (req, res) => {
+  try {
+    const userId = req.user.id; // User ID from verified token
+
+    // Check if the file is provided
+    if (!req.file) {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Vui lòng cung cấp tệp chứng chỉ!",
+      });
+    }
+
+    // Upload the certificate image to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "second_certificates",
+      transformation: [{ width: 500, height: 500, crop: "limit" }],
+    });
+
+    // Create a new SecondCertificate document
+    const newCertificate = new SecondCertificate({
+      user_id: userId,
+      img2ndCertificate: result.secure_url,
+      service_industry: req.body.service_industry,
+    });
+
+    await newCertificate.save();
+
+    res.status(201).json({
+      EC: 1,
+      EM: "Chứng chỉ thứ hai đã được thêm thành công!",
+      DT: newCertificate,
+    });
+  } catch (err) {
+    console.error("Error adding second certificate:", err);
+    res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+    });
+  }
+};
+
 
 module.exports = {
   requestRepairmanUpgrade,
@@ -600,4 +745,7 @@ module.exports = {
   dealPrice,
   processMonthlyFee,
   viewRequest,
+  registerVipPackage,
+  addSecondCertificate,
+  
 };
