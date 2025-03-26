@@ -73,6 +73,11 @@ const initialState = {
     totalServiceIndustries: null,
     totalServicesByIndustry: null,
     totalServicePrices: null,
+
+    pendingRequests: [],
+    errorPendingSupplementary: null,
+    errorVerifySupplementary: null,
+    successVerifySupplementary: null,
 };
 
 // Reducer function
@@ -540,7 +545,7 @@ const adminReducer = (state = initialState, action) => {
                 error: action.payload,
                 loading: false,
                 totalServicesByIndustry: [] // Reset để tránh dữ liệu cũ gây lỗi
-             };
+            };
 
         // Handle total service prices
         case "REQUEST_TOTAL_SERVICE_PRICES":
@@ -554,7 +559,45 @@ const adminReducer = (state = initialState, action) => {
 
 
 
+        case 'GET_PENDING_SUPPLEMENTARY_CERTIFICATE_REQUESTS_REQUEST':
+            return {
+                ...state,
+                loading: true,
+            };
+        case 'GET_PENDING_SUPPLEMENTARY_CERTIFICATE_REQUESTS_SUCCESS':
+            return {
+                ...state,
+                loading: false,
+                pendingRequests: action.payload,
+                errorPendingSupplementary: null,
+            };
+        case 'GET_PENDING_SUPPLEMENTARY_CERTIFICATE_REQUESTS_FAIL':
+            return {
+                ...state,
+                loading: false,
+                errorPendingSupplementary: action.payload,
+            };
 
+        // Xác minh yêu cầu
+        case 'VERIFY_SUPPLEMENTARY_CERTIFICATE_REQUEST_REQUEST':
+            return {
+                ...state,
+                loading: true,
+            };
+        case 'VERIFY_SUPPLEMENTARY_CERTIFICATE_REQUEST_SUCCESS':
+            return {
+                ...state,
+                loading: false,
+                successVerifySupplementary: action.payload,
+                errorVerifySupplementary: null,
+            };
+        case 'VERIFY_SUPPLEMENTARY_CERTIFICATE_REQUEST_FAIL':
+            return {
+                ...state,
+                loading: false,
+                successVerifySupplementary: null,
+                errorVerifySupplementary: action.payload,
+            };
 
 
         case "RESET_ERROR":
@@ -591,6 +634,9 @@ const adminReducer = (state = initialState, action) => {
 
                 errorUpgradeRequests: null,
                 errorVerifyUpgradeRequest: null,
+
+                errorPendingSupplementary: null,
+                errorVerifySupplementary: null,
             };
 
 
@@ -617,6 +663,8 @@ const adminReducer = (state = initialState, action) => {
                 successAddCategories: null,
 
                 successVerifyUpgradeRequest: null,
+
+                successVerifySupplementary: null,
             };
 
 

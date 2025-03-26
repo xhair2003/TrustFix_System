@@ -10,8 +10,9 @@ import Loading from '../../../../component/Loading/Loading';
 const Wallet = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { balance, loading, error } = useSelector((state) => state.user);
+    const { balance, loading, errorFetchBalance } = useSelector((state) => state.user);
     const { role } = useSelector((state) => state.auth);
+    //console.log(errorFetchBalance);
 
     const convertToWords = (amount) => {
         if (!amount) return '';
@@ -27,8 +28,8 @@ const Wallet = () => {
         return <Loading />;
     }
 
-    if (error) {
-        return <p style={{ color: 'red' }}>{error}</p>;
+    if (errorFetchBalance) {
+        return <p style={{ color: 'red' }}>{errorFetchBalance}</p>;
     }
 
     return (
