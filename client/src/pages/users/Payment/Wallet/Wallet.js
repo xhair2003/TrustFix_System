@@ -11,6 +11,7 @@ const Wallet = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { balance, loading, error } = useSelector((state) => state.user);
+    const { role } = useSelector((state) => state.auth);
 
     const convertToWords = (amount) => {
         if (!amount) return '';
@@ -75,9 +76,11 @@ const Wallet = () => {
                             <button className="option-btn" onClick={() => navigate("/history-payment")}>
                                 Lịch sử thanh toán
                             </button>
-                            <button className="option-btn" onClick={() => navigate("/repairman/service-prices")}>
-                                Bảng giá dịch vụ tăng đề xuất
-                            </button>
+                            {role === 'repairman' && (
+                                <button className="option-btn" onClick={() => navigate("/repairman/service-prices")}>
+                                    Bảng giá dịch vụ tăng đề xuất
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
