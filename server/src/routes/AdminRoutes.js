@@ -94,7 +94,11 @@ router.get("/total-services-by-industry", AuthMiddleware.verifyAdmin, AdminContr
 router.get("/total-service-prices", AuthMiddleware.verifyAdmin, AdminController.totalServicePrices);
 
 //get Pending Requests
-router.get("/pending-2nd-certification", AuthMiddleware.verifyAdmin, AdminController.viewPendingPracticeCertificateRequests);
+router.get("/pending-2nd-certification", AuthMiddleware.verifyAdmin, AdminController.viewPendingSupplementaryCertificates);
+//verify 2nd certification (Accept/Reject)
+router.post("/verify-2nd-certification", AuthMiddleware.verifyAdmin, AdminController.verifyPracticeCertificate);
+
+router.get("/pending-2nd-certification", AuthMiddleware.verifyAdmin, AdminController.viewPendingSupplementaryCertificates);
 
 // get repairman monthly payment
 router.get("/view-detail-monthly-payment/:id", AuthMiddleware.verifyAdmin, AdminController.getRepairmanMonthlyPaymentById);
