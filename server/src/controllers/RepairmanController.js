@@ -1,4 +1,4 @@
-const { User, Role, RepairmanUpgradeRequest, ServiceIndustry, Service, Vip, DuePrice, Price, Rating, Request, Transaction, Wallet ,SecondCertificate} = require("../models");
+const { User, Role, RepairmanUpgradeRequest, ServiceIndustry, Service, Vip, DuePrice, Price, Rating, Request, Transaction, Wallet } = require("../models");
 const cloudinary = require("../../config/cloudinary");
 const { MONTHLY_FEE, sendEmail } = require("../constants");
 
@@ -716,38 +716,50 @@ const registerVipPackage = async (req, res) => {
 
 const addSecondCertificate = async (req, res) => {
   try {
-    const userId = req.user.id; // User ID from verified token
+    const userId = req.user.id; // Get user ID from the authenticated token
+    const files = req.files; // Get the uploaded files
 
-    // Check if the file is provided
-    if (!req.file) {
+    // Validate input
+    if (!files || files.length === 0) {
       return res.status(400).json({
         EC: 0,
-        EM: "Vui lòng cung cấp tệp chứng chỉ!",
+        EM: "Vui lòng cung cấp ít nhất một chứng chỉ bổ sung!",
       });
     }
 
-    // Upload the certificate image to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "second_certificates",
-      transformation: [{ width: 500, height: 500, crop: "limit" }],
-    });
+    // Find the repairman upgrade request by user ID
+    const repairmanRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId });
 
-    // Create a new SecondCertificate document
-    const newCertificate = new SecondCertificate({
-      user_id: userId,
-      img2ndCertificate: result.secure_url,
-      service_industry: req.body.service_industry,
-    });
+    if (!repairmanRequest) {
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy yêu cầu nâng cấp thợ sửa chữa!",
+      });
+    }
 
-    await newCertificate.save();
+    // Check if the status is "Active"
+    if (repairmanRequest.status !== "Active") {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Chỉ có thể thêm chứng chỉ bổ sung khi trạng thái là 'Active'!",
+      });
+    }
 
-    res.status(201).json({
+    // Extract file paths and update the supplementaryPracticeCertificate
+    const filePaths = files.map(file => file.path);
+    repairmanRequest.supplementaryPracticeCertificate.push(...filePaths);
+    repairmanRequest.status = "In review";
+
+    // Save the updated request
+    await repairmanRequest.save();
+
+    res.status(200).json({
       EC: 1,
-      EM: "Chứng chỉ thứ hai đã được thêm thành công!",
-      DT: newCertificate,
+      EM: "Thêm chứng chỉ bổ sung thành công và trạng thái đã được cập nhật!",
+      DT: repairmanRequest,
     });
-  } catch (err) {
-    console.error("Error adding second certificate:", err);
+  } catch (error) {
+    console.error("Error in addSecondCertificate:", error);
     res.status(500).json({
       EC: 0,
       EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",

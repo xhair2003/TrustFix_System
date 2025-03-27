@@ -1,4 +1,4 @@
-const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip , SecondCertificate } = require("../models");
+const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip  } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
 const nodemailer = require('nodemailer'); // Import nodemailer để gửi email
 const {sendEmail} = require('../constants/index');
@@ -1767,93 +1767,106 @@ const totalServicePrices = async (req, res) => {
 }
 const viewPendingSupplementaryCertificates = async (req, res) => {
     try {
-        const pendingCertificates = await SecondCertificate.find({ status: 'pending' })
-            .populate('user_id', 'firstName lastName email phone address imgAvt') // Populate user details
-            .populate('service_industry', 'type'); // Populate service industry details
-
-        res.status(200).json({
-            EC: 1,
-            EM: "Lấy danh sách chứng chỉ bổ sung đang chờ duyệt thành công!",
-            DT: pendingCertificates
+      // Find all RepairmanUpgradeRequests with status "In review"
+      const pendingCertificates = await RepairmanUpgradeRequest.find({ status: "In review" })
+        .populate("user_id", "firstName lastName email phone address imgAvt") // Populate user details
+        .populate("serviceIndustry_id", "type") // Populate service industry details
+        .populate("vip_id", "name price"); // Populate VIP details if applicable
+  
+      if (!pendingCertificates || pendingCertificates.length === 0) {
+        return res.status(404).json({
+          EC: 0,
+          EM: "Không có yêu cầu nào đang ở trạng thái 'In review'!",
         });
-    } catch (err) {
-        console.error('Get pending supplementary certificates error:', err);
-        res.status(500).json({
-            EC: 0,
-            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
-        });
+      }
+  
+      res.status(200).json({
+        EC: 1,
+        EM: "Lấy danh sách yêu cầu bổ sung chứng chỉ thành công!",
+        DT: pendingCertificates,
+      });
+    } catch (error) {
+      console.error("Error fetching pending supplementary certificates:", error);
+      res.status(500).json({
+        EC: 0,
+        EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+      });
     }
-};
-const verifyPracticeCertificate = async (req, res) => {
-    const { certificateId, action, rejectionReason } = req.body;
+  };
 
+  const verifyPracticeCertificate = async (req, res) => {
+    const { requestId, action, rejectionReason } = req.body;
+  
     try {
-        const certificate = await SecondCertificate.findById(certificateId).populate('user_id', 'email firstName lastName');
-
-        if (!certificate) {
-            return res.status(404).json({
-                EC: 0,
-                EM: "Chứng chỉ không tồn tại!"
-            });
-        }
-
-        if (action === 'approve') {
-            certificate.status = 'approved';
-            await certificate.save();
-
-            // Find the corresponding RepairmanUpgradeRequest and update it
-            const upgradeRequest = await RepairmanUpgradeRequest.findOne({ user_id: certificate.user_id._id });
-            if (upgradeRequest) {
-                if (!upgradeRequest.supplementaryPracticeCertificate) {
-                    upgradeRequest.supplementaryPracticeCertificate = [];
-                }
-                // Check if the image URL is already in the array
-                if (!upgradeRequest.supplementaryPracticeCertificate.includes(certificate.img2ndCertificate)) {
-                    upgradeRequest.supplementaryPracticeCertificate.push(certificate.img2ndCertificate);
-                }
-                await upgradeRequest.save();
-            }
-
-            // Send approval email
-            const subject = "Chứng chỉ hành nghề của bạn đã được phê duyệt";
-            const htmlContent = `<p>Chào ${certificate.user_id.firstName} ${certificate.user_id.lastName},</p>
-                                 <p>Chứng chỉ hành nghề của bạn đã được phê duyệt.</p>`;
-            await sendEmail(certificate.user_id.email, subject, htmlContent);
-
-            res.status(200).json({
-                EC: 1,
-                EM: "Chứng chỉ đã được phê duyệt thành công!",
-                DT: upgradeRequest
-            });
-        } else if (action === 'reject') {
-            certificate.status = 'rejected';
-            await certificate.save();
-
-            // Send rejection email
-            const subject = "Chứng chỉ hành nghề của bạn đã bị từ chối";
-            const htmlContent = `<p>Chào ${certificate.user_id.firstName} ${certificate.user_id.lastName},</p>
-                                 <p>Chứng chỉ hành nghề của bạn đã bị từ chối.</p>
-                                 <p>Lý do: ${rejectionReason}</p>`;
-            await sendEmail(certificate.user_id.email, subject, htmlContent);
-
-            res.status(200).json({
-                EC: 1,
-                EM: "Chứng chỉ đã bị từ chối thành công!"
-            });
-        } else {
-            res.status(400).json({
-                EC: 0,
-                EM: "Hành động không hợp lệ!"
-            });
-        }
-    } catch (err) {
-        console.error('Error verifying practice certificate:', err);
-        res.status(500).json({
-            EC: 0,
-            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+      // Find the repairman upgrade request by certificate ID
+      const repairmanRequest = await RepairmanUpgradeRequest.findById(requestId).populate("user_id", "email firstName lastName");
+  
+      if (!repairmanRequest) {
+        return res.status(404).json({
+          EC: 0,
+          EM: "Không tìm thấy yêu cầu nâng cấp thợ sửa chữa!",
         });
+      }
+  
+      // Check the action (approve or reject)
+      if (action === "approve") {
+        repairmanRequest.status = "Second certificate approved";
+        await repairmanRequest.save();
+  
+        // Send approval email
+        const emailContent = `
+          <h3>Chứng chỉ bổ sung của bạn đã được phê duyệt!</h3>
+          <p>Xin chào ${repairmanRequest.user_id.firstName} ${repairmanRequest.user_id.lastName},</p>
+          <p>Chứng chỉ bổ sung của bạn đã được phê duyệt thành công. Cảm ơn bạn đã cung cấp thông tin!</p>
+        `;
+        await sendEmail(repairmanRequest.user_id.email, "Chứng chỉ bổ sung được phê duyệt", emailContent);
+  
+        return res.status(200).json({
+          EC: 1,
+          EM: "Chứng chỉ bổ sung đã được phê duyệt và email đã được gửi!",
+        });
+      } else if (action === "reject") {
+        if (!rejectionReason) {
+          return res.status(400).json({
+            EC: 0,
+            EM: "Vui lòng cung cấp lý do từ chối!",
+          });
+        }
+  
+        // Clear all images from supplementaryPracticeCertificate
+        repairmanRequest.supplementaryPracticeCertificate = [];
+        repairmanRequest.status = "Second certificate rejected";
+        await repairmanRequest.save();
+        console.log("Ảnh chứng chỉ bổ sung đã được xóa!");
+        
+        // Send rejection email
+        const emailContent = `
+          <h3>Chứng chỉ bổ sung của bạn đã bị từ chối</h3>
+          <p>Xin chào ${repairmanRequest.user_id.firstName} ${repairmanRequest.user_id.lastName},</p>
+          <p>Chứng chỉ bổ sung của bạn đã bị từ chối với lý do sau:</p>
+          <p><strong>${rejectionReason}</strong></p>
+          <p>Vui lòng kiểm tra lại và gửi lại thông tin chính xác.</p>
+        `;
+        await sendEmail(repairmanRequest.user_id.email, "Chứng chỉ bổ sung bị từ chối", emailContent);
+    
+        return res.status(200).json({
+          EC: 1,
+          EM: "Chứng chỉ bổ sung đã bị từ chối,  email đã được gửi!",
+        });
+      } else {
+        return res.status(400).json({
+          EC: 0,
+          EM: "Hành động không hợp lệ! Vui lòng chọn 'approve' hoặc 'reject'.",
+        });
+      }
+    } catch (error) {
+      console.error("Error in verifyPracticeCertificate:", error);
+      res.status(500).json({
+        EC: 0,
+        EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+      });
     }
-};
+  };
 //View repairman monthly payment
 const getRepairmanMonthlyPaymentById = async (req, res) => {
     try {
@@ -1984,7 +1997,6 @@ module.exports = {
     viewRepairBookingHistory,
     viewPendingSupplementaryCertificates,
     verifyPracticeCertificate,
-    viewPendingSupplementaryCertificates,
     getRepairmanMonthlyPaymentById,
     getAllRepairmanMonthlyPayments
 };
