@@ -13,6 +13,7 @@ export const login = (email, pass) => {
                 // Lưu token vào localStorage, không cần
                 localStorage.setItem('token', accessToken);
                 localStorage.setItem('isAuthenticated', true);
+                localStorage.setItem('role', response.data.DT.roles[0]);
                 // Đẩy action vào Redux
                 dispatch({
                     type: "LOGIN_SUCCESS",
@@ -38,6 +39,8 @@ export const logout = () => {
         // Xóa token khỏi localStorage
         localStorage.removeItem('token');
         localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('role');
+        localStorage.removeItem("closedRequests");
         // Đẩy action logout vào Redux
         dispatch({
             type: "LOGOUT",

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState } from 'react';
-import RepairmentHistoriesSortBar from '../../../../component/users/customer/ViewRepairmentHistories/RepairmentHistoriesSortBar';
-import RepairmentHistoryList from '../../../../component/users/customer/ViewRepairmentHistories/RepairmentHistoryList';
+import RepairmentHistoriesSortBar from '../../../component/users/customer/ViewRepairmentHistories/RepairmentHistoriesSortBar';
+import RepairmentHistoryList from '../../../component/users/customer/ViewRepairmentHistories/RepairmentHistoryList';
 import './ViewRepairmentHistories.scss';
 
 const ViewRepairmentHistories = () => {

@@ -17,16 +17,28 @@ const initialState = {
     status: null,
     errorToggleStatus: null,
     errorGetStatus: null,
+
+    requestId: null,
+    errorFindRepairman: null,
+    errorViewRequest: null,
+    successFindRepairman: null,
+    request: null,
+    errorDealPrice: null,
+    successDealPrice: null,
+    errorViewRepairmanDeal: null,
+    repairmanDeals: [],
+
+
 };
 
 const userReducer = (state = initialState, action) => {
     switch (action.type) {
         case "GET_USER_INFO_REQUEST":
-            return { ...state, loading: true, error: null };
+            return { ...state, loading: true };
         case "GET_USER_INFO_SUCCESS":
-            return { ...state, loading: false, userInfo: action.payload };
+            return { ...state, loading: false, userInfo: action.payload, error: null };
         case "GET_USER_INFO_FAIL":
-            return { ...state, loading: false, error: action.payload };
+            return { ...state, loading: false, error: action.payload, userInfo: null };
 
 
         // Xử lý updateUserInfo
@@ -174,17 +186,19 @@ const userReducer = (state = initialState, action) => {
 
 
         case 'SERVICE_INDUSTRY_TYPE_REQUEST':
-            return { ...state, loading: true, errorServiceTypes: null };
+            return { ...state, loading: true };
         case 'SERVICE_INDUSTRY_TYPE_SUCCESS':
             return {
                 ...state,
                 loading: false,
                 serviceTypes: action.payload, // Lưu danh sách loại dịch vụ vào store
+                errorServiceTypes: null
             };
         case 'SERVICE_INDUSTRY_TYPE_FAIL':
             return {
                 ...state,
                 loading: false,
+                serviceTypes: [],
                 errorServiceTypes: action.payload, // Lưu lỗi vào store nếu có
             };
 
@@ -227,6 +241,103 @@ const userReducer = (state = initialState, action) => {
             };
 
 
+        case "FIND_REPAIRMAN_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "FIND_REPAIRMAN_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                requestId: action.payload.requestId, // Lưu dữ liệu từ BE
+                successFindRepairman: action.payload.message, // Lưu dữ liệu từ BE (VD: { EC: 1, EM: "Gửi yêu cầu thành công!" })
+                errorFindRepairman: null,
+            };
+        case "FIND_REPAIRMAN_FAIL":
+            return {
+                ...state,
+                loading: false,
+                successFindRepairman: null,
+                requestId: null,
+                errorFindRepairman: action.payload, // Lưu thông báo lỗi
+            };
+
+
+        case "VIEW_REQUEST_REQUEST":
+            return {
+                ...state,
+                //loading: true,
+            };
+        case "VIEW_REQUEST_SUCCESS":
+            return {
+                ...state,
+                //loading: false,
+                request: action.payload, // Lưu request từ BE
+                //errorViewRequest: null,
+            };
+        case "VIEW_REQUEST_FAIL":
+            return {
+                ...state,
+                //loading: false,
+                request: null,
+                //errorViewRequest: action.payload, // Lưu thông báo lỗi
+            };
+
+
+        case "DEAL_PRICE_REQUEST":
+            return {
+                ...state,
+                loading: true,
+                successDealPrice: null,
+                errorDealPrice: null,
+            };
+        case "DEAL_PRICE_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                successDealPrice: action.payload.message, // Lưu thông báo thành công
+                errorDealPrice: null,
+                // Nếu isDeal là true, cập nhật trạng thái request (nếu cần)
+                request:
+                    action.payload.isDeal === "true" && state.request
+                        ? { ...state.request, status: "Done deal price" }
+                        : state.request,
+            };
+        case "DEAL_PRICE_FAIL":
+            return {
+                ...state,
+                loading: false,
+                successDealPrice: null,
+                errorDealPrice: action.payload, // Lưu thông báo lỗi
+            };
+        case "REMOVE_REQUEST":
+            return {
+                ...state,
+                request: null, // Xóa request khỏi state khi hủy deal
+            };
+
+
+        case "VIEW_REPAIRMAN_DEAL_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "VIEW_REPAIRMAN_DEAL_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                repairmanDeals: action.payload, // Lưu danh sách repairmanDeals từ BE
+                errorViewRepairmanDeal: null,
+            };
+        case "VIEW_REPAIRMAN_DEAL_FAIL":
+            return {
+                ...state,
+                loading: false,
+                errorViewRepairmanDeal: action.payload, // Lưu thông báo lỗi
+            };
+
+
         case "RESET_ERROR":
             return {
                 ...state,
@@ -238,6 +349,11 @@ const userReducer = (state = initialState, action) => {
                 errorServiceTypes: null,
                 errorToggleStatus: null,
                 errorGetStatus: null,
+
+                errorFindRepairman: null,
+                errorViewRequest: null,
+                errorDealPrice: null,
+                errorViewRepairmanDeal: null,
             };
         case "RESET_SUCCESS":
             return {
@@ -246,6 +362,9 @@ const userReducer = (state = initialState, action) => {
                 complaintMessage: null,
                 repairHistory: null,
                 successUpgrade: null,
+
+                successFindRepairman: null,
+                successDealPrice: null,
             };
         default:
             return state;

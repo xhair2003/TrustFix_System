@@ -1,0 +1,83 @@
+.repairman-list {
+    width: 100%;
+  }
+  
+  .repairman-list h3 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+  }
+  
+  .repairman-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .repairman-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+  }
+  
+  .repairman-item:hover {
+    background-color: #f9f9f9;
+  }
+  
+  .repairman-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .repairman-name {
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  .repairman-service {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .repairman-distance {
+    font-size: 12px;
+    color: #999;
+  }
+  
+  .repairman-price {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .repairman-price span {
+    font-size: 16px;
+    font-weight: bold;
+    color: #3961fb;
+  }
+  
+  .deal-button {
+    padding: 8px 15px;
+    background-color: #3961fb;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  
+  .deal-button:hover {
+    background-color: #2f4fc2;
+    transform: translateY(-2px);
+  }
+  
+  .deal-button:active {
+    transform: translateY(0);
+  }
