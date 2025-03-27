@@ -39,6 +39,9 @@ const initialState = {
 
     successMakePayment: null,
     errorMakePayment: null,
+
+    successRating: null,
+    errorRating: null,
 };
 
 const userReducer = (state = initialState, action) => {
@@ -230,6 +233,25 @@ const userReducer = (state = initialState, action) => {
                 loading: false,
                 errorGetStatus: action.payload, // Storing error message
             };
+
+
+        case "ADD_RATING_REQUEST":
+            return { ...state, loading: true };
+        case "ADD_RATING_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                successRating: action.payload, // "Đánh giá thành công!"
+                errorRating: null,
+            };
+        case "ADD_RATING_FAIL":
+            return {
+                ...state,
+                loading: false,
+                successRating: null,
+                errorRating: action.payload,
+            };
+
 
 
         case "TOGGLE_STATUS_REPAIRMAN_REQUEST":
@@ -456,6 +478,8 @@ const userReducer = (state = initialState, action) => {
                 errorSupplementary: null,
 
                 errorMakePayment: null,
+
+                errorRating: null,
             };
         case "RESET_SUCCESS":
             return {
@@ -475,6 +499,8 @@ const userReducer = (state = initialState, action) => {
                 successSupplementary: null,
 
                 successMakePayment: null,
+
+                successRating: null,
             };
         default:
             return state;

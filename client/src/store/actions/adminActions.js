@@ -1230,7 +1230,7 @@ export const getPendingSupplementaryCertificateRequests = () => async (dispatch,
         dispatch({ type: 'GET_PENDING_SUPPLEMENTARY_CERTIFICATE_REQUESTS_REQUEST' });
 
         const response = await axios.get(
-            `${API_URL_ADMIN}/supplementary-practice-certificate-requests/pending`,
+            `${API_URL_ADMIN}/pending-2nd-certification`,
             {
                 headers: { Authorization: `Bearer ${token}` },
             }
@@ -1259,7 +1259,7 @@ export const getPendingSupplementaryCertificateRequests = () => async (dispatch,
 };
 
 // Action để xác minh (approve/reject) một yêu cầu bổ sung chứng chỉ
-export const verifySupplementaryCertificateRequest = (requestId, action, rejectReason) => async (
+export const verifySupplementaryCertificateRequest = (requestId, action, rejectionReason) => async (
     dispatch,
     getState
 ) => {
@@ -1268,8 +1268,8 @@ export const verifySupplementaryCertificateRequest = (requestId, action, rejectR
         dispatch({ type: 'VERIFY_SUPPLEMENTARY_CERTIFICATE_REQUEST_REQUEST' });
 
         const response = await axios.put(
-            `${API_URL_ADMIN}/supplementary-practice-certificate-requests/${requestId}/verify`,
-            { action, rejectReason }, // action: 'approve' hoặc 'reject', rejectReason nếu từ chối
+            `${API_URL_ADMIN}/verify-2nd-certification`,
+            { requestId, action, rejectionReason }, // action: 'approve' hoặc 'reject', rejectionReason nếu từ chối
             { headers: { Authorization: `Bearer ${token}` } }
         );
 

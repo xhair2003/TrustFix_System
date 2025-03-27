@@ -17,7 +17,7 @@ export const ROUTERS = {
         VIEW_REPAIR_BOOKING_HISTORY: '/view-repair-booking-history',
         COMPLAIN_REPAIRMAN: '/complain',
         UPGRADE_REPAIRMAN: '/upgrade-repair-man',
-        DEPOSIT_INTO_ACCOUNT: '/deposit-into-account',
+        DEPOSIT_INTO_ACCOUNT: '/wallet/deposit-into-account',
         VIEW_DEPOSIT_HISTORY: '/deposit-history',
         VIEW_HISTORY_PAYMENT: '/history-payment',
         MAKE_PAYMENT: '/make-payment/:requestId/:repairmanId',

@@ -443,7 +443,54 @@ export const toggleStatusRepairman = () => async (dispatch, getState) => {
     }
 };
 
+// Action for adding a rating
+export const addRating = (requestId, rate, comment) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "ADD_RATING_REQUEST" });
 
+        // Get token from state or localStorage
+        const token = getState().auth.token || localStorage.getItem('token');
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        };
+
+        const body = {
+            request_id: requestId,
+            rate,
+            comment,
+        };
+
+        const { data } = await axios.post(
+            `http://localhost:8080/api/customer/rating`,
+            body,
+            config
+        );
+
+        if (data.EC === 1) {
+            dispatch({
+                type: "ADD_RATING_SUCCESS",
+                payload: data.EM, // Success message: "Đánh giá thành công!"
+            });
+        } else {
+            dispatch({
+                type: "ADD_RATING_FAIL",
+                payload: data.EM || "Có lỗi xảy ra khi gửi đánh giá",
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ADD_RATING_FAIL",
+            payload:
+                error.response && error.response.data.EM
+                    ? error.response.data.EM
+                    : 'Có lỗi xảy ra khi gửi đánh giá',
+        });
+    }
+};
 
 
 // API Find repairman to book repairment
@@ -705,7 +752,7 @@ export const purchaseVip = (vipId) => async (dispatch, getState) => {
 
         // Gọi API thực tế
         const response = await axios.post(
-            'http://localhost:8080/api/repairman/purchase-vip', // Ví dụ endpoint
+            'http://localhost:8080/api/repairman/buy-vip-package', // Ví dụ endpoint
             { vipId }, // Dữ liệu gửi lên (nếu có, bạn có thể thêm vào đây)
             {
                 headers: { Authorization: `Bearer ${token}` },
@@ -735,12 +782,22 @@ export const purchaseVip = (vipId) => async (dispatch, getState) => {
 
 
 // Action creator để bổ sung giấy chứng chỉ hành nghề
-export const requestSupplementaryPracticeCertificate = (supplementaryPracticeCertificates) => async (dispatch, getState) => {
+export const requestSupplementaryPracticeCertificate = (img2ndCertificate) => async (dispatch, getState) => {
     try {
         dispatch({ type: 'SUPPLEMENTARY_PRACTICE_CERTIFICATE_REQUEST' });
 
         // Lấy token từ state (giả sử lưu trong Redux từ quá trình đăng nhập)
         const token = getState().auth.token || localStorage.getItem('token');
+
+        // Chuẩn bị FormData để gửi dữ liệu multipart/form-data
+        const formData = new FormData();
+
+        // Thêm các file ảnh vào FormData
+        if (img2ndCertificate && img2ndCertificate.length > 0) {
+            img2ndCertificate.forEach((file) => {
+                formData.append("img2ndCertificate", file); // "img2ndCertificate" phải khớp với upload.array('img2ndCertificate') ở BE
+            });
+        }
 
         const config = {
             headers: {
@@ -751,8 +808,8 @@ export const requestSupplementaryPracticeCertificate = (supplementaryPracticeCer
 
         // Gửi yêu cầu lên API
         const response = await axios.post(
-            `${API_URL_REPAIRMAN}/supplementary-practice-certificate`,
-            supplementaryPracticeCertificates,
+            `${API_URL_REPAIRMAN}/add-second-certificate`,
+            formData,
             config
         );
 
@@ -774,6 +831,8 @@ export const requestSupplementaryPracticeCertificate = (supplementaryPracticeCer
         });
     }
 };
+
+
 
 
 // Action thanh toán đơn hàng
