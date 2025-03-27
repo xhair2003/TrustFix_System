@@ -20,7 +20,7 @@ export const ROUTERS = {
         DEPOSIT_INTO_ACCOUNT: '/deposit-into-account',
         VIEW_DEPOSIT_HISTORY: '/deposit-history',
         VIEW_HISTORY_PAYMENT: '/history-payment',
-        PAY_FOR_REPAIR: '/pay-for-repair',
+        MAKE_PAYMENT: '/make-payment/:requestId/:repairmanId',
         WALLET: '/wallet',
 
     },

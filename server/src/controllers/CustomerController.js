@@ -921,7 +921,7 @@ const viewRepairmanDeal = async (req, res) => {
       }
 
       repairmanDeals.push({
-        //request: request,
+        request: request,
         repairman: repairmanInfor,
         ratings: repairmanRatings,
         dealPrice: dealPriceInfo

@@ -191,6 +191,11 @@ const UserROUTERS = () => {
             component: < DetailRequest />,
             layout: null, // No layout for auth routes
         },
+        {
+            path: ROUTERS.CUSTOMER.MAKE_PAYMENT,
+            component: < MakePayment />,
+            layout: null, // No layout for auth routes
+        },
 
         // Add more auth routes here....
     ];

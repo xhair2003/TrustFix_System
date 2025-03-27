@@ -739,8 +739,8 @@ export const requestSupplementaryPracticeCertificate = (supplementaryPracticeCer
     try {
         dispatch({ type: 'SUPPLEMENTARY_PRACTICE_CERTIFICATE_REQUEST' });
 
-        const { auth } = getState();
-        const token = auth.token;
+        // Lấy token từ state (giả sử lưu trong Redux từ quá trình đăng nhập)
+        const token = getState().auth.token || localStorage.getItem('token');
 
         const config = {
             headers: {
@@ -771,6 +771,51 @@ export const requestSupplementaryPracticeCertificate = (supplementaryPracticeCer
         dispatch({
             type: 'SUPPLEMENTARY_PRACTICE_CERTIFICATE_FAIL',
             payload: error.response?.data?.EM || 'Lỗi server, vui lòng thử lại sau!',
+        });
+    }
+};
+
+
+// Action thanh toán đơn hàng
+export const assignRepairman = (requestId, repairmanId) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "ASSIGN_REPAIRMAN_REQUEST" });
+
+        // Lấy token từ state (giả sử lưu trong Redux từ quá trình đăng nhập)
+        const token = getState().auth.token || localStorage.getItem('token');
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        };
+
+        const { data } = await axios.post(
+            `http://localhost:8080/api/customer/assignedRepairman/${requestId}/${repairmanId}`,
+            {},
+            config
+        );
+
+        if (data.EC === 1) {
+            localStorage.removeItem("requestId"); // Lưu requestId trong localStorage
+            dispatch({
+                type: "ASSIGN_REPAIRMAN_SUCCESS",
+                payload: data.EM,
+            });
+        } else {
+            dispatch({
+                type: "ASSIGN_REPAIRMAN_FAIL",
+                payload: data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ASSIGN_REPAIRMAN_FAIL",
+            payload:
+                error.response && error.response.data.EM
+                    ? error.response.data.EM
+                    : 'Có lỗi xảy ra khi xử lý thanh toán',
         });
     }
 };

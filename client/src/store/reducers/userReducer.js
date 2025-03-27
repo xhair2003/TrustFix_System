@@ -36,6 +36,9 @@ const initialState = {
 
     errorSupplementary: null,
     successSupplementary: null,
+
+    successMakePayment: null,
+    errorMakePayment: null,
 };
 
 const userReducer = (state = initialState, action) => {
@@ -408,7 +411,25 @@ const userReducer = (state = initialState, action) => {
             };
 
 
-
+        case "ASSIGN_REPAIRMAN_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "ASSIGN_REPAIRMAN_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                successMakePayment: action.payload,
+                errorMakePayment: null,
+            };
+        case "ASSIGN_REPAIRMAN_FAIL":
+            return {
+                ...state,
+                loading: false,
+                successMakePayment: null,
+                errorMakePayment: action.payload,
+            };
 
 
         case "RESET_ERROR":
@@ -433,6 +454,8 @@ const userReducer = (state = initialState, action) => {
                 errorPurchaseVip: null,
 
                 errorSupplementary: null,
+
+                errorMakePayment: null,
             };
         case "RESET_SUCCESS":
             return {
@@ -450,6 +473,8 @@ const userReducer = (state = initialState, action) => {
                 successPurchaseVip: null,
 
                 successSupplementary: null,
+
+                successMakePayment: null,
             };
         default:
             return state;

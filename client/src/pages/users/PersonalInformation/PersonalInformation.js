@@ -9,12 +9,36 @@ import Swal from "sweetalert2";
 
 const PersonalInfomation = () => {
   const dispatch = useDispatch();
+  const { loading, userInfo, error, updateInfoSuccess, updateInfoError } = useSelector((state) => state.user); // Lấy thông tin từ Redux
 
   useEffect(() => {
     dispatch(getUserInfo()); // Gọi action để lấy thông tin người dùng
   }, [dispatch]);
 
-  const { loading, userInfo, error, updateInfoSuccess, updateInfoError } = useSelector((state) => state.user); // Lấy thông tin từ Redux
+  useEffect(() => {
+    // Check for success or error after the dispatch completes
+    if (updateInfoSuccess) {
+      Swal.fire({
+        title: "Thành công",
+        text: updateInfoSuccess,
+        icon: "info",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+      dispatch(resetSuccess());
+      dispatch(getUserInfo()); // Cập nhật lại userInfo sau khi thành công
+    }
+    if (updateInfoError) {
+      Swal.fire({
+        title: "Lỗi",
+        text: updateInfoError,
+        icon: "error",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+      dispatch(resetError());
+    }
+  }, [dispatch, updateInfoSuccess, updateInfoError]);
 
   //console.log(userInfo);
   // console.log(updateInfoSuccess);
@@ -27,29 +51,7 @@ const PersonalInfomation = () => {
   }
 
   const handleSave = (updatedInfo) => {
-    dispatch(updateUserInfo(updatedInfo)).then(() => {
-      // Check for success or error after the dispatch completes
-      if (updateInfoSuccess) {
-        Swal.fire({
-          title: "Thành công",
-          text: updateInfoSuccess,
-          icon: "info",
-          timer: 5000,
-          showConfirmButton: false,
-        });
-        dispatch(resetSuccess());
-        dispatch(getUserInfo()); // Cập nhật lại userInfo sau khi thành công
-      } else if (updateInfoError) {
-        Swal.fire({
-          title: "Lỗi",
-          text: updateInfoError,
-          icon: "error",
-          timer: 5000,
-          showConfirmButton: false,
-        });
-        dispatch(resetError());
-      }
-    });
+    dispatch(updateUserInfo(updatedInfo));
   };
 
   if (error) {
