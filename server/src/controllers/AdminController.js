@@ -1,7 +1,7 @@
-const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip } = require("../models");
+const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip  } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
 const nodemailer = require('nodemailer'); // Import nodemailer để gửi email
-
+const {sendEmail} = require('../constants/index');
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -1765,37 +1765,192 @@ const totalServicePrices = async (req, res) => {
         });
     }
 }
-const viewPendingPracticeCertificateRequests = async (req, res) => {
+const viewPendingSupplementaryCertificates = async (req, res) => {
     try {
-        const pendingRequests = await RepairmanUpgradeRequest.find({ status: 'pending' })
-            .populate('user_id', 'firstName lastName email phone address imgAvt') // Populate user details
-            .populate('serviceIndustry_id', 'type') // Populate service industry type
-            .populate('vip_id', 'name') // Populate VIP details
-            .populate('serviceTypes', 'name') // Populate service types
+      // Find all RepairmanUpgradeRequests with status "In review"
+      const pendingCertificates = await RepairmanUpgradeRequest.find({ status: "In review" })
+        .populate("user_id", "firstName lastName email phone address imgAvt") // Populate user details
+        .populate("serviceIndustry_id", "type") // Populate service industry details
+        .populate("vip_id", "name price"); // Populate VIP details if applicable
+  
+      if (!pendingCertificates || pendingCertificates.length === 0) {
+        return res.status(404).json({
+          EC: 0,
+          EM: "Không có yêu cầu nào đang ở trạng thái 'In review'!",
+        });
+      }
+  
+      res.status(200).json({
+        EC: 1,
+        EM: "Lấy danh sách yêu cầu bổ sung chứng chỉ thành công!",
+        DT: pendingCertificates,
+      });
+    } catch (error) {
+      console.error("Error fetching pending supplementary certificates:", error);
+      res.status(500).json({
+        EC: 0,
+        EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+      });
+    }
+  };
+
+  const verifyPracticeCertificate = async (req, res) => {
+    const { requestId, action, rejectionReason } = req.body;
+  
+    try {
+      // Find the repairman upgrade request by certificate ID
+      const repairmanRequest = await RepairmanUpgradeRequest.findById(requestId).populate("user_id", "email firstName lastName");
+  
+      if (!repairmanRequest) {
+        return res.status(404).json({
+          EC: 0,
+          EM: "Không tìm thấy yêu cầu nâng cấp thợ sửa chữa!",
+        });
+      }
+  
+      // Check the action (approve or reject)
+      if (action === "approve") {
+        repairmanRequest.status = "Second certificate approved";
+        await repairmanRequest.save();
+  
+        // Send approval email
+        const emailContent = `
+          <h3>Chứng chỉ bổ sung của bạn đã được phê duyệt!</h3>
+          <p>Xin chào ${repairmanRequest.user_id.firstName} ${repairmanRequest.user_id.lastName},</p>
+          <p>Chứng chỉ bổ sung của bạn đã được phê duyệt thành công. Cảm ơn bạn đã cung cấp thông tin!</p>
+        `;
+        await sendEmail(repairmanRequest.user_id.email, "Chứng chỉ bổ sung được phê duyệt", emailContent);
+  
+        return res.status(200).json({
+          EC: 1,
+          EM: "Chứng chỉ bổ sung đã được phê duyệt và email đã được gửi!",
+        });
+      } else if (action === "reject") {
+        if (!rejectionReason) {
+          return res.status(400).json({
+            EC: 0,
+            EM: "Vui lòng cung cấp lý do từ chối!",
+          });
+        }
+  
+        // Clear all images from supplementaryPracticeCertificate
+        repairmanRequest.supplementaryPracticeCertificate = [];
+        repairmanRequest.status = "Second certificate rejected";
+        await repairmanRequest.save();
+        console.log("Ảnh chứng chỉ bổ sung đã được xóa!");
+        
+        // Send rejection email
+        const emailContent = `
+          <h3>Chứng chỉ bổ sung của bạn đã bị từ chối</h3>
+          <p>Xin chào ${repairmanRequest.user_id.firstName} ${repairmanRequest.user_id.lastName},</p>
+          <p>Chứng chỉ bổ sung của bạn đã bị từ chối với lý do sau:</p>
+          <p><strong>${rejectionReason}</strong></p>
+          <p>Vui lòng kiểm tra lại và gửi lại thông tin chính xác.</p>
+        `;
+        await sendEmail(repairmanRequest.user_id.email, "Chứng chỉ bổ sung bị từ chối", emailContent);
+    
+        return res.status(200).json({
+          EC: 1,
+          EM: "Chứng chỉ bổ sung đã bị từ chối,  email đã được gửi!",
+        });
+      } else {
+        return res.status(400).json({
+          EC: 0,
+          EM: "Hành động không hợp lệ! Vui lòng chọn 'approve' hoặc 'reject'.",
+        });
+      }
+    } catch (error) {
+      console.error("Error in verifyPracticeCertificate:", error);
+      res.status(500).json({
+        EC: 0,
+        EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+      });
+    }
+  };
+//View repairman monthly payment
+const getRepairmanMonthlyPaymentById = async (req, res) => {
+    try {
+        const monthlyPaymentId = req.params.id;
+        const transaction = await Transaction.findById(monthlyPaymentId)
             .populate({
-                path: 'user_id',
-                populate: {
-                    path: 'upgradeRequests',
-                    model: 'UpgradeRequest'
-                }
+                path: 'wallet_id',
+                populate: { path: 'user_id', select: 'firstName lastName email' }
             });
 
-        // Lọc các yêu cầu có bổ sung ảnh chứng chỉ hành nghề
-        const filteredRequests = pendingRequests.filter(request => request.supplementaryPracticeCertificate && request.supplementaryPracticeCertificate.length > 0);
+        if (!transaction) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy giao dịch!"
+            });
+        }
 
         res.status(200).json({
             EC: 1,
-            EM: "Lấy danh sách yêu cầu bổ sung ảnh chứng chỉ hành nghề thành công!",
-            DT: filteredRequests
+            EM: "Lấy thông tin giao dịch thành công!",
+            DT: transaction
         });
-    } catch (err) {
-        console.error('Get pending practice certificate requests error:', err);
+    } catch (error) {
+        console.error("Lấy thông tin giao dịch thất bại:", error);
         res.status(500).json({
             EC: 0,
             EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
         });
     }
 };
+
+
+const getAllRepairmanMonthlyPayments = async (req, res) => {
+    try {
+        let { page = 1, limit = 10, search = "", balance = "" } = req.query;
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        const filter = {
+            content: "Thanh toán phí thành viên hàng tháng",
+            status: 1
+        };
+
+        // Search theo content
+        if (search) {
+            filter.content = { $regex: search, $options: "i" };
+        }
+
+        // Tìm kiếm theo số dư sau giao dịch
+        if (!isNaN(balance) && balance.trim() !== "") {
+            filter.balanceAfterTransact = parseFloat(balance);
+        }
+
+        const transactions = await Transaction.find(filter)
+            .populate({
+                path: 'wallet_id',
+                populate: { path: 'user_id', select: 'firstName lastName email' }
+            })
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .sort({ createdAt: -1 });
+
+        const totalTransactions = await Transaction.countDocuments(filter);
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy danh sách giao dịch thành công!",
+            DT: {
+                transactions,
+                currentPage: page,
+                totalPages: Math.ceil(totalTransactions / limit),
+                totalTransactions
+            }
+        });
+    } catch (error) {
+        console.error("Lấy danh sách giao dịch thất bại:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
+
+
 
 module.exports = {
     totalServicePrices,
@@ -1840,5 +1995,9 @@ module.exports = {
     lockUserByUserId,
     unlockUserByUserId,
     viewRepairBookingHistory,
-    viewPendingPracticeCertificateRequests
+    viewPendingSupplementaryCertificates,
+    verifyPracticeCertificate,
+    getRepairmanMonthlyPaymentById,
+    getAllRepairmanMonthlyPayments
 };
+

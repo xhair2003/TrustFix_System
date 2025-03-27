@@ -146,7 +146,7 @@ const Header = () => {
                         {isDropdownOpen && (
                             < div className="dropdown-menu">
                                 {role === "repairman" &&
-                                    <div className="dropdown-item" onClick={() => navigate("repairman/view-requests")}>
+                                    <div className="dropdown-item" onClick={() => navigate("/repairman/view-requests")}>
                                         <FaWrench className="dropdown-icon" /> Đơn hàng sửa chữa
                                     </div>
                                 }

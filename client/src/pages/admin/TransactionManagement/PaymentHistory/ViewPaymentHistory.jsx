@@ -37,7 +37,7 @@ const ViewPaymentHistory = () => {
   }, [dispatch, errorHistoryPayments]);
 
   const filteredPayments = HistoryPayments.filter((payment) => {
-    const matchesSearch = `${payment.wallet_id.user_id.firstName} ${payment.wallet_id.user_id.firstName}`
+    const matchesSearch = `${payment.wallet_id.user_id?.firstName} ${payment.wallet_id.user_id?.lastName}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesStatus =
@@ -125,11 +125,11 @@ const ViewPaymentHistory = () => {
             <tbody>
               {currentPayments.map((payment, index) => (
                 <tr key={index}>
-                  <td>{`${payment.wallet_id.user_id.firstName} ${payment.wallet_id.user_id.firstName}`}</td>
+                  <td>{`${payment.wallet_id.user_id?.firstName} ${payment.wallet_id.user_id?.lastName}`}</td>
                   <td>{formatDateTime(payment.createdAt)}</td>
                   <td>{payment.payCode}</td>
-                  <td>{payment.amount.toLocaleString()} VNĐ</td>
-                  <td>{payment.balanceAfterTransact.toLocaleString()} VNĐ</td>
+                  <td>{payment.amount?.toLocaleString()} VNĐ</td>
+                  <td>{payment.balanceAfterTransact?.toLocaleString()} VNĐ</td>
                   <td>{payment.status}</td>
                   <td>
                     <button
@@ -191,21 +191,21 @@ const ViewPaymentHistory = () => {
                   <h4>Thông tin thanh toán</h4>
                   <p>Ngày giao dịch: {formatDateTime(selectedPayment.createdAt)}</p>
                   <p>Mã giao dịch: {selectedPayment.payCode}</p>
-                  <p>Số tiền: {selectedPayment.amount.toLocaleString()} VNĐ</p>
-                  <p>Số dư sau giao dịch: {selectedPayment.balanceAfterTransact.toLocaleString()} VNĐ</p>
+                  <p>Số tiền: {selectedPayment.amount?.toLocaleString()} VNĐ</p>
+                  <p>Số dư sau giao dịch: {selectedPayment.balanceAfterTransact?.toLocaleString()} VNĐ</p>
                   <p>Trạng thái: {selectedPayment.status}</p>
                   <p>Nội dung giao dịch: {selectedPayment.content}</p>
                 </div>
                 <div className="payment-history-details-section">
                   <h4>Thông tin khách hàng</h4>
-                  <p>Họ và tên: {`${selectedPayment.wallet_id.user_id.firstName} ${selectedPayment.wallet_id.user_id.lastName}`}</p>
-                  <p>Email: {selectedPayment.wallet_id.user_id.email}</p>
-                  <p>Số điện thoại: {selectedPayment.wallet_id.user_id.phone}</p>
+                  <p>Họ và tên: {`${selectedPayment.wallet_id.user_id?.firstName} ${selectedPayment.wallet_id.user_id?.lastName}`}</p>
+                  <p>Email: {selectedPayment.wallet_id.user_id?.email}</p>
+                  <p>Số điện thoại: {selectedPayment.wallet_id.user_id?.phone}</p>
                   <p>
-                    Vai trò: {selectedPayment.wallet_id.user_id.roles && selectedPayment.wallet_id.user_id.roles.length > 0 &&
-                      selectedPayment.wallet_id.user_id.roles[0].type === "repairman" ? "Thợ" : "Khách hàng"}
+                    Vai trò: {selectedPayment.wallet_id.user_id?.roles && selectedPayment.wallet_id.user_id?.roles.length > 0 &&
+                      selectedPayment.wallet_id.user_id?.roles[0].type === "repairman" ? "Thợ" : "Khách hàng"}
                   </p>
-                  <p>Địa chỉ: {selectedPayment.wallet_id.user_id.address}</p>
+                  <p>Địa chỉ: {selectedPayment.wallet_id.user_id?.address}</p>
                 </div>
 
                 {/* vài bữa thêm mục thông tin đơn hàng nào nữa nhé hải, bằng selectedPayment.request*/}

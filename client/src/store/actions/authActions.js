@@ -28,7 +28,7 @@ export const login = (email, pass) => {
         } catch (error) {
             dispatch({
                 type: "LOGIN_FAIL",
-                payload: error.response.data.EM,
+                payload: error?.response?.data?.EM || "Lỗi khi đăng nhập !",
             });
         }
     };

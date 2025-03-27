@@ -83,11 +83,11 @@ RequestSchema.virtual("serviceIndustry", {
 });
 
 // Virtual for ratings
-// RequestSchema.virtual('ratings', {
-//     ref: 'Rating',
-//     localField: '_id',
-//     foreignField: 'request_id'
-// });
+RequestSchema.virtual('ratings', {
+  ref: 'Rating',
+  localField: '_id',
+  foreignField: 'request_id'
+});
 
 // Virtual for images
 // RequestSchema.virtual('images', {

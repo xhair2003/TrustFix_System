@@ -189,14 +189,14 @@ const getAllVips = async (req, res) => {
     const vips = await Vip.find({}).sort({ createdAt: -1 }); // Sắp xếp theo ngày tạo
 
     return res.status(200).json({
-      EC: 0,
+      EC: 1,
       EM: "Lấy danh sách VIP thành công!",
       DT: vips,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
-      EC: 1,
+      EC: 0,
       EM: "Lỗi server, vui lòng thử lại sau!",
     });
   }
@@ -511,7 +511,7 @@ const processMonthlyFee = async (req, res) => {
       return res.status(400).json({ EC: 1, EM: "Thiếu ID người dùng!" });
     }
 
-    // Lấy thông tin user, wallet và VIP
+    // Lấy thông tin user và ví
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ EC: 1, EM: "Không tìm thấy người dùng!" });
@@ -522,12 +522,12 @@ const processMonthlyFee = async (req, res) => {
       return res.status(404).json({ EC: 1, EM: "Người dùng chưa có ví!" });
     }
 
-    const vipRecord = await Vip.findOne({ user_id: userId }).sort({ createdAt: 1 });
-
-    // Kiểm tra miễn phí tháng đầu tiên
+    // Kiểm tra miễn phí tháng đầu tiên dựa vào ngày tạo tài khoản
     const currentDate = new Date();
-    const firstVipDate = vipRecord ? new Date(vipRecord.createdAt) : null;
-    const isFirstMonthFree = firstVipDate && (currentDate.getMonth() === firstVipDate.getMonth() && currentDate.getFullYear() === firstVipDate.getFullYear());
+    const userCreatedAt = new Date(user.createdAt);
+    const isFirstMonthFree =
+      currentDate.getMonth() === userCreatedAt.getMonth() &&
+      currentDate.getFullYear() === userCreatedAt.getFullYear();
 
     if (isFirstMonthFree) {
       return res.status(200).json({
@@ -537,13 +537,32 @@ const processMonthlyFee = async (req, res) => {
       });
     }
 
+    // Kiểm tra xem đã thanh toán phí trong tháng này chưa
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const existingTransaction = await Transaction.findOne({
+      wallet_id: wallet._id,
+      transactionType: "payment",
+      content: "Thanh toán phí thành viên hàng tháng",
+      balanceAfterTransact: wallet.balance,
+      createdAt: { $gte: startOfMonth }
+    });
+
+    if (existingTransaction) {
+      return res.status(200).json({
+        EC: 0,
+        EM: "Bạn đã thanh toán phí tháng này rồi!",
+        EX: "Dưới đây là lịch sử thanh toán tháng này",
+        DT: { balance: wallet.balance, transaction: existingTransaction }
+      });
+    }
+
     // Kiểm tra số dư trong ví
     if (wallet.balance >= MONTHLY_FEE) {
       // Trừ tiền trong ví
       wallet.balance -= MONTHLY_FEE;
       await wallet.save();
 
-      // Lưu lại lịch sử giao dịch
+      // Lưu lịch sử giao dịch
       const transaction = new Transaction({
         wallet_id: wallet._id,
         payCode: `VIPFEE-${Date.now()}`,
@@ -553,15 +572,16 @@ const processMonthlyFee = async (req, res) => {
         content: "Thanh toán phí thành viên hàng tháng",
         balanceAfterTransact: wallet.balance
       });
+
       await transaction.save();
 
       // Gửi email xác nhận
-      await sendEmail(user.email, "Thanh toán thành công", `
-                <p>Chào ${user.firstName} ${user.lastName},</p>
-                <p>Bạn đã thanh toán thành công phí tháng này với số tiền <strong>100,000 VND</strong>.</p>
-                <p>Số dư còn lại trong ví: <strong>${wallet.balance} VND</strong>.</p>
-                <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
-            `);
+      await sendEmail(user.email, "Thanh toán thành công",
+        `<p>Chào ${user.firstName} ${user.lastName},</p>
+              <p>Bạn đã thanh toán thành công phí tháng này với số tiền <strong>${MONTHLY_FEE} VND</strong>.</p>
+              <p>Số dư còn lại trong ví: <strong>${wallet.balance} VND</strong>.</p>
+              <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>`
+      );
 
       return res.status(200).json({
         EC: 0,
@@ -570,11 +590,11 @@ const processMonthlyFee = async (req, res) => {
       });
     } else {
       // Gửi email thông báo trễ hạn
-      await sendEmail(user.email, "Cảnh báo: Không đủ số dư thanh toán", `
-                <p>Chào ${user.firstName} ${user.lastName},</p>
-                <p>Bạn chưa thanh toán phí tháng này (<strong>100,000 VND</strong>) do số dư ví không đủ.</p>
-                <p>Vui lòng nạp tiền vào ví để duy trì trạng thái của bạn.</p>
-            `);
+      await sendEmail(user.email, "Cảnh báo: Không đủ số dư thanh toán",
+        `<p>Chào ${user.firstName} ${user.lastName},</p>
+              <p>Bạn chưa thanh toán phí tháng này (<strong>${MONTHLY_FEE} VND</strong>) do số dư ví không đủ.</p>
+              <p>Vui lòng nạp tiền vào ví để duy trì trạng thái của bạn.</p>`
+      );
 
       return res.status(400).json({
         EC: 1,
@@ -590,6 +610,163 @@ const processMonthlyFee = async (req, res) => {
     });
   }
 };
+const registerVipPackage = async (req, res) => {
+  try {
+      const userId = req.user.id; 
+      const { vip_id, months = 1 } = req.body; // Mặc định số tháng là 1 nếu không được cung cấp
+
+      // Kiểm tra xem vip_id có được cung cấp hay không
+      if (!vip_id) {
+          return res.status(400).json({
+              EC: 0,
+              EM: "Vui lòng cung cấp ID của gói VIP!"
+          });
+      }
+
+      // Kiểm tra nếu months không phải là số hoặc nhỏ hơn 1
+      if (isNaN(months) || months < 1) {
+          return res.status(400).json({
+              EC: 0,
+              EM: "Số tháng đăng ký phải là một số lớn hơn hoặc bằng 1!"
+          });
+      }
+
+      
+      const repairmanUpgradeRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId });
+
+      if (!repairmanUpgradeRequest) {
+          return res.status(404).json({
+              EC: 0,
+              EM: "Không tìm thấy thông tin nâng cấp thợ sửa chữa cho người dùng này!"
+          });
+      }
+
+      // Tìm gói VIP dựa trên vip_id
+      const vipPackage = await Vip.findById(vip_id);
+      if (!vipPackage) {
+          return res.status(404).json({
+              EC: 0,
+              EM: "Không tìm thấy gói VIP!"
+          });
+      }
+
+      // Tìm ví của thợ sửa chữa
+      const wallet = await Wallet.findOne({ user_id: userId });
+      if (!wallet) {
+          return res.status(404).json({
+              EC: 0,
+              EM: "Không tìm thấy ví của thợ sửa chữa!"
+          });
+      }
+
+      // Kiểm tra nếu đây là tháng đầu tiên
+      const currentDate = new Date();
+      const firstMonthDate = new Date(repairmanUpgradeRequest.createdAt);
+      firstMonthDate.setMonth(firstMonthDate.getMonth() + 1);
+
+      let totalCost = vipPackage.price * months;
+
+      if (currentDate <= firstMonthDate) {
+          // Tháng đầu tiên miễn phí
+          totalCost -= vipPackage.price;
+      }
+
+      // Kiểm tra số dư ví
+      if (wallet.balance < totalCost) {
+          return res.status(400).json({
+              EC: 0,
+              EM: "Số dư ví không đủ để thanh toán gói VIP!"
+          });
+      }
+
+      // Trừ số dư ví
+      wallet.balance -= totalCost;
+      await wallet.save();
+
+      // Cập nhật vip_id và thời gian hết hạn cho RepairmanUpgradeRequest
+      repairmanUpgradeRequest.vip_id = vip_id;
+      const newExpiryDate = new Date(repairmanUpgradeRequest.updatedAt);
+      newExpiryDate.setMonth(newExpiryDate.getMonth() + months);
+      repairmanUpgradeRequest.expiredAt = newExpiryDate;
+      await repairmanUpgradeRequest.save();
+
+      // Lưu thông tin giao dịch
+      const transaction = new Transaction({
+          user_id: userId,
+          amount: totalCost,
+          description: `Thanh toán gói VIP: ${vipPackage.name} cho ${months} tháng`,
+          status: 1 // Thành công
+      });
+      await transaction.save();
+
+      res.status(200).json({
+          EC: 1,
+          EM: "Đăng ký gói VIP thành công!",
+          DT: repairmanUpgradeRequest
+      });
+
+  } catch (error) {
+      console.error("Lỗi:", error);
+      res.status(500).json({
+          EC: 0,
+          EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+      });
+  }
+};
+
+const addSecondCertificate = async (req, res) => {
+  try {
+    const userId = req.user.id; // Get user ID from the authenticated token
+    const files = req.files; // Get the uploaded files
+
+    // Validate input
+    if (!files || files.length === 0) {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Vui lòng cung cấp ít nhất một chứng chỉ bổ sung!",
+      });
+    }
+
+    // Find the repairman upgrade request by user ID
+    const repairmanRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId });
+
+    if (!repairmanRequest) {
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy yêu cầu nâng cấp thợ sửa chữa!",
+      });
+    }
+
+    // Check if the status is "Active"
+    if (repairmanRequest.status !== "Active") {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Chỉ có thể thêm chứng chỉ bổ sung khi trạng thái là 'Active'!",
+      });
+    }
+
+    // Extract file paths and update the supplementaryPracticeCertificate
+    const filePaths = files.map(file => file.path);
+    repairmanRequest.supplementaryPracticeCertificate.push(...filePaths);
+    repairmanRequest.status = "In review";
+
+    // Save the updated request
+    await repairmanRequest.save();
+
+    res.status(200).json({
+      EC: 1,
+      EM: "Thêm chứng chỉ bổ sung thành công và trạng thái đã được cập nhật!",
+      DT: repairmanRequest,
+    });
+  } catch (error) {
+    console.error("Error in addSecondCertificate:", error);
+    res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+    });
+  }
+};
+
 
 module.exports = {
   requestRepairmanUpgrade,
@@ -600,4 +777,7 @@ module.exports = {
   dealPrice,
   processMonthlyFee,
   viewRequest,
+  registerVipPackage,
+  addSecondCertificate,
+  
 };

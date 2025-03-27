@@ -39,7 +39,7 @@ const ViewDepositHistory = () => {
 
   // Lọc và tìm kiếm
   const filteredDeposits = depositeHistories.filter((deposit) => {
-    const matchesSearch = `${deposit.wallet_id.user_id.firstName} ${deposit.wallet_id.user_id.firstName}`
+    const matchesSearch = `${deposit.wallet_id.user_id?.firstName} ${deposit.wallet_id.user_id?.lastName}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesMethod =
@@ -130,7 +130,7 @@ const ViewDepositHistory = () => {
               <tbody>
                 {currentDeposits.map((deposit, index) => (
                   <tr key={index}>
-                    <td>{deposit.wallet_id.user_id.firstName} {deposit.wallet_id.user_id.lastName}</td>
+                    <td>{deposit.wallet_id.user_id?.firstName} {deposit.wallet_id.user_id?.lastName}</td>
                     <td>{formatDateTime(deposit.createdAt)}</td>
                     <td>{deposit.payCode}</td>
                     <td>
@@ -199,20 +199,20 @@ const ViewDepositHistory = () => {
                   <h4>Thông tin giao dịch</h4>
                   <p>Ngày giao dịch: {formatDateTime(selectedDeposit.createdAt)}</p>
                   <p>Mã giao dịch: {selectedDeposit.payCode}</p>
-                  <p>Phương thức: {selectedDeposit.payCode && selectedDeposit.payCode.toLowerCase().startsWith("pay") ? "PayOS" : "Momo"}</p>
-                  <p>Số tiền: {selectedDeposit.amount.toLocaleString()} VNĐ</p>
+                  <p>Phương thức: {selectedDeposit?.payCode && selectedDeposit.payCode?.toLowerCase().startsWith("pay") ? "PayOS" : "Momo"}</p>
+                  <p>Số tiền: {selectedDeposit.amount?.toLocaleString()} VNĐ</p>
                   <p>Trạng thái: {selectedDeposit.status}</p>
                 </div>
                 <div className="deposit-history-details-section">
                   <h4>Thông tin khách hàng</h4>
-                  <p>Tên: {selectedDeposit.wallet_id.user_id.firstName} {selectedDeposit.wallet_id.user_id.lastName}</p>
-                  <p>Email: {selectedDeposit.wallet_id.user_id.email}</p>
-                  <p>Số điện thoại: {selectedDeposit.wallet_id.user_id.phone}</p>
+                  <p>Tên: {selectedDeposit.wallet_id.user_id?.firstName} {selectedDeposit.wallet_id.user_id?.lastName}</p>
+                  <p>Email: {selectedDeposit.wallet_id.user_id?.email}</p>
+                  <p>Số điện thoại: {selectedDeposit.wallet_id.user_id?.phone}</p>
                   <p>
-                    Vai trò: {selectedDeposit.wallet_id.user_id.roles && selectedDeposit.wallet_id.user_id.roles.length > 0 &&
-                      selectedDeposit.wallet_id.user_id.roles[0].type === "repairman" ? "Thợ" : "Khách hàng"}
+                    Vai trò: {selectedDeposit.wallet_id.user_id?.roles && selectedDeposit.wallet_id.user_id?.roles.length > 0 &&
+                      selectedDeposit.wallet_id.user_id?.roles[0].type === "repairman" ? "Thợ" : "Khách hàng"}
                   </p>
-                  <p>Địa chỉ: {selectedDeposit.wallet_id.user_id.address}</p>
+                  <p>Địa chỉ: {selectedDeposit.wallet_id.user_id?.address}</p>
                 </div>
               </div>
               <button

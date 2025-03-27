@@ -7,7 +7,6 @@ import Login from "./pages/users/Login.js";
 import MasterLayoutUser from "./pages/users/MasterLayoutUser/MasterLayoutUser.js";
 import PersonalInformation from "../src/pages/users/PersonalInformation/PersonalInformation.js";
 import ChangePassword from "../src/pages/users/ChangePassword/ChangePassword.js";
-// import BookingHistory from "../src/pages/users/BookingHistory/BookingHistory.js";
 import UpgradeRepairman from "../src/pages/users/UpgradeRepairman/UpgradeRepairman.js";
 import Wallet from "./pages/users/Payment/Wallet/Wallet.js";
 import DepositHistory from "./pages/users/Payment/DepositHistory/DepositHistory.js";
@@ -33,6 +32,8 @@ import Dashboard from "./pages/admin/Dashboard/Dashboard.jsx";
 import ViewRequests from "./pages/users/ViewRequests/ViewRequests.js";
 import DetailRequest from "./pages/users/DetailRequest/DetailRequest.js";
 import FindRepairman from "./pages/users/FindRepairman/FindRepairman.jsx";
+import ManagePracticeSertificates from "./pages/admin/ManagePracticeSertificates/ManagePracticeSertificates.jsx";
+
 
 const UserROUTERS = () => {
     const routers = [
@@ -153,7 +154,7 @@ const UserROUTERS = () => {
         },
         {
             path: ROUTERS.ADMIN.MANAGE_PRACTICE_SERTIFICATES,
-            // component: <ManagePracticeSertificates />,
+            component: <ManagePracticeSertificates />,
             layout: MasterLayoutAdmin,
         },
 

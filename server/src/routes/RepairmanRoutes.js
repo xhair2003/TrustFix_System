@@ -4,6 +4,7 @@ const AuthMiddleware = require("../middlewares/authMiddleware");
 const RepairmanController = require("../controllers/RepairmanController");
 const upload = require("../middlewares/upload_IMG");
 
+const multer = require("multer");
 // Get type of ServiceIndustry table
 router.get("/get-type-service-industry", AuthMiddleware.verifyToken, RepairmanController.getTypeServiceIndustry);
 
@@ -24,5 +25,10 @@ router.get("/process-monthly-fee", AuthMiddleware.verifyRepairman, RepairmanCont
 
 router.post("/deal-price/:requestId", AuthMiddleware.verifyRepairman, RepairmanController.dealPrice);
 router.get("/viewRequest", AuthMiddleware.verifyRepairman, RepairmanController.viewRequest);
+//
+router.post("/buy-vip-package", AuthMiddleware.verifyRepairman, RepairmanController.registerVipPackage);
 
+
+//add 2nd certificate
+router.post("/add-second-certificate", AuthMiddleware.verifyRepairman, upload.array("img2ndCertificate", 5), RepairmanController.addSecondCertificate);
 module.exports = router;
