@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('./processors/monthlyFeeProcessor');
 const express = require('express');
 const cors = require('cors');
 const { createServer } = require('http');
