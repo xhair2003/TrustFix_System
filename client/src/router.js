@@ -33,7 +33,7 @@ import ViewRequests from "./pages/users/ViewRequests/ViewRequests.js";
 import DetailRequest from "./pages/users/DetailRequest/DetailRequest.js";
 import FindRepairman from "./pages/users/FindRepairman/FindRepairman.jsx";
 import OrderDetail from "./pages/users/OrderDetail/OderDetail.js";
-import ManagePracticeSertificates from "./pages/admin/ManagePracticeSertificates/ManagePracticeSertificates.jsx";
+import ManagePracticeCertificates from "./pages/admin/ManagePracticeSertificates/ManagePracticeSertificates.jsx";
 import RepairmanOrderDetail from "./pages/users/RepairmanOrderDetail/RepairmanOrderDetail.js";
 
 const UserROUTERS = () => {
@@ -155,7 +155,7 @@ const UserROUTERS = () => {
         },
         {
             path: ROUTERS.ADMIN.MANAGE_PRACTICE_SERTIFICATES,
-            component: <ManagePracticeSertificates />,
+            component: <ManagePracticeCertificates />,
             layout: MasterLayoutAdmin,
         },
 

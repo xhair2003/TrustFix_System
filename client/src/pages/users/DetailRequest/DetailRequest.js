@@ -1,22 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { dealPrice, resetError } from "../../../store/actions/userActions";
 import Loading from "../../../component/Loading/Loading";
 import Swal from "sweetalert2";
 import "./DetailRequest.css";
 
-const DetailRequest = () => {
-    const navigate = useNavigate();
-    const { requestId } = useParams();
-    const location = useLocation(); // Lấy dữ liệu từ state của navigate
+const DetailRequest = ({ request, onClose }) => {
     const dispatch = useDispatch();
     const { loading, errorViewRequest, errorDealPrice, successDealPrice } = useSelector((state) => state.user);
     const [dealPriceValue, setDealPriceValue] = useState("");
-    const [isCancelHovered, setIsCancelHovered] = useState(false);
-
-    // Lấy dữ liệu request từ state của navigate
-    const request = location.state?.requestData;
 
     useEffect(() => {
         if (errorViewRequest) {
@@ -48,8 +40,9 @@ const DetailRequest = () => {
                 showConfirmButton: false,
             });
             dispatch(resetError());
+            onClose(); // Đóng modal khi thành công
         }
-    }, [errorDealPrice, successDealPrice, errorViewRequest, dispatch]);
+    }, [errorDealPrice, successDealPrice, errorViewRequest, dispatch, onClose]);
 
     const shortenAddress = (address) => {
         const parts = address.split(", ");
@@ -59,26 +52,25 @@ const DetailRequest = () => {
     const handleDealSubmit = () => {
         const dealData = {
             deal_price: dealPriceValue,
-            isDeal: "true", // Gửi isDeal là true khi xác nhận deal
+            isDeal: "true",
         };
         dispatch(dealPrice(request.parentRequest, dealData));
     };
 
     const handleCancel = () => {
         const dealData = {
-            isDeal: "false", // Gửi isDeal là false khi hủy deal
+            isDeal: "false",
         };
-        setDealPriceValue('');
+        setDealPriceValue("");
         dispatch(dealPrice(request.parentRequest, dealData));
-        navigate(-1); // Quay lại trang trước trong history
+        onClose(); // Đóng modal
     };
 
     if (loading) return <Loading />;
-    if (!request || request._id !== requestId) return <p>Không tìm thấy đơn hàng.</p>;
 
     return (
-        <div className="request-detail-wrapper">
-            <div className="request-detail-container animate-fade-in">
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="request-detail-container" onClick={(e) => e.stopPropagation()}>
                 <h2 className="request-title">Chi tiết đơn sửa chữa #{request._id.slice(-6)}</h2>
 
                 <section className="request-section">
@@ -102,7 +94,7 @@ const DetailRequest = () => {
                                     key={index}
                                     src={img}
                                     alt={`Ảnh ${index}`}
-                                    className="request-image animate-image-load"
+                                    className="request-image"
                                 />
                             ))
                         ) : (
@@ -115,8 +107,8 @@ const DetailRequest = () => {
                     <h3>Deal giá</h3>
                     <div className="deal-info">
                         <p>
-                            <strong>Khoảng giá đề xuất:</strong>
-                            {" "} {request.minPrice?.toLocaleString() || "N/A"} -{" "}
+                            <strong>Khoảng giá đề xuất:</strong>{" "}
+                            {request.minPrice?.toLocaleString() || "N/A"} -{" "}
                             {request.maxPrice?.toLocaleString() || "N/A"} VNĐ
                         </p>
                         <div className="deal-input-group">
@@ -125,28 +117,13 @@ const DetailRequest = () => {
                                 value={dealPriceValue}
                                 onChange={(e) => setDealPriceValue(e.target.value)}
                                 placeholder="Nhập giá deal (VND)"
-                                className="deal-input animate-input-focus"
+                                className="deal-input"
                             />
                             <div className="deal-buttons">
-                                <button onClick={handleDealSubmit} className="confirm-button animate-button">
+                                <button onClick={handleDealSubmit} className="confirm-button">
                                     Xác nhận
                                 </button>
-                                <button
-                                    onClick={handleCancel}
-                                    style={{
-                                        padding: "10px 20px",
-                                        fontSize: "1rem",
-                                        border: "none",
-                                        borderRadius: "6px",
-                                        cursor: "pointer",
-                                        transition: "background-color 0.3s ease, transform 0.2s ease",
-                                        backgroundColor: isCancelHovered ? "#c82333" : "#dc3545", // Hover: #c82333, normal: #dc3545
-                                        color: "white",
-                                        transform: isCancelHovered ? "translateY(-2px)" : "none", // Hover: nâng lên 2px
-                                    }}
-                                    onMouseEnter={() => setIsCancelHovered(true)}
-                                    onMouseLeave={() => setIsCancelHovered(false)}
-                                >
+                                <button onClick={handleCancel} className="cancel-button">
                                     Hủy bỏ
                                 </button>
                             </div>
@@ -159,5 +136,3 @@ const DetailRequest = () => {
 };
 
 export default DetailRequest;
-
-
