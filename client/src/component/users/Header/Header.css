@@ -157,6 +157,14 @@
   gap: 8px;
 }
 
+.switch-wrapper input:checked + .slider {
+  background-color: #10b981; /* Green for "Làm" */
+}
+
+.switch-wrapper input:not(:checked) + .slider {
+  background-color: #ef4444; /* Red for "Nghỉ" */
+}
+
 .switch {
   position: relative;
   display: inline-block;
@@ -202,7 +210,13 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
-.switch-label {
+/* .switch-label {
   font-size: 14px;
   color: #333;
+} */
+
+.switch-label {
+  font-weight: 500;
+  margin-left: 0.5rem;
+  color: #6b7280;
 }

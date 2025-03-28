@@ -429,6 +429,7 @@ export const toggleStatusRepairman = () => async (dispatch, getState) => {
                 type: "TOGGLE_STATUS_REPAIRMAN_SUCCESS",
                 payload: response.data.DT, // Updated status request data
             });
+            dispatch(getStatusRepairman());
         } else {
             dispatch({
                 type: 'TOGGLE_STATUS_REPAIRMAN_FAIL',

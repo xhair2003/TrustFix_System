@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import logo from "../../../assets/Images/logo.png";
 import { FaLevelUpAlt, FaWrench, FaBell, FaUser, FaLock, FaHistory, FaExclamationCircle, FaSignOutAlt, FaWallet } from 'react-icons/fa';
-import { viewRequest, toggleStatusRepairman, resetError, resetSuccess } from '../../../store/actions/userActions'; // Thêm toggleStatusRepairman, resetError, resetSuccess
+import { viewRequest, getStatusRepairman, toggleStatusRepairman, resetError } from '../../../store/actions/userActions';
 import { logout } from '../../../store/actions/authActions';
 import './Header.css';
 import Loading from '../../../component/Loading/Loading';
@@ -13,29 +13,75 @@ const Header = () => {
     const [activeIndex, setActiveIndex] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-    const [isActive, setIsActive] = useState(true); // Trạng thái hoạt động của thợ
+    const [isActive, setIsActive] = useState(false); // Initialize as false until status is fetched
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { request, loading, status, errorToggleStatus } = useSelector(state => state.user); // Lấy thêm loading, status, errorToggleStatus từ Redux
+
+    // States from Redux
+    const { request, loading, status, errorGetStatus, errorToggleStatus } = useSelector(state => state.user);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
 
     const isAuthenticated = useSelector(state => state.auth.isAuthenticated) || localStorage.getItem('isAuthenticated');
     const role = useSelector(state => state.auth.role) || localStorage.getItem('role');
 
-    // Khởi tạo trạng thái ban đầu của switch dựa trên status từ Redux
+    // Fetch repairman status and requests on component mount
     useEffect(() => {
-        if (status !== null) {
-            setIsActive(status === 'active'); // Giả sử status trả về là 'active' hoặc 'inactive'
+        if (role === "repairman") {
+            dispatch(getStatusRepairman()); // Fetch initial status
+            dispatch(viewRequest()); // Fetch requests
+        }
+    }, [dispatch, role]);
+
+    // Update isActive based on fetched status
+    useEffect(() => {
+        if (status !== null && status !== undefined) {
+            setIsActive(status === 'Active'); // Compare with 'Active' (case-sensitive)
         }
     }, [status]);
 
+    // Handle new request notifications
     useEffect(() => {
         if (request && !notifications.some(n => n._id === request._id)) {
             setNotifications(prev => [...prev, { ...request, isRead: false }]);
             setUnreadCount(prev => prev + 1);
         }
     }, [request, notifications]);
+
+    // Handle errorGetStatus with Swal
+    useEffect(() => {
+        if (errorGetStatus) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi",
+                text: errorGetStatus,
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                showCloseButton: false,
+            }).then(() => {
+                dispatch(resetError()); // Reset error state
+            });
+        }
+    }, [errorGetStatus, dispatch]);
+
+    // Handle errorToggleStatus with Swal
+    useEffect(() => {
+        if (errorToggleStatus) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi",
+                text: errorToggleStatus,
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                showCloseButton: false,
+            }).then(() => {
+                dispatch(resetError()); // Reset error state
+                setIsActive(status === 'Active'); // Revert switch state on error
+            });
+        }
+    }, [errorToggleStatus, dispatch, status]);
 
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
@@ -63,32 +109,11 @@ const Header = () => {
         }
     };
 
-    // Xử lý thay đổi trạng thái hoạt động
+    // Handle toggle status change
     const handleSwitchChange = () => {
-        setIsActive(!isActive);
-        dispatch(toggleStatusRepairman()).then(() => {
-            // Kiểm tra kết quả sau khi dispatch hoàn tất
-            if (status) {
-                Swal.fire({
-                    title: "Thành công",
-                    text: `Trạng thái đã được cập nhật thành ${isActive ? 'Nghỉ' : 'Làm'}`,
-                    icon: "success",
-                    timer: 3000,
-                    showConfirmButton: false,
-                });
-                dispatch(resetSuccess());
-            } else if (errorToggleStatus) {
-                Swal.fire({
-                    title: "Lỗi",
-                    text: errorToggleStatus,
-                    icon: "error",
-                    timer: 3000,
-                    showConfirmButton: false,
-                });
-                setIsActive(status === 'active'); // Khôi phục trạng thái cũ nếu lỗi
-                dispatch(resetError());
-            }
-        });
+        const newStatus = !isActive;
+        setIsActive(newStatus); // Optimistically update UI
+        dispatch(toggleStatusRepairman());
     };
 
     const menuItems = [
@@ -133,15 +158,15 @@ const Header = () => {
 
                 {isAuthenticated === true || isAuthenticated === 'true' ? (
                     <div className="header-buttons">
-                        {/* Thêm Switch cho thợ - Moved to the left of the notification */}
+                        {/* Switch for repairman */}
                         {role === "repairman" && (
                             <div className="switch-wrapper">
                                 <label className="switch">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={isActive} 
-                                        onChange={handleSwitchChange} 
-                                        disabled={loading} // Vô hiệu hóa khi đang loading
+                                    <input
+                                        type="checkbox"
+                                        checked={isActive}
+                                        onChange={handleSwitchChange}
+                                        disabled={loading} // Disable during loading
                                     />
                                     <span className="slider"></span>
                                 </label>
@@ -161,9 +186,9 @@ const Header = () => {
                                     {notifications.length > 0 ? (
                                         notifications.map((notif) => (
                                             <div key={notif._id} className="notification-item">
-                                                <p>Có đơn hàng mới: {notif.description}</p>
-                                                <p>Khu vực: {shortenAddress(notif.address)}</p>
-                                                <p>Ngày: {formatDateTime(notif.createdAt)}</p>
+                                                <p><strong>Có đơn hàng mới:</strong> {notif.description}</p>
+                                                <p><strong>Khu vực:</strong> {shortenAddress(notif.address)}</p>
+                                                <p><strong>Ngày:</strong> {formatDateTime(notif.createdAt)}</p>
                                                 <a
                                                     onClick={() => {
                                                         setIsNotificationOpen(false);
@@ -171,6 +196,7 @@ const Header = () => {
                                                             state: { requestData: notif },
                                                         });
                                                     }}
+                                                    style={{ cursor: 'pointer' }}
                                                 >
                                                     Xem chi tiết ngay!
                                                 </a>
@@ -212,7 +238,7 @@ const Header = () => {
                                         <FaLevelUpAlt className="dropdown-icon" /> Nâng cấp lên thợ
                                     </div>
                                 }
-                                <div className="dropdown-item" onClick={handleLogout} >
+                                <div className="dropdown-item" onClick={handleLogout}>
                                     <FaSignOutAlt className="dropdown-icon" /> Đăng xuất
                                 </div>
                             </div>
@@ -225,8 +251,8 @@ const Header = () => {
                     </div>
                 )}
             </div>
-            {loading && <Loading />} {/* Hiển thị loading khi đang gọi API */}
-        </div >
+            {loading && <Loading />}
+        </div>
     );
 };
 
