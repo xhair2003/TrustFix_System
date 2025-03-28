@@ -24,6 +24,8 @@ const PersonalInfomation = () => {
         icon: "info",
         timer: 5000,
         showConfirmButton: false,
+        showCloseButton: false,
+        timerProgressBar: true,
       });
       dispatch(resetSuccess());
       dispatch(getUserInfo()); // Cập nhật lại userInfo sau khi thành công
@@ -35,6 +37,8 @@ const PersonalInfomation = () => {
         icon: "error",
         timer: 5000,
         showConfirmButton: false,
+        showCloseButton: false,
+        timerProgressBar: true,
       });
       dispatch(resetError());
     }

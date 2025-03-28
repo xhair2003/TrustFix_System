@@ -46,6 +46,9 @@ const initialState = {
     successRequest: null,
     errorRequest: null,
     customerRequest: null,
+
+    successConfirmRequest: null,
+    errorConfirmRequest: null,
 };
 
 const userReducer = (state = initialState, action) => {
@@ -478,6 +481,27 @@ const userReducer = (state = initialState, action) => {
             };
 
 
+        case "CONFIRM_REQUEST_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "CONFIRM_REQUEST_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                successConfirmRequest: action.payload,
+                errorConfirmRequest: null
+            };
+        case "CONFIRM_REQUEST_FAIL":
+            return {
+                ...state,
+                loading: false,
+                successConfirmRequest: null,
+                errorConfirmRequest: action.payload
+            };
+
+
 
         case "RESET_ERROR":
             return {
@@ -507,6 +531,8 @@ const userReducer = (state = initialState, action) => {
                 errorRating: null,
 
                 errorRequest: null,
+
+                errorConfirmRequest: null
             };
         case "RESET_SUCCESS":
             return {
@@ -530,6 +556,8 @@ const userReducer = (state = initialState, action) => {
                 successRating: null,
 
                 successRequest: null,
+
+                successConfirmRequest: null,
             };
         default:
             return state;

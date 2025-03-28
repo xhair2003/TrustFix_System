@@ -922,3 +922,46 @@ export const viewCustomerRequest = () => async (dispatch, getState) => {
         });
     }
 };
+
+// API khách hàng xác nhận đã sửa đơn hàng thành công
+export const confirmRequest = (confirmData) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "CONFIRM_REQUEST_REQUEST" });
+
+        const {
+            userLogin: { userInfo }
+        } = getState();
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${userInfo.token}`
+            }
+        };
+
+        const { data } = await axios.post(
+            'http://localhost:8080/api/customer/confirmRequest',
+            { confirm: confirmData },
+            config
+        );
+
+        if (data.EC === 1) {
+            dispatch({
+                type: 'CONFIRM_REQUEST_SUCCESS',
+                payload: data.EM,
+            });
+        } else {
+            dispatch({
+                type: 'CONFIRM_REQUEST_FAIL',
+                payload: data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "CONFIRM_REQUEST_FAIL",
+            payload: error.response && error.response.data.EM
+                ? error.response.data.EM
+                : error.message
+        });
+    }
+};
