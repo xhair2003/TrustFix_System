@@ -14,6 +14,8 @@ const {
 const cloudinary = require("../../config/cloudinary");
 const fetch = require("node-fetch");
 const user = require("../models/user");
+const { sendEmail } = require("../constants");
+
 
 const getBalance = async (req, res) => {
   try {
@@ -1089,7 +1091,9 @@ const assignedRepairman = async (req, res) => {
       // Create transaction records for both customer and repairman
       const customerTransaction = new Transaction({
         wallet_id: customerWallet._id,
+        payCode: `PAY-SEV-${Math.floor(Math.random() * 900000) + 100000}`,
         transactionType: 'payment',
+        status: 1,
         amount: dealPriceValue,
         content: `Thanh toán cho yêu cầu sửa chữa mã số ${requestId} cho thợ sửa chữa ${repairmanInfor.firstName} ${repairmanInfor.lastName}`,
         request_id: requestId,
@@ -1190,39 +1194,75 @@ const confirmRequest = async (req, res) => {
   try {
     const userId = req.user.id;
     const {confirm }= req.body;
-    if(!confirm){
-      return res.status(400).json({
-        EC: 0,
-        EM: "Vui lòng cung cấp xác nhận",
-      });
-    }
+    // if(!confirm){
+    //   return res.status(400).json({
+    //     EC: 0,
+    //     EM: "Vui lòng cung cấp xác nhận",
+    //   });
+    // }
     const request = await Request.findOne({
       user_id: userId,
       status: "Proceed with repair",
     }).sort({createdAt: -1})
-      .populate('repaiman_id')
+      .populate({
+        path: 'repairman_id',
+        
+      })
     if(!request){
       res.status(404).json({
         EC: 0,
-        EM: "Không thấy đơn hàng"
+        EM: "Không thấy đơn hàng",
       })
     }
+    const walletRepairman = await Wallet.findOne({user_id: request.repairman_id.user_id});
+    if(!walletRepairman){
+      res.status(404).json({
+        EC: 0,
+        EM: "Không thấy ví của thợ",
+      })
+    }
+    const duePrice = await DuePrice.findOne({request_id: request._id});
+    const price = await Price.findOne({duePrice_id: duePrice._id});
 
-    if(confirm === "Cancelled"){
+    if(confirm === "Completed" || (new Date() - request.updatedAt) / (1000 * 60 * 60) > 12){
+      
 
-      request.status = "Cancelled";
-      request.repairman_id.status = "Active";
-      await request.save();
+      // Credit to repairman wallet
+      walletRepairman.balance += (price.priceToPay * 0.85);//ăn hoa hồng ở đây
+      await walletRepairman.save();
 
+      const repairmanTransaction = new Transaction({
+        wallet_id: walletRepairman._id,
+        payCode: `REC-SEV-${Math.floor(Math.random() * 900000) + 100000}`,
+        transactionType: 'deposite',
+        status: 1,
+        amount: walletRepairman.balance,
+        content: `Nhận thanh toán cho yêu cầu sửa chữa mã số ${request._id} từ khách hàng ${req.user.firstName} ${req.user.lastName}`,
+        request_id: request._id,
+      });
 
-    }else if(confirm === "Completed" || (new Date() - request.updatedAt) / (1000 * 60 * 60) > 12){
+      // Gửi email xác nhận cho thợ
+      await sendEmail(request.repairman_id.email, "Đơn hàng đã hoàn thành",
+        `<p>Chào ${request.repairman_id.firstName} ${request.repairman_id.lastName},</p>
+            <p>Đơn hàng ${request._id} đã được xác nhận hoàn thành</strong>.</p>
+            <p>Số tiền ${price.priceToPay*0.85} đã được chuyển về ví của bạn</p>`
+      );
+      await repairmanTransaction.save();
       request.status = "Completed";
       request.repairman_id.status = "Active";
       await request.save();
+      res.status(201).json({
+        EC: 0,
+        EM: "Cảm ơn bạn đã tin tưởng sử dụng dịch vụ của chúng tôi, đơn hàng của bạn đã được xác nhận thành công",
 
+      })
     }
   } catch (error) {
-    
+    console.error("Error:", error);
+    res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+    });
   }
 }
 module.exports = {
@@ -1244,5 +1284,6 @@ module.exports = {
   findRepairman,
   viewRepairmanDeal,
   assignedRepairman,
-  getRequestCompleted
+  getRequestCompleted,
+  confirmRequest
 };
