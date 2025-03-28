@@ -1,7 +1,7 @@
 const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
 const nodemailer = require('nodemailer'); // Import nodemailer để gửi email
-const { sendEmail } = require('../constants/index');
+const { sendEmail } = require("../constants");
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -629,11 +629,6 @@ const replyToComplaint = async (req, res) => {
 // };
 
 // // View history payment with transactionType = payment
-
-
-
-
-
 const viewHistoryPayment = async (req, res) => {
     try {
         const transactionType = "payment";
@@ -707,7 +702,6 @@ const viewHistoryPayment = async (req, res) => {
 // }
 
 //View all history payment have limit, page, search
-
 const viewAllTransactions = async (req, res) => {
     try {
         const { page = 1, limit = 10, search = "" } = req.query;
