@@ -1,6 +1,7 @@
 const { User, Role, RepairmanUpgradeRequest, ServiceIndustry, Service, Vip, DuePrice, Price, Rating, Request, Transaction, Wallet } = require("../models");
 const cloudinary = require("../../config/cloudinary");
 const { MONTHLY_FEE, sendEmail } = require("../constants");
+const { findOne } = require("../models/RepairmanUpgradeRequest");
 
 // lấy type của ServiceIndustry
 // API GET để lấy tất cả các loại dịch vụ (type)
@@ -761,7 +762,31 @@ const addSecondCertificate = async (req, res) => {
     });
   }
 };
+const viewCustomerRequest = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const repairman = await RepairmanUpgradeRequest.findOne({ user_id: userId });
 
+    const request = await Request.findOne({
+      repairman_id: repairman._id,
+      status: "Proceed with repair",
+    })
+      .populate('user_id', 'firstName lastName email phone imgAvt')
+      .sort({ createdAt: -1 })
+    res.status(200).json({
+      EC: 1,
+      EM: "Hiển thị thông tin khách hàng và đơn hàng thành công",
+      DT: {
+        request: request
+      }
+    })
+  } catch (error) {
+    res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+    });
+  }
+}
 
 module.exports = {
   requestRepairmanUpgrade,
@@ -774,5 +799,5 @@ module.exports = {
   viewRequest,
   registerVipPackage,
   addSecondCertificate,
-
+  viewCustomerRequest
 };

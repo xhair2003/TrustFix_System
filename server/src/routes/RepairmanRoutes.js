@@ -5,6 +5,7 @@ const RepairmanController = require("../controllers/RepairmanController");
 const upload = require("../middlewares/upload_IMG");
 
 const multer = require("multer");
+const { route } = require("./CustomerRoutes");
 // Get type of ServiceIndustry table
 router.get("/get-type-service-industry", AuthMiddleware.verifyToken, RepairmanController.getTypeServiceIndustry);
 
@@ -25,6 +26,7 @@ router.get("/process-monthly-fee", AuthMiddleware.verifyRepairman, RepairmanCont
 
 router.post("/deal-price/:requestId", AuthMiddleware.verifyRepairman, RepairmanController.dealPrice);
 router.get("/viewRequest", AuthMiddleware.verifyRepairman, RepairmanController.viewRequest);
+router.get("/viewCustomerRequest", AuthMiddleware.verifyRepairman, RepairmanController.viewCustomerRequest);
 //
 router.post("/buy-vip-package", AuthMiddleware.verifyRepairman, RepairmanController.registerVipPackage);
 

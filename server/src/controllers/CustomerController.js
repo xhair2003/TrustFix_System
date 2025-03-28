@@ -888,8 +888,10 @@ const viewRepairmanDeal = async (req, res) => {
     const repairmanDeals = [];
 
     for (const request of requests) {
-      const repairman = await RepairmanUpgradeRequest.findById(request.repairman_id);
-      const repairmanInfor = await User.findById(repairman.user_id).select('firstName lastName email phone imgAvt address description');
+      const repairmanInfor = await RepairmanUpgradeRequest.findById(request.repairman_id)
+        .select('_id')
+        .populate('user_id', 'firstName lastName imgAvt address description')
+      //const repairmanInfor = await User.findById(repairman.user_id).select('firstName lastName email phone imgAvt address description repairman._id');
 
       // Lấy certificationImage từ RepairmanUpgradeRequest dựa trên user_id
       const repairmanUpgrade = await RepairmanUpgradeRequest.findOne({ user_id: repairmanInfor._id });
@@ -1001,7 +1003,7 @@ const assignedRepairman = async (req, res) => {
     if (customerWallet.balance < dealPriceValue) {
       return res.status(400).json({
         EC: 0,
-        EM: "Số dư trong ví không đủ để thanh toán!",
+        EM: "Số dư trong ví không đủ để thanh toán, vui lòng nạp thêm tiền vào ví!",
       });
     }
 
@@ -1126,7 +1128,8 @@ const assignedRepairman = async (req, res) => {
         EM: "Thanh toán thành công và yêu cầu đã được giao cho thợ sửa chữa!",
         DT: {
           customerBalance: customerWallet.balance,
-
+          request: requestParent,
+          repairman: repairmanInfor
         },
       });
 
@@ -1183,7 +1186,45 @@ const getRequestCompleted = async (req, res) => {
     });
   }
 }
+const confirmRequest = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {confirm }= req.body;
+    if(!confirm){
+      return res.status(400).json({
+        EC: 0,
+        EM: "Vui lòng cung cấp xác nhận",
+      });
+    }
+    const request = await Request.findOne({
+      user_id: userId,
+      status: "Proceed with repair",
+    }).sort({createdAt: -1})
+      .populate('repaiman_id')
+    if(!request){
+      res.status(404).json({
+        EC: 0,
+        EM: "Không thấy đơn hàng"
+      })
+    }
 
+    if(confirm === "Cancelled"){
+
+      request.status = "Cancelled";
+      request.repairman_id.status = "Active";
+      await request.save();
+
+
+    }else if(confirm === "Completed" || (new Date() - request.updatedAt) / (1000 * 60 * 60) > 12){
+      request.status = "Completed";
+      request.repairman_id.status = "Active";
+      await request.save();
+
+    }
+  } catch (error) {
+    
+  }
+}
 module.exports = {
   getBalance,
   getAllHistoryPayment,
