@@ -124,13 +124,14 @@
 
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addRating, resetRating } from "../../../../store/actions/userActions";
+import { addRating, resetError, resetSuccess } from "../../../store/actions/userActions";
 import Swal from "sweetalert2";
 import "./RatingModal.css";
+import Loading from "../../Loading/Loading";
 
 const RatingModal = ({ isOpen, onClose, repairmanName, requestId }) => {
     const dispatch = useDispatch();
-    const { loadingRating, successRating, errorRating } = useSelector((state) => state.rating);
+    const { loading, successRating, errorRating } = useSelector((state) => state.rating);
 
     const [rating, setRating] = useState(0); // Chỉ giữ một giá trị sao tổng thể
     const [criteria, setCriteria] = useState([]); // Lưu các tiêu chí được chọn
@@ -157,7 +158,7 @@ const RatingModal = ({ isOpen, onClose, repairmanName, requestId }) => {
                 showConfirmButton: false,
                 showCloseButton: false,
             }).then(() => {
-                dispatch(resetRating()); // Reset rating state
+                dispatch(resetSuccess()); // Reset rating state
                 onClose(); // Close the modal
             });
         }
@@ -175,7 +176,7 @@ const RatingModal = ({ isOpen, onClose, repairmanName, requestId }) => {
                 showConfirmButton: false,
                 showCloseButton: false,
             }).then(() => {
-                dispatch(resetRating()); // Reset rating state
+                dispatch(resetError()); // Reset rating state
             });
         }
     }, [errorRating, dispatch]);
@@ -246,6 +247,8 @@ const RatingModal = ({ isOpen, onClose, repairmanName, requestId }) => {
 
     if (!isOpen) return null;
 
+    if (loading) return <Loading />;
+
     return (
         <div className="modal-overlay">
             <div className="modal-container">
@@ -254,7 +257,7 @@ const RatingModal = ({ isOpen, onClose, repairmanName, requestId }) => {
                     <button
                         className="modal-close-btn"
                         onClick={onClose}
-                        disabled={isSubmitting || loadingRating}
+                        disabled={isSubmitting || loading}
                     >
                         ×
                     </button>
@@ -293,7 +296,7 @@ const RatingModal = ({ isOpen, onClose, repairmanName, requestId }) => {
                                         type="checkbox"
                                         checked={criteria.includes(criterion)}
                                         onChange={() => handleCriteriaChange(criterion)}
-                                        disabled={isSubmitting || loadingRating}
+                                        disabled={isSubmitting || loading}
                                     />
                                     <span>{criterion}</span>
                                 </label>
@@ -309,7 +312,7 @@ const RatingModal = ({ isOpen, onClose, repairmanName, requestId }) => {
                             onChange={(e) => setComment(e.target.value)}
                             placeholder="Nhập nhận xét của bạn về thợ sửa chữa..."
                             className="comment-input"
-                            disabled={isSubmitting || loadingRating}
+                            disabled={isSubmitting || loading}
                         />
                     </div>
                 </div>
@@ -318,9 +321,9 @@ const RatingModal = ({ isOpen, onClose, repairmanName, requestId }) => {
                     <button
                         className="submit-btn"
                         onClick={handleSubmit}
-                        disabled={isSubmitting || loadingRating}
+                        disabled={isSubmitting || loading}
                     >
-                        {isSubmitting || loadingRating ? "Đang gửi..." : "Gửi đánh giá"}
+                        {isSubmitting || loading ? "Đang gửi..." : "Gửi đánh giá"}
                     </button>
                 </div>
             </div>

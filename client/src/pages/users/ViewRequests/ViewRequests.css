@@ -1,37 +1,106 @@
 .repairman-requests-container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .request-card {
-    border: 1px solid #ddd;
-    padding: 15px;
-    border-radius: 5px;
-    background-color: white;
-    margin-bottom: 10px;
-  }
-  
-  .view-detail-button {
-    padding: 8px 15px;
-    background-color: #3961fb;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .view-detail-button:hover {
-    background-color: #2f4fc2;
-  }
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #f4f6f9;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
 
-  .request-card p {
-    margin: 5px 0;
-  }
-  
-  .request-card strong {
-    color: #1a202c;
-  }
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.request-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.request-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.request-card.active-request {
+  border-left: 4px solid #10b981;
+}
+
+.request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.request-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.request-status {
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  background-color: #e5e7eb;
+  color: #6b7280;
+}
+
+.request-status.active {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.request-card p {
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.request-card strong {
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.view-detail-button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  margin-top: 1rem;
+}
+
+.view-detail-button:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+.no-requests {
+  text-align: center;
+  font-size: 1rem;
+  color: #6b7280;
+  margin-top: 2rem;
+}

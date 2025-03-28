@@ -42,6 +42,10 @@ const initialState = {
 
     successRating: null,
     errorRating: null,
+
+    successRequest: null,
+    errorRequest: null,
+    customerRequest: null,
 };
 
 const userReducer = (state = initialState, action) => {
@@ -454,6 +458,27 @@ const userReducer = (state = initialState, action) => {
             };
 
 
+        case "VIEW_CUSTOMER_REQUEST_REQUEST":
+            return { ...state, loading: true, };
+        case "VIEW_CUSTOMER_REQUEST_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                customerRequest: action.payload,
+                successRequest: "Hiển thị thông tin khách hàng và đơn hàng thành công",
+                errorRequest: null,
+            };
+        case "VIEW_CUSTOMER_REQUEST_FAIL":
+            return {
+                ...state,
+                loading: false,
+                customerRequest: null,
+                successRequest: null,
+                errorRequest: action.payload,
+            };
+
+
+
         case "RESET_ERROR":
             return {
                 ...state,
@@ -480,6 +505,8 @@ const userReducer = (state = initialState, action) => {
                 errorMakePayment: null,
 
                 errorRating: null,
+
+                errorRequest: null,
             };
         case "RESET_SUCCESS":
             return {
@@ -501,6 +528,8 @@ const userReducer = (state = initialState, action) => {
                 successMakePayment: null,
 
                 successRating: null,
+
+                successRequest: null,
             };
         default:
             return state;

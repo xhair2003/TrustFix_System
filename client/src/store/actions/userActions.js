@@ -878,3 +878,46 @@ export const assignRepairman = (requestId, repairmanId) => async (dispatch, getS
         });
     }
 };
+
+
+// Action for viewing customer request
+export const viewCustomerRequest = () => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "VIEW_CUSTOMER_REQUEST_REQUEST" });
+
+        // Get token from state or localStorage
+        const token = getState().auth.token || localStorage.getItem('token');
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        };
+
+        const { data } = await axios.get(
+            `http://localhost:8080/api/repairman/viewCustomerRequest`,
+            config
+        );
+
+        if (data.EC === 1) {
+            dispatch({
+                type: "VIEW_CUSTOMER_REQUEST_SUCCESS",
+                payload: data.DT.request, // The request data including customer info
+            });
+        } else {
+            dispatch({
+                type: "VIEW_CUSTOMER_REQUEST_FAIL",
+                payload: data.EM || "Có lỗi xảy ra khi lấy thông tin đơn hàng",
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "VIEW_CUSTOMER_REQUEST_FAIL",
+            payload:
+                error.response && error.response.data.EM
+                    ? error.response.data.EM
+                    : 'Có lỗi xảy ra khi lấy thông tin đơn hàng',
+        });
+    }
+};

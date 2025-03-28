@@ -142,10 +142,10 @@ const MakePayment = () => {
                 showCloseButton: false,
             }).then(() => {
                 dispatch(resetSuccess()); // Reset success after displaying
-                navigate("/booking", { state: { repairman, paymentMethod: "wallet" } }); // Navigate after success
+                navigate(`"/order-detail/:${request.requestId}"`, { state: { repairman, request } }); // Navigate after success
             });
         }
-    }, [successMakePayment, dispatch, navigate, repairman]);
+    }, [successMakePayment, dispatch, navigate, repairman, request]);
 
     // Handle errorMakePayment with Swal
     useEffect(() => {

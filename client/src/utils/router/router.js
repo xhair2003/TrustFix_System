@@ -22,6 +22,7 @@ export const ROUTERS = {
         VIEW_HISTORY_PAYMENT: '/history-payment',
         MAKE_PAYMENT: '/make-payment/:requestId/:repairmanId',
         WALLET: '/wallet',
+        ORDER_DETAIL: '/order-detail/:requestId',
 
     },
 
@@ -34,6 +35,7 @@ export const ROUTERS = {
         PAY_MONTHLY_ACCOUNT_MAINTENANCE_FEES: '/pay-monthly-account-maintenance-fees',
         VIEW_REQUESTS: '/repairman/view-requests',
         DETAIL_REQUEST: '/repairman/detail-request/:requestId',
+        REPAIRMAN_ORDER_DETAIL: '/repairman/order-detail/:requestId',
     },
 
     ADMIN: {
