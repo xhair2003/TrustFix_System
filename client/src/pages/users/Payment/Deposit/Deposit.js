@@ -1,18 +1,94 @@
-import React, { useState } from "react";
-//import { useLocation } from 'react-router-dom';
-//import axios from "axios";
-//import { useSelector } from "react-redux";
-//import { Breadcrumb } from "../../../components";
+import React, { useState, useEffect } from "react";
+import { useLocation } from 'react-router-dom';
+import { useSelector, useDispatch } from "react-redux";
+import { paymentMOMO, paymentPayOS, resetMOMOPayment, resetPayOSPayment } from "../../../../store/actions/paymentActions";
+import Swal from "sweetalert2";
 import "./Deposit.css";
 
 const Deposit = () => {
-    //const location = useLocation();
-    //const { paymentMethod } = location.state || {}; // Lấy giá trị paymentMethod từ state
+    const dispatch = useDispatch();
+    const location = useLocation();
+    const { paymentMethod } = location.state || {}; // Lấy giá trị paymentMethod từ state (Momo hoặc PayOS)
+    console.log(paymentMethod);
+
+    const {
+        loadingMOMO, paymentMOMOUrl, successMOMOPayment, errorMOMOPayment,
+        loadingPayOS, paymentPayOSUrl, successPayOSPayment, errorPayOSPayment
+    } = useSelector((state) => state.payment);
 
     const [selectedAmount, setSelectedAmount] = useState(50000);
     const [customAmount, setCustomAmount] = useState("");
-    //const token = useSelector((state) => state.auth.token);
-    //const breadcrumbItems = [];
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    // Handle MoMo success
+    useEffect(() => {
+        if (successMOMOPayment && paymentMOMOUrl) {
+            Swal.fire({
+                icon: "success",
+                title: "Thành công",
+                text: successMOMOPayment,
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                showCloseButton: false,
+            }).then(() => {
+                dispatch(resetMOMOPayment()); // Reset MoMo state
+                window.location.href = paymentMOMOUrl; // Redirect to MoMo payment URL
+            });
+        }
+    }, [successMOMOPayment, paymentMOMOUrl, dispatch]);
+
+    // Handle MoMo error
+    useEffect(() => {
+        if (errorMOMOPayment) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi",
+                text: errorMOMOPayment,
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                showCloseButton: false,
+            }).then(() => {
+                dispatch(resetMOMOPayment()); // Reset MoMo state
+            });
+        }
+    }, [errorMOMOPayment, dispatch]);
+
+    // Handle PayOS success
+    useEffect(() => {
+        if (successPayOSPayment && paymentPayOSUrl) {
+            Swal.fire({
+                icon: "success",
+                title: "Thành công",
+                text: successPayOSPayment,
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                showCloseButton: false,
+            }).then(() => {
+                dispatch(resetPayOSPayment()); // Reset PayOS state
+                window.location.href = paymentPayOSUrl; // Redirect to PayOS payment URL
+            });
+        }
+    }, [successPayOSPayment, paymentPayOSUrl, dispatch]);
+
+    // Handle PayOS error
+    useEffect(() => {
+        if (errorPayOSPayment) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi",
+                text: errorPayOSPayment,
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                showCloseButton: false,
+            }).then(() => {
+                dispatch(resetPayOSPayment()); // Reset PayOS state
+            });
+        }
+    }, [errorPayOSPayment, dispatch]);
 
     const handleAmountChange = (event) => {
         const amount = Number(event.target.value);
@@ -43,32 +119,61 @@ const Deposit = () => {
         return null;
     };
 
-    // const handleSubmitPayment = async () => {
-    //     try {
-    //         const amount = customAmount || selectedAmount;
-    //         const response = await axios.post(
-    //             "http://localhost:5000/api/v1/user/payment",
-    //             { amount, paymentMethod },
-    //             {
-    //                 headers: {
-    //                     token: `${token}`,
-    //                 },
-    //             }
-    //         );
+    const handleSubmitPayment = async () => {
+        const amountToPay = Number(customAmount || selectedAmount);
 
-    //         if (response.status === 200) {
-    //             window.location.href = response.data.payUrl;
-    //         } else {
-    //             console.log("Error:", response.data.message);
-    //         }
-    //     } catch (error) {
-    //         console.error("Failed to create payment:", error);
-    //     }
-    // };
+        if (!amountToPay || amountToPay <= 0) {
+            Swal.fire({
+                icon: "warning",
+                title: "Cảnh báo",
+                text: "Vui lòng nhập số tiền hợp lệ để nạp!",
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                showCloseButton: false,
+            });
+            return;
+        }
+
+        if (!paymentMethod) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi",
+                text: "Phương thức thanh toán không được xác định!",
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                showCloseButton: false,
+            });
+            return;
+        }
+
+        setIsProcessing(true);
+        try {
+            if (paymentMethod === "MOMO") {
+                await dispatch(paymentMOMO(amountToPay));
+            } else if (paymentMethod === "PayOS") {
+                await dispatch(paymentPayOS(amountToPay));
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Lỗi",
+                    text: "Phương thức thanh toán không hợp lệ!",
+                    timer: 5000,
+                    timerProgressBar: true,
+                    showConfirmButton: false,
+                    showCloseButton: false,
+                });
+            }
+        } catch (error) {
+            console.error("Lỗi thanh toán:", error);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
 
     return (
         <div className="payment-container">
-            {/* <Breadcrumb items={breadcrumbItems} /> */}
             <div className="payment-content">
                 <h1 className="payment-title">Chọn số tiền cần nạp</h1>
 
@@ -82,6 +187,7 @@ const Deposit = () => {
                                 checked={selectedAmount === amount}
                                 onChange={handleAmountChange}
                                 className="amount-radio"
+                                disabled={isProcessing}
                             />
                             {amount.toLocaleString("vi-VN")} đ
                         </label>
@@ -96,14 +202,18 @@ const Deposit = () => {
                         value={customAmount}
                         onChange={handleCustomAmountChange}
                         className="custom-amount-input"
+                        disabled={isProcessing}
                     />
                     <span className="currency-label">vnd</span>
                 </div>
 
                 {renderAmountMessage()}
-                <button className="submit-button" >
-                    {/* onClick={handleSubmitPayment} */}
-                    Tiếp tục
+                <button
+                    className="submit-button"
+                    onClick={handleSubmitPayment}
+                    disabled={isProcessing || loadingMOMO || loadingPayOS}
+                >
+                    {isProcessing || loadingMOMO || loadingPayOS ? "Đang xử lý..." : "Tiếp tục"}
                 </button>
 
                 <div className="important-note">

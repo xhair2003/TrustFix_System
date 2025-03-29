@@ -14,6 +14,8 @@ const {
 const cloudinary = require("../../config/cloudinary");
 const fetch = require("node-fetch");
 const user = require("../models/user");
+const { sendEmail } = require("../constants");
+
 
 const getBalance = async (req, res) => {
   try {
@@ -888,8 +890,10 @@ const viewRepairmanDeal = async (req, res) => {
     const repairmanDeals = [];
 
     for (const request of requests) {
-      const repairman = await RepairmanUpgradeRequest.findById(request.repairman_id);
-      const repairmanInfor = await User.findById(repairman.user_id).select('firstName lastName email phone imgAvt address description');
+      const repairmanInfor = await RepairmanUpgradeRequest.findById(request.repairman_id)
+        .select('_id')
+        .populate('user_id', 'firstName lastName imgAvt address description')
+      //const repairmanInfor = await User.findById(repairman.user_id).select('firstName lastName email phone imgAvt address description repairman._id');
 
       // Lấy certificationImage từ RepairmanUpgradeRequest dựa trên user_id
       const repairmanUpgrade = await RepairmanUpgradeRequest.findOne({ user_id: repairmanInfor._id });
@@ -921,7 +925,7 @@ const viewRepairmanDeal = async (req, res) => {
       }
 
       repairmanDeals.push({
-        //request: request,
+        request: request,
         repairman: repairmanInfor,
         ratings: repairmanRatings,
         dealPrice: dealPriceInfo
@@ -1001,7 +1005,7 @@ const assignedRepairman = async (req, res) => {
     if (customerWallet.balance < dealPriceValue) {
       return res.status(400).json({
         EC: 0,
-        EM: "Số dư trong ví không đủ để thanh toán!",
+        EM: "Số dư trong ví không đủ để thanh toán, vui lòng nạp thêm tiền vào ví!",
       });
     }
 
@@ -1087,7 +1091,9 @@ const assignedRepairman = async (req, res) => {
       // Create transaction records for both customer and repairman
       const customerTransaction = new Transaction({
         wallet_id: customerWallet._id,
+        payCode: `PAY-SEV-${Math.floor(Math.random() * 900000) + 100000}`,
         transactionType: 'payment',
+        status: 1,
         amount: dealPriceValue,
         content: `Thanh toán cho yêu cầu sửa chữa mã số ${requestId} cho thợ sửa chữa ${repairmanInfor.firstName} ${repairmanInfor.lastName}`,
         request_id: requestId,
@@ -1126,7 +1132,8 @@ const assignedRepairman = async (req, res) => {
         EM: "Thanh toán thành công và yêu cầu đã được giao cho thợ sửa chữa!",
         DT: {
           customerBalance: customerWallet.balance,
-
+          request: requestParent,
+          repairman: repairmanInfor
         },
       });
 
@@ -1183,7 +1190,81 @@ const getRequestCompleted = async (req, res) => {
     });
   }
 }
+const confirmRequest = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { confirm } = req.body;
+    // if(!confirm){
+    //   return res.status(400).json({
+    //     EC: 0,
+    //     EM: "Vui lòng cung cấp xác nhận",
+    //   });
+    // }
+    const request = await Request.findOne({
+      user_id: userId,
+      status: "Proceed with repair",
+    }).sort({ createdAt: -1 })
+      .populate({
+        path: 'repairman_id',
 
+      })
+    if (!request) {
+      res.status(404).json({
+        EC: 0,
+        EM: "Không thấy đơn hàng",
+      })
+    }
+    const walletRepairman = await Wallet.findOne({ user_id: request.repairman_id.user_id });
+    if (!walletRepairman) {
+      res.status(404).json({
+        EC: 0,
+        EM: "Không thấy ví của thợ",
+      })
+    }
+    const duePrice = await DuePrice.findOne({ request_id: request._id });
+    const price = await Price.findOne({ duePrice_id: duePrice._id });
+
+    if (confirm === "Completed" || (new Date() - request.updatedAt) / (1000 * 60 * 60) > 12) {
+
+
+      // Credit to repairman wallet
+      walletRepairman.balance += (price.priceToPay * 0.85);//ăn hoa hồng ở đây
+      await walletRepairman.save();
+
+      const repairmanTransaction = new Transaction({
+        wallet_id: walletRepairman._id,
+        payCode: `REC-SEV-${Math.floor(Math.random() * 900000) + 100000}`,
+        transactionType: 'payment',
+        status: 1,
+        amount: walletRepairman.balance,
+        content: `Nhận thanh toán cho yêu cầu sửa chữa mã số ${request._id} từ khách hàng ${req.user.firstName} ${req.user.lastName}`,
+        request_id: request._id,
+      });
+
+      // Gửi email xác nhận cho thợ
+      await sendEmail(request.repairman_id.email, "Đơn hàng đã hoàn thành",
+        `<p>Chào ${request.repairman_id.firstName} ${request.repairman_id.lastName},</p>
+            <p>Đơn hàng ${request._id} đã được xác nhận hoàn thành</strong>.</p>
+            <p>Số tiền ${price.priceToPay * 0.85} đã được chuyển về ví của bạn</p>`
+      );
+      await repairmanTransaction.save();
+      request.status = "Completed";
+      request.repairman_id.status = "Active";
+      await request.save();
+      res.status(201).json({
+        EC: 1,
+        EM: "Cảm ơn bạn đã tin tưởng sử dụng dịch vụ của chúng tôi, đơn hàng của bạn đã được xác nhận thành công",
+
+      })
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+    });
+  }
+}
 module.exports = {
   getBalance,
   getAllHistoryPayment,
@@ -1203,5 +1284,6 @@ module.exports = {
   findRepairman,
   viewRepairmanDeal,
   assignedRepairman,
-  getRequestCompleted
+  getRequestCompleted,
+  confirmRequest
 };

@@ -9,7 +9,6 @@ const DepositHistory = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const dispatch = useDispatch(); // Khởi tạo dispatch
     const { loading, depositeTransactions, error } = useSelector(state => state.user); // Lấy thông tin từ Redux
-    const breadcrumbItems = []
 
     useEffect(() => {
         dispatch(fetchDepositHistory()); // Gọi action để lấy lịch sử nạp tiền
@@ -73,7 +72,7 @@ const DepositHistory = () => {
                                         <tr key={index}>
                                             <td>{formatDate(item.createdAt)}</td>
                                             <td>{item.payCode}</td>
-                                            <td>{item.payCode.startsWith('PAY') ? 'PayOS' : 'MoMo'}</td>
+                                            <td>{item.payCode.startsWith('PAY') ? 'PayOS' : 'MOMO'}</td>
                                             <td>{parseInt(item.amount).toLocaleString('vi-VN')}</td>
                                             <td>{item.status === 1 ? 'Thành công' : 'Thất bại'}</td>
                                         </tr>

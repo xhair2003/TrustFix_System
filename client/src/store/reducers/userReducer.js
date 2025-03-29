@@ -36,6 +36,19 @@ const initialState = {
 
     errorSupplementary: null,
     successSupplementary: null,
+
+    successMakePayment: null,
+    errorMakePayment: null,
+
+    successRating: null,
+    errorRating: null,
+
+    successRequest: null,
+    errorRequest: null,
+    customerRequest: null,
+
+    successConfirmRequest: null,
+    errorConfirmRequest: null,
 };
 
 const userReducer = (state = initialState, action) => {
@@ -229,6 +242,25 @@ const userReducer = (state = initialState, action) => {
             };
 
 
+        case "ADD_RATING_REQUEST":
+            return { ...state, loading: true };
+        case "ADD_RATING_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                successRating: action.payload, // "Đánh giá thành công!"
+                errorRating: null,
+            };
+        case "ADD_RATING_FAIL":
+            return {
+                ...state,
+                loading: false,
+                successRating: null,
+                errorRating: action.payload,
+            };
+
+
+
         case "TOGGLE_STATUS_REPAIRMAN_REQUEST":
             return {
                 ...state,
@@ -408,6 +440,66 @@ const userReducer = (state = initialState, action) => {
             };
 
 
+        case "ASSIGN_REPAIRMAN_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "ASSIGN_REPAIRMAN_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                successMakePayment: action.payload,
+                errorMakePayment: null,
+            };
+        case "ASSIGN_REPAIRMAN_FAIL":
+            return {
+                ...state,
+                loading: false,
+                successMakePayment: null,
+                errorMakePayment: action.payload,
+            };
+
+
+        case "VIEW_CUSTOMER_REQUEST_REQUEST":
+            return { ...state, loading: true, };
+        case "VIEW_CUSTOMER_REQUEST_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                customerRequest: action.payload,
+                successRequest: "Hiển thị thông tin khách hàng và đơn hàng thành công",
+                errorRequest: null,
+            };
+        case "VIEW_CUSTOMER_REQUEST_FAIL":
+            return {
+                ...state,
+                loading: false,
+                customerRequest: null,
+                successRequest: null,
+                errorRequest: action.payload,
+            };
+
+
+        case "CONFIRM_REQUEST_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "CONFIRM_REQUEST_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                successConfirmRequest: action.payload,
+                errorConfirmRequest: null
+            };
+        case "CONFIRM_REQUEST_FAIL":
+            return {
+                ...state,
+                loading: false,
+                successConfirmRequest: null,
+                errorConfirmRequest: action.payload
+            };
 
 
 
@@ -433,6 +525,14 @@ const userReducer = (state = initialState, action) => {
                 errorPurchaseVip: null,
 
                 errorSupplementary: null,
+
+                errorMakePayment: null,
+
+                errorRating: null,
+
+                errorRequest: null,
+
+                errorConfirmRequest: null
             };
         case "RESET_SUCCESS":
             return {
@@ -450,6 +550,14 @@ const userReducer = (state = initialState, action) => {
                 successPurchaseVip: null,
 
                 successSupplementary: null,
+
+                successMakePayment: null,
+
+                successRating: null,
+
+                successRequest: null,
+
+                successConfirmRequest: null,
             };
         default:
             return state;

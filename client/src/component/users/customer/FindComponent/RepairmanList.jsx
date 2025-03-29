@@ -9,6 +9,7 @@ const RepairmanList = ({ requestId }) => {
     const { loading, repairmanDeals, errorViewRepairmanDeal } = useSelector(state => state.user);
 
     const [selectedRepairman, setSelectedRepairman] = useState(null);
+    const [selectedRequest, setSelectedRequest] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     console.log("requestId", requestId);
@@ -26,6 +27,7 @@ const RepairmanList = ({ requestId }) => {
 
     const handleViewDetails = (repairman) => {
         const formattedRepairman = {
+            repairmanId: repairman.repairman._id,
             fullName: `${repairman.repairman.firstName} ${repairman.repairman.lastName}`,
             profileImage: repairman.repairman.imgAvt || null,
             description: repairman.repairman.description || "Không có mô tả",
@@ -39,13 +41,23 @@ const RepairmanList = ({ requestId }) => {
                 comment: rating.comment,
             })),
         };
+        const formattedRequest = {
+            requestId: repairman.request._id,
+            address: repairman.request.address,
+            image: repairman.request.image || null,
+            descriptions: repairman.request.description || "Không có mô tả",
+            status: repairman.request.status,
+            createdAt: new Date(repairman.request.createdAt).toLocaleDateString("vi-VN"),
+        };
         setSelectedRepairman(formattedRepairman);
+        setSelectedRequest(formattedRequest);
         setIsModalOpen(true);
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedRepairman(null);
+        setSelectedRequest(null);
     };
 
     if (loading) {
@@ -84,6 +96,7 @@ const RepairmanList = ({ requestId }) => {
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 repairman={selectedRepairman}
+                request={selectedRequest}
             />
         </div>
     );

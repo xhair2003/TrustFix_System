@@ -3,39 +3,85 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import logo from "../../../assets/Images/logo.png";
 import { FaLevelUpAlt, FaWrench, FaBell, FaUser, FaLock, FaHistory, FaExclamationCircle, FaSignOutAlt, FaWallet } from 'react-icons/fa';
-import { viewRequest } from '../../../store/actions/userActions'; // Action lấy danh sách đơn
+import { viewRequest, getStatusRepairman, toggleStatusRepairman, resetError } from '../../../store/actions/userActions';
 import { logout } from '../../../store/actions/authActions';
 import './Header.css';
+import Loading from '../../../component/Loading/Loading';
+import Swal from "sweetalert2";
 
 const Header = () => {
     const [activeIndex, setActiveIndex] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    const [isActive, setIsActive] = useState(false); // Initialize as false until status is fetched
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    //const { user } = useSelector(state => state.auth);
-    const { request } = useSelector(state => state.user); // Lấy request từ Redux
+
+    // States from Redux
+    const { request, loading, status, errorGetStatus, errorToggleStatus } = useSelector(state => state.user);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
 
     const isAuthenticated = useSelector(state => state.auth.isAuthenticated) || localStorage.getItem('isAuthenticated');
     const role = useSelector(state => state.auth.role) || localStorage.getItem('role');
 
-    // Polling để kiểm tra đơn mới
-    // useEffect(() => {
-    //     const interval = setInterval(() => {
-    //         dispatch(viewRequest());
-    //     }, 5000); // Kiểm tra mỗi 5 giây
-    //     return () => clearInterval(interval);
-    // }, [dispatch]);
+    // Fetch repairman status and requests on component mount
+    useEffect(() => {
+        if (role === "repairman") {
+            dispatch(getStatusRepairman()); // Fetch initial status
+            dispatch(viewRequest()); // Fetch requests
+        }
+    }, [dispatch, role]);
 
-    // Cập nhật danh sách thông báo khi có đơn mới
+    // Update isActive based on fetched status
+    useEffect(() => {
+        if (status !== null && status !== undefined) {
+            setIsActive(status === 'Active'); // Compare with 'Active' (case-sensitive)
+        }
+    }, [status]);
+
+    // Handle new request notifications
     useEffect(() => {
         if (request && !notifications.some(n => n._id === request._id)) {
             setNotifications(prev => [...prev, { ...request, isRead: false }]);
             setUnreadCount(prev => prev + 1);
         }
     }, [request, notifications]);
+
+    // Handle errorGetStatus with Swal
+    useEffect(() => {
+        if (errorGetStatus) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi",
+                text: errorGetStatus,
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                showCloseButton: false,
+            }).then(() => {
+                dispatch(resetError()); // Reset error state
+            });
+        }
+    }, [errorGetStatus, dispatch]);
+
+    // Handle errorToggleStatus with Swal
+    useEffect(() => {
+        if (errorToggleStatus) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi",
+                text: errorToggleStatus,
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                showCloseButton: false,
+            }).then(() => {
+                dispatch(resetError()); // Reset error state
+                setIsActive(status === 'Active'); // Revert switch state on error
+            });
+        }
+    }, [errorToggleStatus, dispatch, status]);
 
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
@@ -44,7 +90,6 @@ const Header = () => {
     const toggleNotificationDropdown = () => {
         setIsNotificationOpen(!isNotificationOpen);
         if (!isNotificationOpen && unreadCount > 0) {
-            // Đánh dấu tất cả là đã đọc khi mở dropdown
             setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
             setUnreadCount(0);
         }
@@ -52,18 +97,23 @@ const Header = () => {
 
     const handleLogout = () => {
         dispatch(logout());
-        // Sau khi đăng xuất thành công, điều hướng đến trang đăng nhập
         navigate('/login');
     };
 
     const handleButtonClick = (index, path) => {
         setActiveIndex(index);
-        // Kiểm tra nếu click vào "Tìm thợ" (index === 1) và chưa đăng nhập
         if (index === 1 && (isAuthenticated !== true && isAuthenticated !== 'true')) {
             navigate('/login');
         } else {
             navigate(path);
         }
+    };
+
+    // Handle toggle status change
+    const handleSwitchChange = () => {
+        const newStatus = !isActive;
+        setIsActive(newStatus); // Optimistically update UI
+        dispatch(toggleStatusRepairman());
     };
 
     const menuItems = [
@@ -75,19 +125,17 @@ const Header = () => {
 
     const shortenAddress = (address) => {
         const parts = address.split(", ");
-        return parts.slice(1, 4).join(", "); // Lấy phường, quận, thành phố
+        return parts.slice(1, 4).join(", ");
     };
 
-    // Hàm định dạng ngày và giờ theo kiểu hh:mm dd/mm/yyyy
     const formatDateTime = (date) => {
         const d = new Date(date);
-        const hours = d.getHours().toString().padStart(2, '0'); // Lấy giờ
-        const minutes = d.getMinutes().toString().padStart(2, '0'); // Lấy phút
-        const day = d.getDate().toString().padStart(2, '0'); // Lấy ngày
-        const month = (d.getMonth() + 1).toString().padStart(2, '0'); // Lấy tháng
-        const year = d.getFullYear(); // Lấy năm
-
-        return `${hours}:${minutes} ${day}/${month}/${year}`; // Trả về định dạng hh:mm dd/mm/yyyy
+        const hours = d.getHours().toString().padStart(2, '0');
+        const minutes = d.getMinutes().toString().padStart(2, '0');
+        const day = d.getDate().toString().padStart(2, '0');
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        const year = d.getFullYear();
+        return `${hours}:${minutes} ${day}/${month}/${year}`;
     };
 
     return (
@@ -110,6 +158,24 @@ const Header = () => {
 
                 {isAuthenticated === true || isAuthenticated === 'true' ? (
                     <div className="header-buttons">
+                        {/* Switch for repairman */}
+                        {role === "repairman" && (
+                            <div className="switch-wrapper">
+                                <label className="switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={isActive}
+                                        onChange={handleSwitchChange}
+                                        disabled={loading} // Disable during loading
+                                    />
+                                    <span className="slider"></span>
+                                </label>
+                                <span className="switch-label">
+                                    {isActive ? "Làm" : "Nghỉ"}
+                                </span>
+                            </div>
+                        )}
+
                         <div className="notification-wrapper">
                             <FaBell className="icon" onClick={toggleNotificationDropdown} />
                             {unreadCount > 0 && (
@@ -120,9 +186,9 @@ const Header = () => {
                                     {notifications.length > 0 ? (
                                         notifications.map((notif) => (
                                             <div key={notif._id} className="notification-item">
-                                                <p>Có đơn hàng mới: {notif.description}</p>
-                                                <p>Khu vực: {shortenAddress(notif.address)}</p>
-                                                <p>Ngày: {formatDateTime(notif.createdAt)}</p>
+                                                <p><strong>Có đơn hàng mới:</strong> {notif.description}</p>
+                                                <p><strong>Khu vực:</strong> {shortenAddress(notif.address)}</p>
+                                                <p><strong>Ngày:</strong> {formatDateTime(notif.createdAt)}</p>
                                                 <a
                                                     onClick={() => {
                                                         setIsNotificationOpen(false);
@@ -130,6 +196,7 @@ const Header = () => {
                                                             state: { requestData: notif },
                                                         });
                                                     }}
+                                                    style={{ cursor: 'pointer' }}
                                                 >
                                                     Xem chi tiết ngay!
                                                 </a>
@@ -141,10 +208,11 @@ const Header = () => {
                                 </div>
                             )}
                         </div>
+
                         <div className="divider"></div>
                         <FaUser className="user-icon" onClick={toggleDropdown} />
                         {isDropdownOpen && (
-                            < div className="dropdown-menu">
+                            <div className="dropdown-menu">
                                 {role === "repairman" &&
                                     <div className="dropdown-item" onClick={() => navigate("/repairman/view-requests")}>
                                         <FaWrench className="dropdown-icon" /> Đơn hàng sửa chữa
@@ -170,7 +238,7 @@ const Header = () => {
                                         <FaLevelUpAlt className="dropdown-icon" /> Nâng cấp lên thợ
                                     </div>
                                 }
-                                <div className="dropdown-item" onClick={handleLogout} >
+                                <div className="dropdown-item" onClick={handleLogout}>
                                     <FaSignOutAlt className="dropdown-icon" /> Đăng xuất
                                 </div>
                             </div>
@@ -183,7 +251,8 @@ const Header = () => {
                     </div>
                 )}
             </div>
-        </div >
+            {loading && <Loading />}
+        </div>
     );
 };
 

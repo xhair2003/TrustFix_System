@@ -429,6 +429,7 @@ export const toggleStatusRepairman = () => async (dispatch, getState) => {
                 type: "TOGGLE_STATUS_REPAIRMAN_SUCCESS",
                 payload: response.data.DT, // Updated status request data
             });
+            dispatch(getStatusRepairman());
         } else {
             dispatch({
                 type: 'TOGGLE_STATUS_REPAIRMAN_FAIL',
@@ -443,7 +444,54 @@ export const toggleStatusRepairman = () => async (dispatch, getState) => {
     }
 };
 
+// Action for adding a rating
+export const addRating = (requestId, rate, comment) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "ADD_RATING_REQUEST" });
 
+        // Get token from state or localStorage
+        const token = getState().auth.token || localStorage.getItem('token');
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        };
+
+        const body = {
+            request_id: requestId,
+            rate,
+            comment,
+        };
+
+        const { data } = await axios.post(
+            `http://localhost:8080/api/customer/rating`,
+            body,
+            config
+        );
+
+        if (data.EC === 1) {
+            dispatch({
+                type: "ADD_RATING_SUCCESS",
+                payload: data.EM, // Success message: "Đánh giá thành công!"
+            });
+        } else {
+            dispatch({
+                type: "ADD_RATING_FAIL",
+                payload: data.EM || "Có lỗi xảy ra khi gửi đánh giá",
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ADD_RATING_FAIL",
+            payload:
+                error.response && error.response.data.EM
+                    ? error.response.data.EM
+                    : 'Có lỗi xảy ra khi gửi đánh giá',
+        });
+    }
+};
 
 
 // API Find repairman to book repairment
@@ -705,7 +753,7 @@ export const purchaseVip = (vipId) => async (dispatch, getState) => {
 
         // Gọi API thực tế
         const response = await axios.post(
-            'http://localhost:8080/api/repairman/purchase-vip', // Ví dụ endpoint
+            'http://localhost:8080/api/repairman/buy-vip-package', // Ví dụ endpoint
             { vipId }, // Dữ liệu gửi lên (nếu có, bạn có thể thêm vào đây)
             {
                 headers: { Authorization: `Bearer ${token}` },
@@ -735,12 +783,22 @@ export const purchaseVip = (vipId) => async (dispatch, getState) => {
 
 
 // Action creator để bổ sung giấy chứng chỉ hành nghề
-export const requestSupplementaryPracticeCertificate = (supplementaryPracticeCertificates) => async (dispatch, getState) => {
+export const requestSupplementaryPracticeCertificate = (img2ndCertificate) => async (dispatch, getState) => {
     try {
         dispatch({ type: 'SUPPLEMENTARY_PRACTICE_CERTIFICATE_REQUEST' });
 
-        const { auth } = getState();
-        const token = auth.token;
+        // Lấy token từ state (giả sử lưu trong Redux từ quá trình đăng nhập)
+        const token = getState().auth.token || localStorage.getItem('token');
+
+        // Chuẩn bị FormData để gửi dữ liệu multipart/form-data
+        const formData = new FormData();
+
+        // Thêm các file ảnh vào FormData
+        if (img2ndCertificate && img2ndCertificate.length > 0) {
+            img2ndCertificate.forEach((file) => {
+                formData.append("img2ndCertificate", file); // "img2ndCertificate" phải khớp với upload.array('img2ndCertificate') ở BE
+            });
+        }
 
         const config = {
             headers: {
@@ -751,8 +809,8 @@ export const requestSupplementaryPracticeCertificate = (supplementaryPracticeCer
 
         // Gửi yêu cầu lên API
         const response = await axios.post(
-            `${API_URL_REPAIRMAN}/supplementary-practice-certificate`,
-            supplementaryPracticeCertificates,
+            `${API_URL_REPAIRMAN}/add-second-certificate`,
+            formData,
             config
         );
 
@@ -771,6 +829,139 @@ export const requestSupplementaryPracticeCertificate = (supplementaryPracticeCer
         dispatch({
             type: 'SUPPLEMENTARY_PRACTICE_CERTIFICATE_FAIL',
             payload: error.response?.data?.EM || 'Lỗi server, vui lòng thử lại sau!',
+        });
+    }
+};
+
+
+
+
+// Action thanh toán đơn hàng
+export const assignRepairman = (requestId, repairmanId) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "ASSIGN_REPAIRMAN_REQUEST" });
+
+        // Lấy token từ state (giả sử lưu trong Redux từ quá trình đăng nhập)
+        const token = getState().auth.token || localStorage.getItem('token');
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        };
+
+        const { data } = await axios.post(
+            `http://localhost:8080/api/customer/assignedRepairman/${requestId}/${repairmanId}`,
+            {},
+            config
+        );
+
+        if (data.EC === 1) {
+            localStorage.removeItem("requestId"); // Lưu requestId trong localStorage
+            dispatch({
+                type: "ASSIGN_REPAIRMAN_SUCCESS",
+                payload: data.EM,
+            });
+        } else {
+            dispatch({
+                type: "ASSIGN_REPAIRMAN_FAIL",
+                payload: data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ASSIGN_REPAIRMAN_FAIL",
+            payload:
+                error.response && error.response.data.EM
+                    ? error.response.data.EM
+                    : 'Có lỗi xảy ra khi xử lý thanh toán',
+        });
+    }
+};
+
+
+// Action for viewing customer request
+export const viewCustomerRequest = () => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "VIEW_CUSTOMER_REQUEST_REQUEST" });
+
+        // Get token from state or localStorage
+        const token = getState().auth.token || localStorage.getItem('token');
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        };
+
+        const { data } = await axios.get(
+            `http://localhost:8080/api/repairman/viewCustomerRequest`,
+            config
+        );
+
+        if (data.EC === 1) {
+            dispatch({
+                type: "VIEW_CUSTOMER_REQUEST_SUCCESS",
+                payload: data.DT.request, // The request data including customer info
+            });
+        } else {
+            dispatch({
+                type: "VIEW_CUSTOMER_REQUEST_FAIL",
+                payload: data.EM || "Có lỗi xảy ra khi lấy thông tin đơn hàng",
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "VIEW_CUSTOMER_REQUEST_FAIL",
+            payload:
+                error.response && error.response.data.EM
+                    ? error.response.data.EM
+                    : 'Có lỗi xảy ra khi lấy thông tin đơn hàng',
+        });
+    }
+};
+
+// API khách hàng xác nhận đã sửa đơn hàng thành công
+export const confirmRequest = (confirmData) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "CONFIRM_REQUEST_REQUEST" });
+
+        const {
+            userLogin: { userInfo }
+        } = getState();
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${userInfo.token}`
+            }
+        };
+
+        const { data } = await axios.post(
+            'http://localhost:8080/api/customer/confirmRequest',
+            { confirm: confirmData },
+            config
+        );
+
+        if (data.EC === 1) {
+            dispatch({
+                type: 'CONFIRM_REQUEST_SUCCESS',
+                payload: data.EM,
+            });
+        } else {
+            dispatch({
+                type: 'CONFIRM_REQUEST_FAIL',
+                payload: data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "CONFIRM_REQUEST_FAIL",
+            payload: error.response && error.response.data.EM
+                ? error.response.data.EM
+                : error.message
         });
     }
 };

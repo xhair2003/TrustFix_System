@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom"; // Thêm React Portal
 import "./RepairmanInforModal.css";
 
-const RepairmanInfoModal = ({ isOpen, onClose, repairman }) => {
+const RepairmanInfoModal = ({ isOpen, onClose, repairman, request }) => {
     const navigate = useNavigate();
 
     if (!isOpen) return null;
 
     const {
+        repairmanId = null,
         fullName = "Không có dữ liệu",
         profileImage = null,
         description = "Không có mô tả",
@@ -18,11 +19,12 @@ const RepairmanInfoModal = ({ isOpen, onClose, repairman }) => {
         reviews = [],
     } = repairman || {};
 
+
     const handleBook = () => {
         onClose();
-        navigate("/make-payment", { state: { repairman, dealPrice } });
-        console.log(repairman);
-        console.log(dealPrice);
+        navigate(`"/make-payment/:${request.requestId}/:${repairmanId}"`, { state: { repairman, request } });
+        //console.log(repairman);
+        //console.log(dealPrice);
     };
 
     // Nội dung modal
