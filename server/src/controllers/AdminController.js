@@ -1944,6 +1944,67 @@ const getAllRepairmanMonthlyPayments = async (req, res) => {
     }
 };
 
+const getMostUsedVipService = async (req, res) => {
+    try {
+        const result = await RepairmanUpgradeRequest.aggregate([
+            {
+                $match: {
+                    vip_id: { $ne: null },
+                },
+            },
+            {
+                $group: {
+                    _id: "$vip_id",
+                    count: { $sum: 1 },
+                },
+            },
+            {
+                $sort: { count: -1 },
+            },
+            {
+                $limit: 1,
+            },
+            {
+                $lookup: {
+                    from: "vips",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "vipInfo",
+                },
+            },
+            {
+                $unwind: "$vipInfo",
+            },
+            {
+                $project: {
+                    _id: 0,
+                    vip_id: "$_id",
+                    vip_name: "$vipInfo.name",
+                    usage_count: "$count",
+                },
+            }
+        ]);
+
+        if (!result.length) {
+            return res.status(200).json({
+                EC: 1,
+                EM: "Không có dữ liệu loại VIP nào!",
+                DT: null
+            });
+        }
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy loại VIP phổ biến được thợ sử dụng nhiều nhất thành công!",
+            DT: result[0]
+        });
+    } catch (error) {
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+        });
+    }
+};
 
 
 module.exports = {
@@ -1992,6 +2053,7 @@ module.exports = {
     viewPendingSupplementaryCertificates,
     verifyPracticeCertificate,
     getRepairmanMonthlyPaymentById,
-    getAllRepairmanMonthlyPayments
+    getAllRepairmanMonthlyPayments,
+    getMostUsedVipService
 };
 
