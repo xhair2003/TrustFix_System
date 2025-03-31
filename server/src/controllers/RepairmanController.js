@@ -787,7 +787,36 @@ const viewCustomerRequest = async (req, res) => {
     });
   }
 }
-
+const cofirmRequest = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {confirm }= req.body;
+    const repairman = await RepairmanUpgradeRequest.findOne({user_id: userId});
+    if(!repairman){
+      res.status(400).json({
+        EC: 0,
+        EM: "Không tìm thấy thợ sửa chữa"
+      })
+    }
+    if(confirm === "Completed"){
+      repairman.status = 'Active';
+      await repairman.save();
+      res.status(201).json({
+        EC: 1,
+        EM: 'Xác nhận hoàn thành đơn hàng thành công, vui lòng đợi khách hàng xác nhận để nhận tiền'
+      })
+    }
+    
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+      
+    });
+  }
+  
+}
 module.exports = {
   requestRepairmanUpgrade,
   getAllVips,
@@ -799,5 +828,6 @@ module.exports = {
   viewRequest,
   registerVipPackage,
   addSecondCertificate,
-  viewCustomerRequest
+  viewCustomerRequest,
+  cofirmRequest
 };
