@@ -17,11 +17,12 @@ export const ROUTERS = {
         VIEW_REPAIR_BOOKING_HISTORY: '/view-repair-booking-history',
         COMPLAIN_REPAIRMAN: '/complain',
         UPGRADE_REPAIRMAN: '/upgrade-repair-man',
-        DEPOSIT_INTO_ACCOUNT: '/deposit-into-account',
+        DEPOSIT_INTO_ACCOUNT: '/wallet/deposit-into-account',
         VIEW_DEPOSIT_HISTORY: '/deposit-history',
         VIEW_HISTORY_PAYMENT: '/history-payment',
-        PAY_FOR_REPAIR: '/pay-for-repair',
+        MAKE_PAYMENT: '/make-payment/:requestId/:repairmanId',
         WALLET: '/wallet',
+        ORDER_DETAIL: '/order-detail/:requestId',
 
     },
 
@@ -34,6 +35,7 @@ export const ROUTERS = {
         PAY_MONTHLY_ACCOUNT_MAINTENANCE_FEES: '/pay-monthly-account-maintenance-fees',
         VIEW_REQUESTS: '/repairman/view-requests',
         DETAIL_REQUEST: '/repairman/detail-request/:requestId',
+        REPAIRMAN_ORDER_DETAIL: '/repairman/order-detail/:requestId',
     },
 
     ADMIN: {

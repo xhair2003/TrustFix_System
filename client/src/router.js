@@ -32,8 +32,9 @@ import Dashboard from "./pages/admin/Dashboard/Dashboard.jsx";
 import ViewRequests from "./pages/users/ViewRequests/ViewRequests.js";
 import DetailRequest from "./pages/users/DetailRequest/DetailRequest.js";
 import FindRepairman from "./pages/users/FindRepairman/FindRepairman.jsx";
-import ManagePracticeSertificates from "./pages/admin/ManagePracticeSertificates/ManagePracticeSertificates.jsx";
-
+import OrderDetail from "./pages/users/OrderDetail/OderDetail.js";
+import ManagePracticeCertificates from "./pages/admin/ManagePracticeSertificates/ManagePracticeSertificates.jsx";
+import RepairmanOrderDetail from "./pages/users/RepairmanOrderDetail/RepairmanOrderDetail.js";
 
 const UserROUTERS = () => {
     const routers = [
@@ -154,7 +155,7 @@ const UserROUTERS = () => {
         },
         {
             path: ROUTERS.ADMIN.MANAGE_PRACTICE_SERTIFICATES,
-            component: <ManagePracticeSertificates />,
+            component: <ManagePracticeCertificates />,
             layout: MasterLayoutAdmin,
         },
 
@@ -191,7 +192,21 @@ const UserROUTERS = () => {
             component: < DetailRequest />,
             layout: null, // No layout for auth routes
         },
-
+        {
+            path: ROUTERS.CUSTOMER.MAKE_PAYMENT,
+            component: < MakePayment />,
+            layout: null, // No layout for auth routes
+        },
+        {
+            path: ROUTERS.CUSTOMER.ORDER_DETAIL,
+            component: < OrderDetail />,
+            layout: null, // No layout for auth routes
+        },
+        {
+            path: ROUTERS.REPAIRMAN.REPAIRMAN_ORDER_DETAIL,
+            component: < RepairmanOrderDetail />,
+            layout: null, // No layout for auth routes
+        },
         // Add more auth routes here....
     ];
 

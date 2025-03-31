@@ -98,12 +98,13 @@ router.get("/pending-2nd-certification", AuthMiddleware.verifyAdmin, AdminContro
 //verify 2nd certification (Accept/Reject)
 router.post("/verify-2nd-certification", AuthMiddleware.verifyAdmin, AdminController.verifyPracticeCertificate);
 
-router.get("/pending-2nd-certification", AuthMiddleware.verifyAdmin, AdminController.viewPendingSupplementaryCertificates);
 
 // get repairman monthly payment
 router.get("/view-detail-monthly-payment/:id", AuthMiddleware.verifyAdmin, AdminController.getRepairmanMonthlyPaymentById);
 
 
 router.get("/view-all-monthly-payment", AuthMiddleware.verifyAdmin, AdminController.getAllRepairmanMonthlyPayments);
+
+router.get("/view-vip-services/most-used", AuthMiddleware.verifyAdmin, AdminController.getMostUsedVipService);
 
 module.exports = router;    

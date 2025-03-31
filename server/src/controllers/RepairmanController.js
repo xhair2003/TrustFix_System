@@ -613,112 +613,107 @@ const processMonthlyFee = async (req, res) => {
 };
 const registerVipPackage = async (req, res) => {
   try {
-      const userId = req.user.id; 
-      const { vip_id, months = 1 } = req.body; // Mặc định số tháng là 1 nếu không được cung cấp
+    const userId = req.user.id; // Get user ID from the authenticated token
+    const { vip_id, months = 1 } = req.body; // Default to 1 month if not provided
 
-      // Kiểm tra xem vip_id có được cung cấp hay không
-      if (!vip_id) {
-          return res.status(400).json({
-              EC: 0,
-              EM: "Vui lòng cung cấp ID của gói VIP!"
-          });
-      }
-
-      // Kiểm tra nếu months không phải là số hoặc nhỏ hơn 1
-      if (isNaN(months) || months < 1) {
-          return res.status(400).json({
-              EC: 0,
-              EM: "Số tháng đăng ký phải là một số lớn hơn hoặc bằng 1!"
-          });
-      }
-
-      
-      const repairmanUpgradeRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId });
-
-      if (!repairmanUpgradeRequest) {
-          return res.status(404).json({
-              EC: 0,
-              EM: "Không tìm thấy thông tin nâng cấp thợ sửa chữa cho người dùng này!"
-          });
-      }
-
-      // Tìm gói VIP dựa trên vip_id
-      const vipPackage = await Vip.findById(vip_id);
-      if (!vipPackage) {
-          return res.status(404).json({
-              EC: 0,
-              EM: "Không tìm thấy gói VIP!"
-          });
-      }
-
-      // Tìm ví của thợ sửa chữa
-      const wallet = await Wallet.findOne({ user_id: userId });
-      if (!wallet) {
-          return res.status(404).json({
-              EC: 0,
-              EM: "Không tìm thấy ví của thợ sửa chữa!"
-          });
-      }
-
-      // Kiểm tra nếu đây là tháng đầu tiên
-      const currentDate = new Date();
-      const firstMonthDate = new Date(repairmanUpgradeRequest.createdAt);
-      firstMonthDate.setMonth(firstMonthDate.getMonth() + 1);
-
-      let totalCost = vipPackage.price * months;
-
-      if (currentDate <= firstMonthDate) {
-          // Tháng đầu tiên miễn phí
-          totalCost -= vipPackage.price;
-      }
-
-      // Kiểm tra số dư ví
-      if (wallet.balance < totalCost) {
-          return res.status(400).json({
-              EC: 0,
-              EM: "Số dư ví không đủ để thanh toán gói VIP!"
-          });
-      }
-
-      // Trừ số dư ví
-      wallet.balance -= totalCost;
-      await wallet.save();
-
-      // Cập nhật vip_id và thời gian hết hạn cho RepairmanUpgradeRequest
-      repairmanUpgradeRequest.vip_id = vip_id;
-      const newExpiryDate = new Date(repairmanUpgradeRequest.updatedAt);
-      newExpiryDate.setMonth(newExpiryDate.getMonth() + months);
-      repairmanUpgradeRequest.expiredAt = newExpiryDate;
-      await repairmanUpgradeRequest.save();
-
-      // Lưu thông tin giao dịch
-      const transaction = new Transaction({
-          user_id: userId,
-          amount: totalCost,
-          description: `Thanh toán gói VIP: ${vipPackage.name} cho ${months} tháng`,
-          status: 1 // Thành công
+    // Validate input
+    if (!vip_id) {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Vui lòng cung cấp ID của gói VIP!",
       });
-      await transaction.save();
+    }
 
-      res.status(200).json({
-          EC: 1,
-          EM: "Đăng ký gói VIP thành công!",
-          DT: repairmanUpgradeRequest
+    if (isNaN(months) || months < 1) {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Số tháng đăng ký phải là một số lớn hơn hoặc bằng 1!",
       });
+    }
 
+    // Find the repairman upgrade request for the user
+    const repairmanUpgradeRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId });
+    if (!repairmanUpgradeRequest) {
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy thông tin nâng cấp thợ sửa chữa cho người dùng này!",
+      });
+    }
+
+    // Find the VIP package by ID
+    const vipPackage = await Vip.findById(vip_id);
+    if (!vipPackage) {
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy gói VIP!",
+      });
+    }
+
+    // Find the wallet for the user
+    const wallet = await Wallet.findOne({ user_id: userId });
+    if (!wallet) {
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy ví của thợ sửa chữa!",
+      });
+    }
+
+    // Calculate the total cost
+    const totalCost = vipPackage.price * months;
+
+    // Check wallet balance
+    if (wallet.balance < totalCost) {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Số dư ví không đủ để thanh toán gói VIP!",
+      });
+    }
+
+    // Deduct the total cost from the wallet balance
+    wallet.balance -= totalCost;
+    await wallet.save();
+
+    // Update the repairman upgrade request with the VIP package and expiration date
+    repairmanUpgradeRequest.vip_id = vip_id;
+    const newExpiryDate = new Date(repairmanUpgradeRequest.expiredAt || new Date());
+    newExpiryDate.setMonth(newExpiryDate.getMonth() + months);
+    repairmanUpgradeRequest.expiredAt = newExpiryDate;
+    await repairmanUpgradeRequest.save();
+
+    // Save the transaction details
+    const transaction = new Transaction({
+      wallet_id: wallet._id,
+      amount: totalCost,
+      transactionType: "payment",
+      content: `Thanh toán gói VIP: ${vipPackage.name} cho ${months} tháng`,
+      status: 1, // Success
+      balanceAfterTransact: wallet.balance,
+    });
+    await transaction.save();
+
+    // Respond with success
+    res.status(200).json({
+      EC: 1,
+      EM: "Đăng ký gói VIP thành công!",
+      DT: {
+        repairmanUpgradeRequest,
+        wallet,
+        transaction,
+      },
+    });
   } catch (error) {
-      console.error("Lỗi:", error);
-      res.status(500).json({
-          EC: 0,
-          EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
-      });
+    console.error("Error in registerVipPackage:", error);
+    res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+    });
   }
 };
 
 const addSecondCertificate = async (req, res) => {
   try {
     const userId = req.user.id; // Get user ID from the authenticated token
-    const files = req.files; // Get the uploaded files
+    const files = req.files;
 
     // Validate input
     if (!files || files.length === 0) {
@@ -739,10 +734,10 @@ const addSecondCertificate = async (req, res) => {
     }
 
     // Check if the status is "Active"
-    if (repairmanRequest.status !== "Active") {
+    if (repairmanRequest.status !== "Active" && repairmanRequest.status !== "Inactive") {
       return res.status(400).json({
         EC: 0,
-        EM: "Chỉ có thể thêm chứng chỉ bổ sung khi trạng thái là 'Active'!",
+        EM: "Chỉ có thể thêm chứng chỉ bổ sung khi trạng thái là 'Active'! và 'Inactive'",
       });
     }
 
@@ -770,8 +765,8 @@ const addSecondCertificate = async (req, res) => {
 const viewCustomerRequest = async (req, res) => {
   try {
     const userId = req.user.id;
-    const repairman = await RepairmanUpgradeRequest.findOne({user_id: userId});
-    
+    const repairman = await RepairmanUpgradeRequest.findOne({ user_id: userId });
+
     const request = await Request.findOne({
       repairman_id: repairman._id,
       status: "Proceed with repair",

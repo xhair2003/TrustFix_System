@@ -925,7 +925,7 @@ const viewRepairmanDeal = async (req, res) => {
       }
 
       repairmanDeals.push({
-        //request: request,
+        request: request,
         repairman: repairmanInfor,
         ratings: repairmanRatings,
         dealPrice: dealPriceInfo
@@ -1193,7 +1193,7 @@ const getRequestCompleted = async (req, res) => {
 const confirmRequest = async (req, res) => {
   try {
     const userId = req.user.id;
-    const {confirm }= req.body;
+    const { confirm } = req.body;
     // if(!confirm){
     //   return res.status(400).json({
     //     EC: 0,
@@ -1203,7 +1203,7 @@ const confirmRequest = async (req, res) => {
     const request = await Request.findOne({
       user_id: userId,
       status: "Proceed with repair",
-    }).sort({createdAt: -1})
+    }).sort({ createdAt: -1 })
       .populate({
         path: 'repairman_id',
         populate: { // No need to populate user_id again, repairman_id should already contain necessary info
@@ -1211,14 +1211,14 @@ const confirmRequest = async (req, res) => {
           select: 'firstName lastName email' // Select email here to ensure it's retrieved
         }
       })
-    if(!request){
+    if (!request) {
       res.status(404).json({
         EC: 0,
         EM: "Không thấy đơn hàng",
       })
     }
-    const walletRepairman = await Wallet.findOne({user_id: request.repairman_id.user_id});
-    if(!walletRepairman){
+    const walletRepairman = await Wallet.findOne({ user_id: request.repairman_id.user_id });
+    if (!walletRepairman) {
       res.status(404).json({
         EC: 0,
         EM: "Không thấy ví của thợ",
@@ -1260,7 +1260,7 @@ const confirmRequest = async (req, res) => {
       //request.repairman_id.status = "Active";
       await request.save();
       res.status(201).json({
-        EC: 0,
+        EC: 1,
         EM: "Cảm ơn bạn đã tin tưởng sử dụng dịch vụ của chúng tôi, đơn hàng của bạn đã được xác nhận thành công",
         
       })
