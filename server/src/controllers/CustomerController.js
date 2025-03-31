@@ -1206,7 +1206,10 @@ const confirmRequest = async (req, res) => {
     }).sort({ createdAt: -1 })
       .populate({
         path: 'repairman_id',
-
+        populate: { // No need to populate user_id again, repairman_id should already contain necessary info
+          path: 'user_id',
+          select: 'firstName lastName email' // Select email here to ensure it's retrieved
+        }
       })
     if (!request) {
       res.status(404).json({
@@ -1221,10 +1224,10 @@ const confirmRequest = async (req, res) => {
         EM: "Không thấy ví của thợ",
       })
     }
-    const duePrice = await DuePrice.findOne({ request_id: request._id });
-    const price = await Price.findOne({ duePrice_id: duePrice._id });
+    const duePrice = await DuePrice.findOne({request_id: request._id});
+    const price = await Price.findOne({duePrice_id: duePrice._id});
 
-    if (confirm === "Completed" || (new Date() - request.updatedAt) / (1000 * 60 * 60) > 12) {
+    if(confirm === "Completed" || (new Date() - request.updatedAt) / (1000 * 60 * 60) > 12){
 
 
       // Credit to repairman wallet
@@ -1233,28 +1236,33 @@ const confirmRequest = async (req, res) => {
 
       const repairmanTransaction = new Transaction({
         wallet_id: walletRepairman._id,
-        payCode: `REC-SEV-${Math.floor(Math.random() * 900000) + 100000}`,
-        transactionType: 'payment',
+        payCode: `REC-SEV-${Math.floor(Math.random() * 90000000) + 10000000}`,
+        transactionType: 'deposite',
         status: 1,
-        amount: walletRepairman.balance,
+        amount: price.priceToPay * 0.85,
         content: `Nhận thanh toán cho yêu cầu sửa chữa mã số ${request._id} từ khách hàng ${req.user.firstName} ${req.user.lastName}`,
         request_id: request._id,
       });
 
       // Gửi email xác nhận cho thợ
-      await sendEmail(request.repairman_id.email, "Đơn hàng đã hoàn thành",
-        `<p>Chào ${request.repairman_id.firstName} ${request.repairman_id.lastName},</p>
+      // Check if request.repairman_id and request.repairman_id.email exist before sending email
+      if (request.repairman_id && request.repairman_id.user_id.email) {
+        await sendEmail(request.repairman_id.user_id.email, "Đơn hàng đã hoàn thành",
+          `<p>Chào ${request.repairman_id.user_id.firstName} ${request.repairman_id.user_id.lastName},</p>
             <p>Đơn hàng ${request._id} đã được xác nhận hoàn thành</strong>.</p>
-            <p>Số tiền ${price.priceToPay * 0.85} đã được chuyển về ví của bạn</p>`
-      );
+            <p>Số tiền ${price.priceToPay*0.85} đã được chuyển về ví của bạn</p>`
+        );
+      } else {
+        console.error("Không thể gửi email xác nhận hoàn thành đơn hàng vì thiếu thông tin người nhận.");
+      }
       await repairmanTransaction.save();
       request.status = "Completed";
-      request.repairman_id.status = "Active";
+      //request.repairman_id.status = "Active";
       await request.save();
       res.status(201).json({
         EC: 1,
         EM: "Cảm ơn bạn đã tin tưởng sử dụng dịch vụ của chúng tôi, đơn hàng của bạn đã được xác nhận thành công",
-
+        
       })
     }
   } catch (error) {
