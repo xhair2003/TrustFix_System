@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { dealPrice, resetError } from "../../../store/actions/userActions";
+import { dealPrice, resetError, resetSuccess } from "../../../store/actions/userActions";
 import Loading from "../../../component/Loading/Loading";
 import Swal from "sweetalert2";
 import "./DetailRequest.css";
+import { useLocation } from "react-router-dom";
 
 const DetailRequest = ({ request, onClose }) => {
     const dispatch = useDispatch();
+    const location = useLocation();
     const { loading, errorViewRequest, errorDealPrice, successDealPrice } = useSelector((state) => state.user);
     const [dealPriceValue, setDealPriceValue] = useState("");
+    const { requestData } = location.state || {};
 
     useEffect(() => {
         if (errorViewRequest) {
@@ -39,10 +42,10 @@ const DetailRequest = ({ request, onClose }) => {
                 timer: 5000,
                 showConfirmButton: false,
             });
-            dispatch(resetError());
-            onClose(); // Đóng modal khi thành công
+            dispatch(resetSuccess());
+            // onClose(); // Đóng modal khi thành công
         }
-    }, [errorDealPrice, successDealPrice, errorViewRequest, dispatch, onClose]);
+    }, [errorDealPrice, successDealPrice, errorViewRequest, dispatch]);
 
     const shortenAddress = (address) => {
         const parts = address.split(", ");
@@ -54,7 +57,7 @@ const DetailRequest = ({ request, onClose }) => {
             deal_price: dealPriceValue,
             isDeal: "true",
         };
-        dispatch(dealPrice(request.parentRequest, dealData));
+        dispatch(dealPrice(requestData.parentRequest, dealData));
     };
 
     const handleCancel = () => {
@@ -62,34 +65,35 @@ const DetailRequest = ({ request, onClose }) => {
             isDeal: "false",
         };
         setDealPriceValue("");
-        dispatch(dealPrice(request.parentRequest, dealData));
-        onClose(); // Đóng modal
+        dispatch(dealPrice(requestData.parentRequest, dealData));
+        // onClose(); // Đóng modal
+        window.history.back();
     };
 
     if (loading) return <Loading />;
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay" >
             <div className="request-detail-container" onClick={(e) => e.stopPropagation()}>
-                <h2 className="request-title">Chi tiết đơn sửa chữa #{request._id.slice(-6)}</h2>
+                <h2 className="request-title">Chi tiết đơn sửa chữa #{requestData._id.slice(-6)}</h2>
 
                 <section className="request-section">
                     <h3>Thông tin cơ bản</h3>
                     <div className="request-info-grid">
-                        <p><strong>Mô tả vấn đề:</strong> {request.description}</p>
-                        <p><strong>Khu vực:</strong> {shortenAddress(request.address)}</p>
-                        <p><strong>Ngày tạo:</strong> {new Date(request.createdAt).toLocaleString()}</p>
-                        <p><strong>Trạng thái:</strong> {request.status}</p>
-                        <p><strong>Loại dịch vụ:</strong> {request.serviceIndustry_id}</p>
-                        <p><strong>Mã đơn gốc:</strong> {request.parentRequest}</p>
+                        <p><strong>Mô tả vấn đề:</strong> {requestData.description}</p>
+                        <p><strong>Khu vực:</strong> {shortenAddress(requestData.address)}</p>
+                        <p><strong>Ngày tạo:</strong> {new Date(requestData.createdAt).toLocaleString()}</p>
+                        <p><strong>Trạng thái:</strong> {requestData.status}</p>
+                        <p><strong>Loại dịch vụ:</strong> {requestData.serviceIndustry_id}</p>
+                        <p><strong>Mã đơn gốc:</strong> {requestData.parentRequest}</p>
                     </div>
                 </section>
 
                 <section className="request-section">
                     <h3>Hình ảnh minh họa</h3>
                     <div className="image-list">
-                        {request.image && request.image.length > 0 ? (
-                            request.image.map((img, index) => (
+                        {requestData.image && requestData.image.length > 0 ? (
+                            requestData.image.map((img, index) => (
                                 <img
                                     key={index}
                                     src={img}
@@ -108,8 +112,8 @@ const DetailRequest = ({ request, onClose }) => {
                     <div className="deal-info">
                         <p>
                             <strong>Khoảng giá đề xuất:</strong>{" "}
-                            {request.minPrice?.toLocaleString() || "N/A"} -{" "}
-                            {request.maxPrice?.toLocaleString() || "N/A"} VNĐ
+                            {requestData.minPrice?.toLocaleString() || "N/A"} -{" "}
+                            {requestData.maxPrice?.toLocaleString() || "N/A"} VNĐ
                         </p>
                         <div className="deal-input-group">
                             <input

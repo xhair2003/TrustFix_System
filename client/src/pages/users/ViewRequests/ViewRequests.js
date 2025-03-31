@@ -20,6 +20,7 @@ const ViewRequests = () => {
         errorRequest
     } = useSelector((state) => state.user);
 
+    //console.log(request);
 
     useEffect(() => {
         // Dispatch both actions to fetch requests

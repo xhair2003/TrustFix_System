@@ -1328,6 +1328,51 @@ export const getMostUsedVipService = () => async (dispatch, getState) => {
     }
 };
 
+// Lấy doanh thu theo tháng, năm
+export const getAllProfit = (month, year) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "GET_ALL_PROFIT_REQUEST" });
+
+        const token = getState().auth.token || localStorage.getItem('token');
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            params: {
+                year: year,
+                month: month,
+            },
+        };
+
+        const { data } = await axios.get('http://localhost:8080/api/admin/view-profit', config);
+
+        if (data.EC === 1) {
+            dispatch({
+                type: "GET_ALL_PROFIT_SUCCESS",
+                payload: {
+                    totalsProfit: data.DT.totalsProfit,
+                    totalAll: data.DT.totalAll,
+                },
+            });
+        } else {
+            dispatch({
+                type: "GET_ALL_PROFIT_FAIL",
+                payload: data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "GET_ALL_PROFIT_FAIL",
+            payload:
+                error.response && error.response.data.EM
+                    ? error.response.data.EM
+                    : error.message,
+        });
+    }
+};
+
 // Action để reset lỗi
 export const resetError = () => {
     return {
