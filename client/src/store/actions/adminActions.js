@@ -1267,7 +1267,7 @@ export const verifySupplementaryCertificateRequest = (requestId, action, rejecti
         const token = getState().auth.token || localStorage.getItem('token');
         dispatch({ type: 'VERIFY_SUPPLEMENTARY_CERTIFICATE_REQUEST_REQUEST' });
 
-        const response = await axios.put(
+        const response = await axios.post(
             `${API_URL_ADMIN}/verify-2nd-certification`,
             { requestId, action, rejectionReason }, // action: 'approve' hoặc 'reject', rejectionReason nếu từ chối
             { headers: { Authorization: `Bearer ${token}` } }
@@ -1297,7 +1297,36 @@ export const verifySupplementaryCertificateRequest = (requestId, action, rejecti
     }
 };
 
+// Action to get the most used VIP service
+export const getMostUsedVipService = () => async (dispatch, getState) => {
+    const token = getState().auth.token || localStorage.getItem("token"); // Get token from state or localStorage
+    try {
+        dispatch({ type: "GET_MOST_USED_VIP_SERVICE_REQUEST" });
 
+        const response = await axios.get(`${API_URL_ADMIN}/view-vip-services/most-used`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "GET_MOST_USED_VIP_SERVICE_SUCCESS",
+                payload: response.data.DT, // The most used VIP service data
+            });
+        } else {
+            dispatch({
+                type: "GET_MOST_USED_VIP_SERVICE_FAIL",
+                payload: response.data.EM, // Error message from API
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "GET_MOST_USED_VIP_SERVICE_FAIL",
+            payload: error.response ? error.response.data.EM : "Lỗi hệ thống, vui lòng thử lại!",
+        });
+    }
+};
 
 // Action để reset lỗi
 export const resetError = () => {

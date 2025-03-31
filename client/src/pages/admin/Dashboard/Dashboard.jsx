@@ -19,6 +19,7 @@ import {
   totalServiceIndustries,
   totalServicesByIndustry,
   totalServicePrices,
+  getMostUsedVipService,
   resetError,
 } from '../../../store/actions/adminActions';
 import {
@@ -117,6 +118,7 @@ const Dashboard = () => {
     totalServiceIndustries: o,
     totalServicesByIndustry: p,
     totalServicePrices: q,
+    mostUsedVipService: a,
     loading,
     error,
   } = useSelector((state) => state.admin);
@@ -136,6 +138,7 @@ const Dashboard = () => {
     dispatch(totalServiceIndustries());
     dispatch(totalServicesByIndustry());
     dispatch(totalServicePrices());
+    dispatch(getMostUsedVipService());
   }, [dispatch]);
 
   useEffect(() => {
@@ -317,13 +320,15 @@ const Dashboard = () => {
           { title: "Tổng Thợ", value: c, icon: "👨‍🔧" },
           { title: "Tổng Khách", value: d, icon: "👥" },
           { title: "TK Bị Khóa", value: b, icon: "🔒" },
-          { title: "Yêu Cầu Xác Nhận", value: f, icon: "✅" },
-          { title: "Yêu Cầu Hủy", value: i, icon: "❌" },
-          { title: "Yêu Cầu Thanh Toán", value: k, icon: "💸" },
-          { title: "Khiếu Nại Chờ", value: m, icon: "⚠️" },
-          { title: "Nâng Cấp Chờ", value: n, icon: "⬆️" },
+          { title: "ĐH đã hoàn thành", value: e, icon: "✅" },
+          { title: "ĐH đang sửa", value: g, icon: "🔧" },
+          { title: "ĐH bị hủy", value: i, icon: "❌" },
+          { title: "ĐH chờ thanh toán", value: k, icon: "💳" },
+          { title: "ĐH đang chốt giá", value: l, icon: "💲" },
+          { title: "Khiếu nại chờ xử lý", value: m, icon: "⚠️" },
+          { title: "Nâng cấp chờ duyệt", value: n, icon: "⏳" },
           { title: "Tổng Chuyên Mục", value: o, icon: "📋" },
-          { title: "Tổng Danh Mục", value: q, icon: "📊" },
+          { title: "Số dịch vụ đề xuất", value: q, icon: "💡" },
         ].map((item, index) => (
           <div key={index} className="dashboard-card">
             <div className="card-icon">{item.icon}</div>
@@ -336,7 +341,7 @@ const Dashboard = () => {
       <div className="charts-section">
         {/* Biểu đồ Doughnut (Phân Bố Yêu Cầu) */}
         <div className="chart-container doughnut-chart" onClick={() => setShowRequestModal(true)}>
-          <h2>Phân Bố Yêu Cầu</h2>
+          <h2>Tỷ lệ tình trạng đơn hàng</h2>
           <div className="doughnut-wrapper">
             <Doughnut
               data={requestData}
@@ -502,7 +507,7 @@ const Dashboard = () => {
       </div>
 
       <section className="services-section">
-        <h2>Dịch Vụ Theo Ngành</h2>
+        <h2>Tổng số danh mục theo từng chuyên mục sửa chữa</h2>
         <div className="services-list">
           {servicesByIndustry.length > 0 ? (
             servicesByIndustry.map((item, index) => (
@@ -514,6 +519,13 @@ const Dashboard = () => {
           ) : (
             <p className="no-data">Không có dữ liệu dịch vụ theo ngành.</p>
           )}
+        </div>
+      </section>
+
+      <section className="services-section" style={{ marginTop: '20px' }}>
+        <h2>Dịch vụ để xuất đang được sử dụng nhiều nhất</h2>
+        <div className="services-list">
+          {a}
         </div>
       </section>
     </div>

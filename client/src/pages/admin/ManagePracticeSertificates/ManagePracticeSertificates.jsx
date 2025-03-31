@@ -133,7 +133,7 @@ const ManagePracticeSertificates = () => {
                   <p><strong>Loại dịch vụ:</strong> {request.serviceIndustry_id.type}</p>
                 </div>
                 <div className="manage-upgrade-actions">
-                  {request.status === "pending" && (
+                  {request.status === "In review" && (
                     <>
                       <button
                         onClick={(e) => {
@@ -176,26 +176,73 @@ const ManagePracticeSertificates = () => {
               <p><strong>Loại dịch vụ:</strong> {selectedRequest.serviceIndustry_id.type}</p>
               <div className="manage-upgrade-documents">
                 <p><strong>Giấy chứng chỉ hành nghề:</strong></p>
-                <img
-                  src={selectedRequest.imgCertificatePractice}
-                  alt="Certificate"
-                  className="manage-upgrade-document-img"
-                />
+                {selectedRequest.imgCertificatePractice ? (
+                  Array.isArray(selectedRequest.imgCertificatePractice) ? (
+                    selectedRequest.imgCertificatePractice.map((img, index) => (
+                      <img
+                        key={index}
+                        src={img}
+                        alt={`Certificate ${index + 1}`}
+                        className="manage-upgrade-document-img"
+                      />
+                    ))
+                  ) : (
+                    <img
+                      src={selectedRequest.imgCertificatePractice}
+                      alt="Certificate"
+                      className="manage-upgrade-document-img"
+                    />
+                  )
+                ) : (
+                  <p>Không có ảnh</p>
+                )}
+
                 <p><strong>CMND/CCCD:</strong></p>
-                <img
-                  src={selectedRequest.imgCCCD}
-                  alt="CCCD"
-                  className="manage-upgrade-document-img"
-                />
+                {selectedRequest.imgCCCD ? (
+                  Array.isArray(selectedRequest.imgCCCD) ? (
+                    selectedRequest.imgCCCD.map((img, index) => (
+                      <img
+                        key={index}
+                        src={img}
+                        alt={`CCCD ${index + 1}`}
+                        className="manage-upgrade-document-img"
+                      />
+                    ))
+                  ) : (
+                    <img
+                      src={selectedRequest.imgCCCD}
+                      alt="CCCD"
+                      className="manage-upgrade-document-img"
+                    />
+                  )
+                ) : (
+                  <p>Không có ảnh</p>
+                )}
+
                 <p><strong>Giấy chứng chỉ hành nghề yêu cầu bổ sung:</strong></p>
-                <img
-                  src={selectedRequest.supplementaryPracticeCertificate}
-                  alt="Certificate"
-                  className="manage-upgrade-document-img"
-                />
+                {selectedRequest.supplementaryPracticeCertificate ? (
+                  Array.isArray(selectedRequest.supplementaryPracticeCertificate) ? (
+                    selectedRequest.supplementaryPracticeCertificate.map((img, index) => (
+                      <img
+                        key={index}
+                        src={img}
+                        alt={`Supplementary Certificate ${index + 1}`}
+                        className="manage-upgrade-document-img"
+                      />
+                    ))
+                  ) : (
+                    <img
+                      src={selectedRequest.supplementaryPracticeCertificate}
+                      alt="Supplementary Certificate"
+                      className="manage-upgrade-document-img"
+                    />
+                  )
+                ) : (
+                  <p>Không có ảnh</p>
+                )}
               </div>
 
-              {selectedRequest.status === "pending" && (
+              {selectedRequest.status === "In review" && (
                 <div className="manage-upgrade-reject-section">
                   <label>Lý do từ chối:</label>
                   <textarea

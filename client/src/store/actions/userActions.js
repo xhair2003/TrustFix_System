@@ -745,7 +745,7 @@ export const processMonthlyFee = () => async (dispatch, getState) => {
 
 
 // Action creator để thanh toán dịch vụ VIP
-export const purchaseVip = (vipId) => async (dispatch, getState) => {
+export const purchaseVip = (vip_id) => async (dispatch, getState) => {
     // Lấy token từ state (giả sử lưu trong Redux từ quá trình đăng nhập)
     const token = getState().auth.token || localStorage.getItem('token');
     try {
@@ -754,7 +754,7 @@ export const purchaseVip = (vipId) => async (dispatch, getState) => {
         // Gọi API thực tế
         const response = await axios.post(
             'http://localhost:8080/api/repairman/buy-vip-package', // Ví dụ endpoint
-            { vipId }, // Dữ liệu gửi lên (nếu có, bạn có thể thêm vào đây)
+            { vip_id }, // Dữ liệu gửi lên (nếu có, bạn có thể thêm vào đây)
             {
                 headers: { Authorization: `Bearer ${token}` },
             }

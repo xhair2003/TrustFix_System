@@ -737,7 +737,7 @@ const addSecondCertificate = async (req, res) => {
     if (repairmanRequest.status !== "Active" && repairmanRequest.status !== "Inactive") {
       return res.status(400).json({
         EC: 0,
-        EM: "Chỉ có thể thêm chứng chỉ bổ sung khi trạng thái là 'Active'! và 'Inactive'",
+        EM: "Chỉ có thể yêu cầu bổ sung chứng chỉ khi không nhận đơn hàng nào !",
       });
     }
 
@@ -751,7 +751,7 @@ const addSecondCertificate = async (req, res) => {
 
     res.status(200).json({
       EC: 1,
-      EM: "Thêm chứng chỉ bổ sung thành công và trạng thái đã được cập nhật!",
+      EM: "Yêu cầu bổ sung chứng chỉ thành công !",
       DT: repairmanRequest,
     });
   } catch (error) {

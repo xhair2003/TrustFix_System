@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './UpdateInfo.scss';
 import { FaCheck } from "react-icons/fa";
+import { requestSupplementaryPracticeCertificate, resetError, resetSuccess } from '../../../store/actions/userActions';
+import { useDispatch, useSelector } from 'react-redux';
+import Swal from "sweetalert2";
+import Loading from '../../../component/Loading/Loading';
 
 const UpdateInfo = ({ initialData, onSave }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, successSupplementary, errorSupplementary } = useSelector((state) => state.user);
 
   const [personalInfo, setPersonalInfo] = useState({
     firstName: initialData.firstName || '',
@@ -16,12 +22,45 @@ const UpdateInfo = ({ initialData, onSave }) => {
     imgAvt: initialData.imgAvt || '',
     balance: initialData.balance || 0,
     type: initialData.type || '',
+    certificates: initialData.certificates || [],
   });
 
   const [phoneError, setPhoneError] = useState('');
   const [phoneValid, setPhoneValid] = useState(false);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [newCertificates, setNewCertificates] = useState([]);
+
+  useEffect(() => {
+    if (successSupplementary) {
+      Swal.fire({
+        title: "Thành công",
+        text: successSupplementary,
+        icon: "info",
+        timer: 5000,
+        showConfirmButton: false,
+        showCloseButton: false,
+        timerProgressBar: true,
+      }).then(() => {
+        setNewCertificates([]);
+        setShowCertificateModal(false);
+        dispatch(resetSuccess());
+      });
+    }
+    if (errorSupplementary) {
+      Swal.fire({
+        title: "Lỗi",
+        text: errorSupplementary,
+        icon: "error",
+        timer: 5000,
+        showConfirmButton: false,
+        showCloseButton: false,
+        timerProgressBar: true,
+      });
+      dispatch(resetError());
+    }
+  }, [dispatch, successSupplementary, errorSupplementary]);
+
+  if (loading) return <Loading />;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -64,20 +103,17 @@ const UpdateInfo = ({ initialData, onSave }) => {
     const maxFiles = 4;
     const maxSize = 10 * 1024 * 1024; // 10MB in bytes
 
-    // Kiểm tra số lượng file
     if (files.length + newCertificates.length > maxFiles) {
       alert(`Bạn chỉ có thể tải lên tối đa ${maxFiles} ảnh!`);
       return;
     }
 
     const newCerts = files.map((file) => {
-      // Kiểm tra định dạng file
       if (!validTypes.includes(file.type)) {
         alert('Vui lòng chỉ tải lên ảnh định dạng JPG, PNG hoặc JPEG!');
         return null;
       }
 
-      // Kiểm tra kích thước file
       if (file.size > maxSize) {
         alert(`Kích thước file ${file.name} vượt quá 10MB!`);
         return null;
@@ -86,19 +122,10 @@ const UpdateInfo = ({ initialData, onSave }) => {
       return {
         file: file,
         preview: URL.createObjectURL(file),
-        description: '',
       };
     }).filter((cert) => cert !== null);
 
     setNewCertificates((prev) => [...prev, ...newCerts]);
-  };
-
-  const handleCertificateDescription = (index, value) => {
-    setNewCertificates(prev => {
-      const updated = [...prev];
-      updated[index].description = value;
-      return updated;
-    });
   };
 
   const handleRemoveCertificate = (index) => {
@@ -106,12 +133,20 @@ const UpdateInfo = ({ initialData, onSave }) => {
   };
 
   const handleSaveCertificates = () => {
-    setPersonalInfo(prev => ({
-      ...prev,
-      certificates: [...(prev.certificates || []), ...newCertificates]
-    }));
-    setNewCertificates([]);
-    setShowCertificateModal(false);
+    if (newCertificates.length === 0) {
+      Swal.fire({
+        title: "Thông báo",
+        text: "Vui lòng tải lên ít nhất một chứng chỉ!",
+        icon: "warning",
+        timer: 3000,
+        showConfirmButton: false,
+        timerProgressBar: true,
+      });
+      return;
+    }
+
+    const certificateFiles = newCertificates.map(cert => cert.file);
+    dispatch(requestSupplementaryPracticeCertificate(certificateFiles));
   };
 
   const handleSave = () => {
@@ -202,7 +237,7 @@ const UpdateInfo = ({ initialData, onSave }) => {
           <label className="label">Vai trò</label>
           <input
             readOnly
-            type="int"
+            type="text"
             name="status"
             value={personalInfo.type === 'customer' ? 'Khách hàng' : 'Thợ'}
             className="input-field"
@@ -213,8 +248,8 @@ const UpdateInfo = ({ initialData, onSave }) => {
             </button>
           )}
           {personalInfo.type !== 'customer' && (
-            <button 
-              className="deposit_bt" 
+            <button
+              className="deposit_bt"
               onClick={() => setShowCertificateModal(true)}
             >
               Thêm chứng chỉ
@@ -272,7 +307,7 @@ const UpdateInfo = ({ initialData, onSave }) => {
                   const files = Array.from(e.dataTransfer.files);
                   handleCertificateUpload({ target: { files } });
                 }}
-                onClick={() => document.querySelector('.certificate-upload').click()} // Cho phép click để mở file input
+                onClick={() => document.querySelector('.certificate-upload').click()}
               >
                 <p>Nhấn vào đây hoặc kéo thả file để tải lên</p>
                 <p className="upload-limits">(Tối đa 4 file, 10 MB mỗi file, tổng 40 MB)</p>
@@ -282,19 +317,13 @@ const UpdateInfo = ({ initialData, onSave }) => {
                   multiple
                   onChange={handleCertificateUpload}
                   className="certificate-upload"
-                  style={{ display: 'none' }} // Ẩn input, chỉ hiển thị khu vực kéo-thả
+                  style={{ display: 'none' }}
                 />
               </div>
               <div className="certificates-preview">
                 {newCertificates.map((cert, index) => (
                   <div key={index} className="certificate-item">
                     <img src={cert.preview} alt="Chứng chỉ" className="certificate-image" />
-                    <textarea
-                      value={cert.description}
-                      onChange={(e) => handleCertificateDescription(index, e.target.value)}
-                      placeholder="Mô tả chứng chỉ"
-                      className="certificate-description"
-                    />
                     <button
                       className="remove-certificate"
                       onClick={() => handleRemoveCertificate(index)}

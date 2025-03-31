@@ -176,17 +176,48 @@ const ManageUpgradeRepairman = () => {
               <p><strong>Loại dịch vụ:</strong> {selectedRequest.serviceIndustry_id.type}</p>
               <div className="manage-upgrade-documents">
                 <p><strong>Giấy chứng nhận thực hành:</strong></p>
-                <img
-                  src={selectedRequest.imgCertificatePractice}
-                  alt="Certificate"
-                  className="manage-upgrade-document-img"
-                />
+                {selectedRequest.imgCertificatePractice ? (
+                  Array.isArray(selectedRequest.imgCertificatePractice) ? (
+                    selectedRequest.imgCertificatePractice.map((img, index) => (
+                      <img
+                        key={index}
+                        src={img}
+                        alt={`Certificate ${index + 1}`}
+                        className="manage-upgrade-document-img"
+                      />
+                    ))
+                  ) : (
+                    <img
+                      src={selectedRequest.imgCertificatePractice}
+                      alt="Certificate"
+                      className="manage-upgrade-document-img"
+                    />
+                  )
+                ) : (
+                  <p>Không có ảnh</p>
+                )}
+
                 <p><strong>CMND/CCCD:</strong></p>
-                <img
-                  src={selectedRequest.imgCCCD}
-                  alt="CCCD"
-                  className="manage-upgrade-document-img"
-                />
+                {selectedRequest.imgCCCD ? (
+                  Array.isArray(selectedRequest.imgCCCD) ? (
+                    selectedRequest.imgCCCD.map((img, index) => (
+                      <img
+                        key={index}
+                        src={img}
+                        alt={`CCCD ${index + 1}`}
+                        className="manage-upgrade-document-img"
+                      />
+                    ))
+                  ) : (
+                    <img
+                      src={selectedRequest.imgCCCD}
+                      alt="CCCD"
+                      className="manage-upgrade-document-img"
+                    />
+                  )
+                ) : (
+                  <p>Không có ảnh</p>
+                )}
               </div>
               {selectedRequest.status === "pending" && (
                 <div className="manage-upgrade-reject-section">

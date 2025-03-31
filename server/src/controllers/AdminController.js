@@ -1,7 +1,26 @@
 const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
 const nodemailer = require('nodemailer'); // Import nodemailer để gửi email
-const { sendEmail } = require("../constants");
+
+const sendEmail = async (to, subject, htmlContent) => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+        }
+    });
+
+    // Định nghĩa mailOptions
+    const mailOptions = {
+        from: process.env.EMAIL_USER, // Người gửi
+        to: to,                       // Người nhận
+        subject: subject,            // Chủ đề email
+        html: htmlContent            // Nội dung HTML
+    };
+
+    await transporter.sendMail(mailOptions);
+};
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -1538,7 +1557,7 @@ const getCompletedRequestsCount = async (req, res) => {
         res.status(200).json({
             EC: 1,
             EM: "Lấy số lượng đơn hàng hoàn thành thành công!",
-            DT: completedCount
+            DT: completedCount.length
         });
     } catch (err) {
         console.error("Lỗi khi lấy số lượng đơn hàng hoàn thành:", err);
@@ -1556,7 +1575,7 @@ const getConfirmedRequestsCount = async (req, res) => {
         res.status(200).json({
             EC: 1,
             EM: "Lấy số lượng đơn hàng đã xác nhận thành công!",
-            DT: confirmedCount
+            DT: confirmedCount.length
         });
     } catch (err) {
         console.error("Lỗi khi lấy số lượng đơn hàng đã xác nhận:", err);
@@ -1574,7 +1593,7 @@ const getPendingRequestsCount = async (req, res) => {
         res.status(200).json({
             EC: 1,
             EM: "Lấy số lượng đơn hàng đang chờ thành công!",
-            DT: pendingCount
+            DT: pendingCount.length
         });
     } catch (err) {
         console.error("Lỗi khi lấy số lượng đơn hàng đang chờ:", err);
@@ -1592,7 +1611,7 @@ const getCancelledRequestsCount = async (req, res) => {
         res.status(200).json({
             EC: 1,
             EM: "Lấy số lượng đơn hàng đã hủy thành công!",
-            DT: cancelledCount
+            DT: cancelledCount.length
         });
     } catch (err) {
         console.error("Lỗi khi lấy số lượng đơn hàng đã hủy:", err);
@@ -1610,7 +1629,7 @@ const getMakePaymentRequestsCount = async (req, res) => {
         res.status(200).json({
             EC: 1,
             EM: "Lấy số lượng đơn hàng cần thanh toán thành công!",
-            DT: makePaymentCount
+            DT: makePaymentCount.length
         });
     } catch (err) {
         console.error("Lỗi khi lấy số lượng đơn hàng cần thanh toán:", err);
@@ -1628,7 +1647,7 @@ const getDealPriceRequestsCount = async (req, res) => {
         res.status(200).json({
             EC: 1,
             EM: "Lấy số lượng đơn hàng đã thỏa thuận giá thành công!",
-            DT: dealPriceCount
+            DT: dealPriceCount.length
         });
     } catch (err) {
         console.error("Lỗi khi lấy số lượng đơn hàng đã thỏa thuận giá:", err);
@@ -1648,7 +1667,7 @@ const getPendingComplaintsCount = async (req, res) => {
         res.status(200).json({
             EC: 1,
             EM: "Lấy tổng số khiếu nại đang chờ xử lý thành công!",
-            DT: pendingCount
+            DT: pendingCount.length
         });
     } catch (error) {
         console.error("Error getting pending complaints count:", error);
@@ -1668,7 +1687,7 @@ const getPendingUpgradeRequestsCount = async (req, res) => {
         res.status(200).json({
             EC: 1,
             EM: "Lấy tổng số yêu cầu nâng cấp tài khoản thợ đang chờ xử lý thành công!",
-            DT: pendingCount
+            DT: pendingCount.length
         });
     } catch (error) {
         console.error("Error getting pending complaints count:", error);
@@ -1767,12 +1786,12 @@ const viewPendingSupplementaryCertificates = async (req, res) => {
             .populate("serviceIndustry_id", "type") // Populate service industry details
             .populate("vip_id", "name price"); // Populate VIP details if applicable
 
-        if (!pendingCertificates || pendingCertificates.length === 0) {
-            return res.status(404).json({
-                EC: 0,
-                EM: "Không có yêu cầu nào đang ở trạng thái 'In review'!",
-            });
-        }
+        // if (!pendingCertificates || pendingCertificates.length === 0) {
+        //     return res.status(404).json({
+        //         EC: 0,
+        //         EM: "Không có yêu cầu nào đang ở trạng thái 'In review'!",
+        //     });
+        // }
 
         res.status(200).json({
             EC: 1,
@@ -1996,7 +2015,7 @@ const getMostUsedVipService = async (req, res) => {
         res.status(200).json({
             EC: 1,
             EM: "Lấy loại VIP phổ biến được thợ sử dụng nhiều nhất thành công!",
-            DT: result[0]
+            DT: result[0].vip_name
         });
     } catch (error) {
         res.status(500).json({

@@ -547,6 +547,28 @@ const adminReducer = (state = initialState, action) => {
                 totalServicesByIndustry: [] // Reset để tránh dữ liệu cũ gây lỗi
             };
 
+
+        case "GET_MOST_USED_VIP_SERVICE_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "GET_MOST_USED_VIP_SERVICE_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                mostUsedVipService: action.payload,
+                error: null,
+            };
+        case "GET_MOST_USED_VIP_SERVICE_FAIL":
+            return {
+                ...state,
+                loading: false,
+                mostUsedVipService: null,
+                error: action.payload,
+            };
+
+
         // Handle total service prices
         case "REQUEST_TOTAL_SERVICE_PRICES":
             return { ...state, loading: true };
@@ -598,6 +620,9 @@ const adminReducer = (state = initialState, action) => {
                 successVerifySupplementary: null,
                 errorVerifySupplementary: action.payload,
             };
+
+
+
 
 
         case "RESET_ERROR":
