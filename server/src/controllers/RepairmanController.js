@@ -680,6 +680,9 @@ const registerVipPackage = async (req, res) => {
     repairmanUpgradeRequest.expiredAt = newExpiryDate;
     await repairmanUpgradeRequest.save();
 
+    // Generate a random payCode
+    const payCode = `VIP-${Math.random().toString(36).substr(2, 8).toUpperCase()}-${Date.now()}`;
+
     // Save the transaction details
     const transaction = new Transaction({
       wallet_id: wallet._id,
@@ -688,6 +691,7 @@ const registerVipPackage = async (req, res) => {
       content: `Thanh toán gói VIP: ${vipPackage.name} cho ${months} tháng`,
       status: 1, // Success
       balanceAfterTransact: wallet.balance,
+      payCode, // Add the generated payCode
     });
     await transaction.save();
 

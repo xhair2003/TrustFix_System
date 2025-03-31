@@ -107,4 +107,6 @@ router.get("/view-all-monthly-payment", AuthMiddleware.verifyAdmin, AdminControl
 
 router.get("/view-vip-services/most-used", AuthMiddleware.verifyAdmin, AdminController.getMostUsedVipService);
 
+router.get("/view-profit", AuthMiddleware.verifyAdmin, AdminController.getAllProfit);
+
 module.exports = router;    
