@@ -1,33 +1,57 @@
-import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import Loading from "../../../component/Loading/Loading";
 import "./RepairmanOrderDetail.css";
+import { confirmRequestRepairman, resetError, resetSuccess } from "../../../store/actions/userActions.js";
 
 const RepairmanOrderDetail = () => {
+    const dispatch = useDispatch();
     const location = useLocation();
-    const { customerRequest } = location.state || {}; // Extract customerRequest from state
+    const { customerRequest } = location.state || {};
+    const { loading, successConfirmRequestRepairman, errorConfirmRequestRepairman } = useSelector(state => state.user);
+    const [isCompleted, setIsCompleted] = useState(false);
 
-    const [isCompleted, setIsCompleted] = useState(false); // Track if the repair is confirmed as completed
+    useEffect(() => {
+        if (successConfirmRequestRepairman) {
+            Swal.fire({
+                title: "Thành công",
+                text: successConfirmRequestRepairman, // EM là string từ backend
+                icon: "success",
+                timer: 5000,
+                showConfirmButton: false,
+                timerProgressBar: true,
+                showCloseButton: false,
+            });
+            setIsCompleted(true); // Ẩn nút sau khi confirm thành công
+            dispatch(resetSuccess());
+        }
 
-    // Handle "Xác nhận hoàn tất sửa chữa" button click
+        if (errorConfirmRequestRepairman) {
+            Swal.fire({
+                title: "Lỗi",
+                text: errorConfirmRequestRepairman, // EM là string từ backend
+                icon: "error",
+                timer: 5000,
+                showConfirmButton: false,
+                timerProgressBar: true,
+                showCloseButton: false,
+            });
+            dispatch(resetError());
+        }
+    }, [successConfirmRequestRepairman, errorConfirmRequestRepairman, dispatch]);
+
     const handleConfirmCompletion = () => {
-        // Placeholder for confirmation logic (e.g., API call to update request status)
-        setIsCompleted(true);
-        Swal.fire({
-            icon: "success",
-            title: "Thành công",
-            text: "Bạn đã xác nhận hoàn tất sửa chữa!",
-            timer: 5000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-            showCloseButton: false,
-        });
+        dispatch(confirmRequestRepairman()); // Không cần truyền confirmData
     };
 
     if (!customerRequest) {
         return <div>Không tìm thấy thông tin đơn hàng hoặc khách hàng.</div>;
+    }
+
+    if (loading) {
+        return <Loading />;
     }
 
     const customer = customerRequest.user_id || {};
@@ -35,7 +59,6 @@ const RepairmanOrderDetail = () => {
 
     return (
         <div className="repairman-order-detail-container">
-            {/* Notification Message */}
             <div className="notification-banner">
                 <p>
                     Khách hàng <strong>{fullName}</strong> đã chốt giá của bạn. Hãy tới địa chỉ{" "}
@@ -43,18 +66,12 @@ const RepairmanOrderDetail = () => {
                 </p>
             </div>
 
-            {/* Customer and Request Details */}
             <div className="order-detail-content">
-                {/* Customer Information */}
                 <div className="section customer-info">
                     <h2 className="section-title">Thông tin khách hàng</h2>
                     <div className="customer-header">
                         {customer.imgAvt && (
-                            <img
-                                src={customer.imgAvt}
-                                alt={fullName}
-                                className="customer-avatar"
-                            />
+                            <img src={customer.imgAvt} alt={fullName} className="customer-avatar" />
                         )}
                         <div className="customer-details">
                             <h3 className="customer-name">{fullName}</h3>
@@ -64,7 +81,6 @@ const RepairmanOrderDetail = () => {
                     </div>
                 </div>
 
-                {/* Request Information */}
                 <div className="section request-info">
                     <h2 className="section-title">Thông tin đơn hàng</h2>
                     <div className="info-item">
@@ -96,11 +112,14 @@ const RepairmanOrderDetail = () => {
                 </div>
             </div>
 
-            {/* Action Button */}
             <div className="action-buttons">
                 {!isCompleted && (
-                    <button className="confirm-btn" onClick={handleConfirmCompletion}>
-                        Xác nhận hoàn tất sửa chữa
+                    <button
+                        className="confirm-btn"
+                        onClick={handleConfirmCompletion}
+                        disabled={loading}
+                    >
+                        {loading ? "Đang xử lý..." : "Xác nhận hoàn tất sửa chữa"}
                     </button>
                 )}
             </div>

@@ -100,6 +100,8 @@ const UpgradeRepairman = () => {
                 icon: "success",
                 timer: 5000,
                 showConfirmButton: false,
+                timerProgressBar: true,
+                showCloseButton: false,
             });
             dispatch(resetSuccess()); // Reset success message after showing it
         }
@@ -111,6 +113,8 @@ const UpgradeRepairman = () => {
                 icon: "error",
                 timer: 5000,
                 showConfirmButton: false,
+                timerProgressBar: true,
+                showCloseButton: false,
             });
             dispatch(resetError()); // Reset error message after showing it
         }

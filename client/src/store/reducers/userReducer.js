@@ -49,6 +49,9 @@ const initialState = {
 
     successConfirmRequest: null,
     errorConfirmRequest: null,
+
+    successConfirmRequestRepairman: null,
+    errorConfirmRequestRepairman: null,
 };
 
 const userReducer = (state = initialState, action) => {
@@ -502,6 +505,26 @@ const userReducer = (state = initialState, action) => {
             };
 
 
+        case "CONFIRM_REQUEST_REPAIRMAN_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "CONFIRM_REQUEST_REPAIRMAN_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                successConfirmRequestRepairman: action.payload,
+                errorConfirmRequestRepairman: null
+            };
+        case "CONFIRM_REQUEST_REPAIRMAN_FAIL":
+            return {
+                ...state,
+                loading: false,
+                successConfirmRequestRepairman: null,
+                errorConfirmRequestRepairman: action.payload
+            };
+
 
         case "RESET_ERROR":
             return {
@@ -532,7 +555,9 @@ const userReducer = (state = initialState, action) => {
 
                 errorRequest: null,
 
-                errorConfirmRequest: null
+                errorConfirmRequest: null,
+
+                errorConfirmRequestRepairman: null,
             };
         case "RESET_SUCCESS":
             return {
@@ -558,6 +583,8 @@ const userReducer = (state = initialState, action) => {
                 successRequest: null,
 
                 successConfirmRequest: null,
+
+                successConfirmRequestRepairman: null,
             };
         default:
             return state;
