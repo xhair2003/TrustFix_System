@@ -122,7 +122,7 @@ const ViewRequests = () => {
                         Xem chi tiết
                     </button>
                 </div>
-            ) : request && request.status === "Deal price" ? (
+            ) : request && (request.status === "Deal price" || request.status === "Done deal price") ? (
                 <div className="request-card">
                     <div className="request-header">
                         <h3 className="request-title">Đơn hàng chờ chốt giá</h3>

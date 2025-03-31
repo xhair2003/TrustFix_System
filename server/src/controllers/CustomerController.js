@@ -1224,10 +1224,10 @@ const confirmRequest = async (req, res) => {
         EM: "Không thấy ví của thợ",
       })
     }
-    const duePrice = await DuePrice.findOne({request_id: request._id});
-    const price = await Price.findOne({duePrice_id: duePrice._id});
+    const duePrice = await DuePrice.findOne({ request_id: request._id });
+    const price = await Price.findOne({ duePrice_id: duePrice._id });
 
-    if(confirm === "Completed" || (new Date() - request.updatedAt) / (1000 * 60 * 60) > 12){
+    if (confirm === "Completed" || (new Date() - request.updatedAt) / (1000 * 60 * 60) > 12) {
 
 
       // Credit to repairman wallet
@@ -1250,7 +1250,7 @@ const confirmRequest = async (req, res) => {
         await sendEmail(request.repairman_id.user_id.email, "Đơn hàng đã hoàn thành",
           `<p>Chào ${request.repairman_id.user_id.firstName} ${request.repairman_id.user_id.lastName},</p>
             <p>Đơn hàng ${request._id} đã được xác nhận hoàn thành</strong>.</p>
-            <p>Số tiền ${price.priceToPay*0.85} đã được chuyển về ví của bạn</p>`
+            <p>Số tiền ${price.priceToPay * 0.85} đã được chuyển về ví của bạn</p>`
         );
       } else {
         console.error("Không thể gửi email xác nhận hoàn thành đơn hàng vì thiếu thông tin người nhận.");
@@ -1262,7 +1262,7 @@ const confirmRequest = async (req, res) => {
       res.status(201).json({
         EC: 1,
         EM: "Cảm ơn bạn đã tin tưởng sử dụng dịch vụ của chúng tôi, đơn hàng của bạn đã được xác nhận thành công",
-        
+
       })
     }
   } catch (error) {

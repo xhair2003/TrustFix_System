@@ -4,9 +4,10 @@ import { dealPrice, resetError, resetSuccess } from "../../../store/actions/user
 import Loading from "../../../component/Loading/Loading";
 import Swal from "sweetalert2";
 import "./DetailRequest.css";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
-const DetailRequest = ({ request, onClose }) => {
+const DetailRequest = () => {
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const location = useLocation();
     const { loading, errorViewRequest, errorDealPrice, successDealPrice } = useSelector((state) => state.user);
@@ -43,9 +44,9 @@ const DetailRequest = ({ request, onClose }) => {
                 showConfirmButton: false,
             });
             dispatch(resetSuccess());
-            // onClose(); // Đóng modal khi thành công
+            navigate('/repairman/view-requests');
         }
-    }, [errorDealPrice, successDealPrice, errorViewRequest, dispatch]);
+    }, [errorDealPrice, successDealPrice, errorViewRequest, dispatch, navigate]);
 
     const shortenAddress = (address) => {
         const parts = address.split(", ");
