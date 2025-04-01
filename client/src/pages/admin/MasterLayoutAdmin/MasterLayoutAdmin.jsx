@@ -1,22 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './MasterLayoutAdmin.css';
 import adminImage from '../../../assets/Images/user.jpg'; // Placeholder for admin image
 import { FaHome, FaUsers, FaHistory, FaExclamationCircle, FaWallet, FaStar, FaCertificate, FaFileAlt, FaArrowLeft, FaFolder } from 'react-icons/fa'; // Thêm FaFolder
 import { useNavigate } from 'react-router-dom';
 import logo from '../../../assets/Images/logo.png';
 import onlyLogo from '../../../assets/Images/onlyLogo.jpg';
-import { useDispatch } from 'react-redux';
 import { logout } from '../../../store/actions/authActions';
+import { useDispatch, useSelector } from 'react-redux';
+import { getUserInfo, resetError } from '../../../store/actions/userActions';
+import Swal from "sweetalert2";
+import Loading from '../../../component/Loading/Loading';
 
 const MasterLayoutAdmin = ({ children }) => {
     const dispatch = useDispatch();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [selectedItem, setSelectedItem] = useState('overview'); // Default to 'overview'
     const navigate = useNavigate();
+    const { userInfo, loading, error } = useSelector((state) => state.user); // Lấy thông tin từ Redux
 
     const toggleSidebar = () => {
         setIsCollapsed(!isCollapsed);
     };
+
+    // Nếu userInfo chưa có, hiển thị thông báo hoặc giá trị mặc định
+    useEffect(() => {
+        if (!userInfo) {
+            dispatch(getUserInfo()); // Gọi action để lấy thông tin người dùng nếu chưa có
+        }
+    }, [dispatch, userInfo]); // Thêm userInfo vào dependency để re-fetch nếu cần
+
+    useEffect(() => {
+        if (error) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi",
+                text: error,
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                showCloseButton: false,
+            }).then(() => {
+                dispatch(resetError());
+            });
+        }
+    }, [error, dispatch]);
 
     const handleItemClick = (item) => {
         setSelectedItem(item.name);
@@ -28,6 +55,12 @@ const MasterLayoutAdmin = ({ children }) => {
         navigate('/login');
     };
 
+    // Kiểm tra userInfo trước khi truy cập thuộc tính
+    const username = userInfo ? `${userInfo.firstName} ${userInfo.lastName}` : "Người dùng chưa đăng nhập";
+    const email = userInfo ? `${userInfo.email}` : "Chưa có email";
+
+    // if (loading) { return <Loading /> }
+
     return (
         <div className="master-layout">
             <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -38,8 +71,8 @@ const MasterLayoutAdmin = ({ children }) => {
                         <img src={adminImage} alt="Admin" className="user-image" />
                         {!isCollapsed && (
                             <>
-                                <h2>ImDew</h2>
-                                <p>dewgotthebag@admin.vn</p>
+                                <h2>{username}</h2>
+                                <p>{email}</p>
                             </>
                         )}
                     </div>

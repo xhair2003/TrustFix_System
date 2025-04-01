@@ -638,6 +638,7 @@ const sendRequest = async (req, res, next) => {
 
 const findRepairman = async (req, res) => {
   try {
+    const io = req.app.get('io'); // Lấy io từ app (sẽ cấu hình trong index.js)
     const requestId = req.savedRequest.requestId;
     const { radius, minPrice, maxPrice } = req.body; // Get radius from request parameters
     const gomapApiKey = process.env.GOMAPS_API_KEY;
@@ -798,6 +799,10 @@ const findRepairman = async (req, res) => {
         if (!assignedRepairman) {
           assignedRepairman = repairman; // Assign the first repairman as assignedRepairman for response
         }
+
+        // Gửi thông báo WebSocket tới thợ (không gửi dữ liệu chi tiết)
+        console.log('Sending newRequest to repairman:', repairman._id.toString());
+        io.to(repairman._id.toString()).emit('newRequest');
       }
     }
     const newDuePrice = new DuePrice({
@@ -805,7 +810,7 @@ const findRepairman = async (req, res) => {
       minPrice: minPrice,
       maxPrice: maxPrice,
     });
-    const saveDuePrice = await newDuePrice.save(); // Lưu Due_price
+    await newDuePrice.save(); // Lưu Due_price
     //const deal_price = minPrice + "  " + maxPrice;
 
     res.status(200).json({
@@ -947,6 +952,7 @@ const viewRepairmanDeal = async (req, res) => {
 };
 const assignedRepairman = async (req, res) => {
   try {
+    const io = req.app.get('io'); // Lấy io từ app (sẽ cấu hình trong index.js)
     const userId = req.user.id; // Customer ID from token
     const { repairmanId, requestId } = req.params;
     //const { requestId } = req.body;
@@ -1126,6 +1132,11 @@ const assignedRepairman = async (req, res) => {
           await Request.deleteOne({ _id: childRequest._id });
         }));
       }
+
+      // Gửi thông báo WebSocket tới thợ (không gửi dữ liệu chi tiết)
+      const repairmanUserId = repairmanInfor._id.toString();
+      console.log('Sending repairmanAssigned to repairman:', repairmanUserId);
+      io.to(repairmanUserId).emit('repairmanAssigned');
 
       res.status(200).json({
         EC: 1,

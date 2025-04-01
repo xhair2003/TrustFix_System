@@ -149,6 +149,7 @@ import SearchBar from "../../../component/users/SearchBar/SearchBar";
 import RepairmanList from "../../../component/users/customer/FindComponent/RepairmanList";
 import { viewRepairmanDeal } from "../../../store/actions/userActions.js";
 import "./FindRepairman.css";
+import socket from "../../../socket"; // Import socket
 
 const FindRepairman = () => {
   const dispatch = useDispatch();
@@ -242,6 +243,20 @@ const FindRepairman = () => {
 
     setTimeout(() => setIsAnimating(false), 1500);
   };
+
+  // Lắng nghe WebSocket và gọi API khi có thông báo
+  useEffect(() => {
+    if (finalRequestId) {
+      socket.on('dealPriceUpdate', () => {
+        console.log('Deal price update received');
+        dispatch(viewRepairmanDeal(finalRequestId)); // Gọi API để lấy danh sách mới nhất
+      });
+    }
+
+    return () => {
+      socket.off('dealPriceUpdate');
+    };
+  }, [finalRequestId, dispatch]);
 
   return (
     <div className="find-repairman-container">

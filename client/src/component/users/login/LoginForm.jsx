@@ -20,7 +20,7 @@ const LoginForm = () => {
   // console.log(successLogin);
 
   useEffect(() => {
-    if (errorLogin && typeof errorLogin === 'string') {
+    if (errorLogin) {
       Swal.fire({
         icon: 'error',
         title: 'Lỗi!',

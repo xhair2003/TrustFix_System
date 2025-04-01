@@ -176,6 +176,7 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch, onDataChange }
             maxPrice,
         };
 
+        console.log('Image files to send:', imageFiles);
         dispatch(findRepairman(requestData, imageFiles));
     };
 

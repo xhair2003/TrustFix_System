@@ -6,8 +6,9 @@ import logo from "../../../assets/Images/logo.png";
 import onlyLogo from "../../../assets/Images/onlyLogo.jpg";
 import { logout } from '../../../store/actions/authActions';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserInfo } from '../../../store/actions/userActions';
+import { getUserInfo, resetError } from '../../../store/actions/userActions';
 import Loading from '../../../component/Loading/Loading';
+import Swal from "sweetalert2";
 
 const MasterLayoutUser = ({ children }) => {
     const role = useSelector(state => state.auth.role) || localStorage.getItem('role');
@@ -15,7 +16,7 @@ const MasterLayoutUser = ({ children }) => {
     const [selectedItem, setSelectedItem] = useState(null);
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { userInfo, loading } = useSelector((state) => state.user); // Lấy thông tin từ Redux
+    const { userInfo, loading, error } = useSelector((state) => state.user); // Lấy thông tin từ Redux
 
     // Nếu userInfo chưa có, hiển thị thông báo hoặc giá trị mặc định
     useEffect(() => {
@@ -23,6 +24,22 @@ const MasterLayoutUser = ({ children }) => {
             dispatch(getUserInfo()); // Gọi action để lấy thông tin người dùng nếu chưa có
         }
     }, [dispatch, userInfo]); // Thêm userInfo vào dependency để re-fetch nếu cần
+
+    useEffect(() => {
+        if (error) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi",
+                text: error,
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                showCloseButton: false,
+            }).then(() => {
+                dispatch(resetError());
+            });
+        }
+    }, [error, dispatch]);
 
     const toggleSidebar = () => {
         setIsCollapsed(!isCollapsed);

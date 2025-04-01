@@ -8,6 +8,19 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 // Khởi tạo express app
 const app = express();
+const { Server } = require('socket.io');
+const jwt = require('jsonwebtoken');
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+    cors: {
+        origin: process.env.CLIENT_URL || 'http://localhost:3000',
+        methods: ['GET', 'POST'],
+        credentials: true
+    }
+});
+
+// Lưu io vào app để dùng trong controller
+app.set('io', io);
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -76,6 +89,28 @@ app.use((err, req, res, next) => {
     });
 });
 
+// WebSocket middleware và logic
+io.use((socket, next) => {
+    const token = socket.handshake.auth.token;
+    if (!token) return next(new Error('Authentication error: No token provided'));
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_ACCESS_KEY);
+        socket.user = decoded;
+        socket.join(decoded.id.toString()); // Tham gia room dựa trên user ID
+        next();
+    } catch (error) {
+        next(new Error('Authentication error: Invalid token'));
+    }
+});
+
+io.on('connection', (socket) => {
+    console.log('A user connected:', socket.id);
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+});
+
 // MongoDB connection
 const connectDB = async () => {
     try {
@@ -99,8 +134,6 @@ const startServer = async () => {
     try {
         await connectDB();
         const port = process.env.PORT || 8080;
-        const httpServer = createServer(app);
-
         httpServer.listen(port, () => {
             console.log(`Server is running on port ${port}`);
         });
