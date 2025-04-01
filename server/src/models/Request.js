@@ -40,6 +40,7 @@ const RequestSchema = new mongoose.Schema(
         "Deal price",
         "Done deal price",
         "Make payment",
+        "Repairman confirmed completion", //thợ xác nhận đã hoàn thành
         "Proceed with repair",
       ],
     },
@@ -83,10 +84,10 @@ RequestSchema.virtual("serviceIndustry", {
 });
 
 // Virtual for ratings
-RequestSchema.virtual('ratings', {
-  ref: 'Rating',
-  localField: '_id',
-  foreignField: 'request_id'
+RequestSchema.virtual("ratings", {
+  ref: "Rating",
+  localField: "_id",
+  foreignField: "request_id",
 });
 
 // Virtual for images
