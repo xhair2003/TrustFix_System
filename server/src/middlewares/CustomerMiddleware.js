@@ -10,12 +10,14 @@ const {
     Price,
     ServiceIndustry,
     RepairmanUpgradeRequest,
-  } = require("../models");
+} = require("../models");
 
 const viewRepairmanDeal = async (req, res, next) => {
     try {
         const { requestId } = req.params;
         const userId = req.user.id;
+
+        console.log("requestId", requestId);
 
         const requests = await Request.find({
             user_id: userId,
@@ -23,6 +25,11 @@ const viewRepairmanDeal = async (req, res, next) => {
             parentRequest: requestId,
             status: 'Done deal price'
         });
+
+        // console.log("requestId", requestId);
+        // console.log("userId", userId);
+        // console.log("requests", requests);
+        // console.log("requests length", requests.length);
 
         if (!requests || requests.length === 0) {
             return res.status(404).json({

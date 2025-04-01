@@ -67,8 +67,7 @@ const DetailRequest = () => {
         };
         setDealPriceValue("");
         dispatch(dealPrice(requestData.parentRequest, dealData));
-        // onClose(); // Đóng modal
-        window.history.back();
+        navigate(-1); // Go back to the previous page
     };
 
     if (loading) return <Loading />;
