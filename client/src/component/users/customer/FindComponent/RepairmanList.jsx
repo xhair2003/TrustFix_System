@@ -117,16 +117,18 @@ const RepairmanList = ({ repairmanDeals }) => {
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    //console.log(repairmanDeals);
+
     // Xử lý hiển thị chi tiết thợ
     const handleViewDetails = (repairman) => {
         const formattedRepairman = {
             repairmanId: repairman.repairman._id,
-            fullName: `${repairman.repairman.firstName} ${repairman.repairman.lastName}`,
-            profileImage: repairman.repairman.imgAvt || null,
-            description: repairman.repairman.description || "Không có mô tả",
+            fullName: `${repairman.repairman.user_id.firstName} ${repairman.repairman.user_id.lastName}`,
+            profileImage: repairman.repairman.user_id.imgAvt || null,
+            description: repairman.repairman.user_id.description || "Không có mô tả",
             dealPrice: repairman.dealPrice?.priceToPay || 0,
-            certificationImages: repairman.certificationImages || [],
-            bookingCount: repairman.bookingCount || 0,
+            certificationImages: repairman.repairman.certificationImages || [],
+            bookingCount: repairman.repairman.bookingCount || 0,
             reviews: repairman.ratings.map((rating) => ({
                 reviewerName: "Ẩn danh",
                 date: new Date(rating.createdAt).toLocaleDateString("vi-VN"),
@@ -137,7 +139,7 @@ const RepairmanList = ({ repairmanDeals }) => {
         const formattedRequest = {
             requestId: repairman.request._id,
             address: repairman.request.address,
-            image: repairman.request.image || null,
+            image: repairman.request.image || [],
             descriptions: repairman.request.description || "Không có mô tả",
             status: repairman.request.status,
             createdAt: new Date(repairman.request.createdAt).toLocaleDateString("vi-VN"),
@@ -145,6 +147,7 @@ const RepairmanList = ({ repairmanDeals }) => {
         setSelectedRepairman(formattedRepairman);
         setSelectedRequest(formattedRequest);
         setIsModalOpen(true);
+        //console.log("selectedRepairman", selectedRepairman);
     };
 
     // Đóng modal

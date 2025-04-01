@@ -19,6 +19,7 @@ const RepairmanInfoModal = ({ isOpen, onClose, repairman, request }) => {
         reviews = [],
     } = repairman || {};
 
+    //console.log(repairman);
 
     const handleBook = () => {
         onClose();
