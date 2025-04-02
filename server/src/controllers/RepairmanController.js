@@ -811,9 +811,22 @@ const cofirmRequest = async (req, res) => {
         EM: "Không tìm thấy thợ sửa chữa"
       })
     }
+    const request = await Request.findOne({
+      repairman_id: repairman._id,
+      status: "Proceed with repair"
+    })
+    if (!request) {
+      res.status(400).json({
+        EC: 0,
+        EM: "Không tìm thấy đơn hàng sửa chữa"
+      })
+    }
     if (confirm === "Completed") {
       repairman.status = 'Active';
       await repairman.save();
+
+      request.status = 'Repairman confirmed completion';
+      await request.save();
       res.status(201).json({
         EC: 1,
         EM: 'Xác nhận hoàn thành đơn hàng thành công, vui lòng đợi khách hàng xác nhận để nhận tiền'
