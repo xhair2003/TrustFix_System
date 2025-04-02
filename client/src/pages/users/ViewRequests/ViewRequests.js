@@ -180,6 +180,8 @@ const ViewRequests = () => {
     errorRequest,
   } = useSelector((state) => state.user);
 
+  console.log("request", request);
+
   // Load dữ liệu ban đầu
   useEffect(() => {
     dispatch(viewRequest());
@@ -263,9 +265,9 @@ const ViewRequests = () => {
     return parts.slice(1, 4).join(", ");
   };
 
-  const handleViewRequestDetail = (requestData) => {
+  const handleViewRequestDetail = (requestData, status) => {
     navigate(`/repairman/detail-request/${requestData._id}`, {
-      state: { requestData },
+      state: { requestData, status },
     });
   };
 
@@ -329,7 +331,7 @@ const ViewRequests = () => {
           </p>
           <button
             className="view-detail-button"
-            onClick={() => handleViewRequestDetail(request)}
+            onClick={() => handleViewRequestDetail(request, true)}
           >
             Xem chi tiết
           </button>
@@ -357,7 +359,7 @@ const ViewRequests = () => {
           </p>
           <button
             className="view-detail-button"
-            onClick={() => handleViewRequestDetail(request)}
+            onClick={() => handleViewRequestDetail(request, false)}
           >
             Xem chi tiết
           </button>

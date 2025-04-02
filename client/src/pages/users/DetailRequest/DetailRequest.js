@@ -14,44 +14,51 @@ const DetailRequest = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-  const { loading, errorViewRequest, errorDealPrice, successDealPrice } =
+  const { loading, errorDealPrice, successDealPrice } =
     useSelector((state) => state.user);
   const [dealPriceValue, setDealPriceValue] = useState("");
-  const { requestData } = location.state || {};
+  const { requestData, status } = location.state || {};
 
+  // Lấy tất cả deal prices từ localStorage
+  const storedDealPrices = JSON.parse(localStorage.getItem("deal_prices") || "{}");
+  const storedDealPrice = storedDealPrices[requestData.parentRequest];
+
+  // Chỉ chạy useEffect nếu status !== false
   useEffect(() => {
-    if (errorViewRequest) {
-      Swal.fire({
-        title: "Lỗi",
-        text: errorViewRequest,
-        icon: "error",
-        timer: 5000,
-        showConfirmButton: false,
-      });
-      dispatch(resetError());
+    if (status !== false) {
+      if (errorDealPrice) {
+        Swal.fire({
+          title: "Lỗi",
+          text: errorDealPrice,
+          icon: "error",
+          timer: 5000,
+          showConfirmButton: false,
+        });
+        dispatch(resetError());
+      }
+      if (successDealPrice) {
+        Swal.fire({
+          title: "Thành công",
+          text: successDealPrice,
+          icon: "success",
+          timer: 5000,
+          showConfirmButton: false,
+        });
+        // Cập nhật deal_prices trong localStorage
+        const updatedDealPrices = {
+          ...storedDealPrices,
+          [requestData.parentRequest]: dealPriceValue,
+        };
+        const keys = Object.keys(updatedDealPrices);
+        if (keys.length > 100) {
+          delete updatedDealPrices[keys[0]]; // Xóa deal cũ nhất
+        }
+        localStorage.setItem("deal_prices", JSON.stringify(updatedDealPrices));
+        dispatch(resetSuccess());
+        navigate("/repairman/view-requests");
+      }
     }
-    if (errorDealPrice) {
-      Swal.fire({
-        title: "Lỗi",
-        text: errorDealPrice,
-        icon: "error",
-        timer: 5000,
-        showConfirmButton: false,
-      });
-      dispatch(resetError());
-    }
-    if (successDealPrice) {
-      Swal.fire({
-        title: "Thành công",
-        text: successDealPrice,
-        icon: "success",
-        timer: 5000,
-        showConfirmButton: false,
-      });
-      dispatch(resetSuccess());
-      navigate("/repairman/view-requests");
-    }
-  }, [errorDealPrice, successDealPrice, errorViewRequest, dispatch, navigate]);
+  }, [errorDealPrice, successDealPrice, dispatch, navigate, status, dealPriceValue, requestData.parentRequest, storedDealPrices]);
 
   const shortenAddress = (address) => {
     const parts = address.split(", ");
@@ -72,6 +79,14 @@ const DetailRequest = () => {
     };
     setDealPriceValue("");
     dispatch(dealPrice(requestData.parentRequest, dealData));
+    // Xóa deal_price của request này khỏi localStorage
+    const updatedDealPrices = { ...storedDealPrices };
+    delete updatedDealPrices[requestData.parentRequest];
+    localStorage.setItem("deal_prices", JSON.stringify(updatedDealPrices));
+    navigate(-1);
+  };
+
+  const handleBack = () => {
     navigate(-1);
   };
 
@@ -130,33 +145,48 @@ const DetailRequest = () => {
           </div>
         </section>
 
-        <section className="request-section deal-section">
-          <h3>Deal giá</h3>
-          <div className="deal-info">
-            <p>
-              <strong>Khoảng giá đề xuất:</strong>{" "}
-              {requestData.minPrice?.toLocaleString() || "N/A"} -{" "}
-              {requestData.maxPrice?.toLocaleString() || "N/A"} VNĐ
-            </p>
-            <div className="deal-input-group">
-              <input
-                type="number"
-                value={dealPriceValue}
-                onChange={(e) => setDealPriceValue(e.target.value)}
-                placeholder="Nhập giá deal (VND)"
-                className="deal-input"
-              />
-              <div className="deal-buttons">
-                <button onClick={handleDealSubmit} className="confirm-button">
-                  Xác nhận
-                </button>
-                <button onClick={handleCancel} className="cancel-button">
-                  Hủy bỏ
-                </button>
+        {status !== false ? (
+          <section className="request-section deal-section">
+            <h3>Deal giá</h3>
+            <div className="deal-info">
+              <p>
+                <strong>Khoảng giá đề xuất:</strong>{" "}
+                {requestData.minPrice?.toLocaleString() || "N/A"} -{" "}
+                {requestData.maxPrice?.toLocaleString() || "N/A"} VNĐ
+              </p>
+              <div className="deal-input-group">
+                <input
+                  type="number"
+                  value={dealPriceValue}
+                  onChange={(e) => setDealPriceValue(e.target.value)}
+                  placeholder="Nhập giá deal (VND)"
+                  className="deal-input"
+                />
+                <div className="deal-buttons">
+                  <button onClick={handleDealSubmit} className="confirm-button">
+                    Xác nhận
+                  </button>
+                  <button onClick={handleCancel} className="cancel-button">
+                    Hủy bỏ
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        ) : (
+          <section className="request-section deal-section">
+            <h3>Thông tin Deal</h3>
+            <div className="deal-info">
+              <p>
+                <strong>Giá đã Deal:</strong>{" "}
+                {storedDealPrice ? `${Number(storedDealPrice).toLocaleString()} VNĐ` : "Chưa có thông tin giá deal"}
+              </p>
+              <button onClick={handleBack} className="back-button">
+                Trở về
+              </button>
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
