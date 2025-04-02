@@ -474,7 +474,7 @@ const viewRequest = async (req, res) => {
     // Tìm Request có status 'Deal price' và được gán cho repairman này
     const dealPriceRequest = await Request.findOne({
       repairman_id: repairmanId,
-      status: 'Deal price' // Hoặc trạng thái phù hợp của bạn
+      status: { $in: ["Done deal price", "Deal price"] }, // Hoặc trạng thái phù hợp của bạn
     }).sort({ createdAt: -1 }); // Lấy request mới nhất nếu có nhiều request
 
     if (!dealPriceRequest) {
