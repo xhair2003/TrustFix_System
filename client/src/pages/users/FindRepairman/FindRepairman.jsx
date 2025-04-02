@@ -1,20 +1,25 @@
 // import React, { useState, useRef, useEffect } from "react";
+// import { useDispatch, useSelector } from "react-redux";
 // import MapView from "../../../component/users/customer/FindComponent/MapView";
 // import SearchBar from "../../../component/users/SearchBar/SearchBar";
 // import RepairmanList from "../../../component/users/customer/FindComponent/RepairmanList";
-// import { useSelector } from "react-redux";
+// import { viewRepairmanDeal } from "../../../store/actions/userActions.js";
+// import io from "socket.io-client"; // Import Socket.IO client
 // import "./FindRepairman.css";
 
+// const socket = io("http://your-server-url"); // Thay bằng URL server của bạn
+
 // const FindRepairman = () => {
+//   const dispatch = useDispatch();
 //   const [selectedRadius, setSelectedRadius] = useState(null);
 //   const [userLocation, setUserLocation] = useState(null);
 //   const [triggerSearch, setTriggerSearch] = useState(false);
 //   const [searchData, setSearchData] = useState({});
 //   const [isAnimating, setIsAnimating] = useState(false);
-//   const [storedRequestId, setStoredRequestId] = useState(localStorage.getItem('requestId'));
+//   const [storedRequestId, setStoredRequestId] = useState(localStorage.getItem("requestId"));
 //   const mapSectionRef = useRef(null);
 
-//   const { successFindRepairman, requestId, repairmanDeals } = useSelector(state => state.user);
+//   const { errorViewRepairmanDeal, requestId, repairmanDeals } = useSelector((state) => state.user);
 //   const finalRequestId = requestId || storedRequestId;
 
 //   const handleDataChange = (data) => {
@@ -89,18 +94,18 @@
 //     setTimeout(() => setIsAnimating(false), 1500);
 //   };
 
+//   // Lắng nghe sự kiện từ WebSocket
 //   useEffect(() => {
-//     if (successFindRepairman && successFindRepairman.requestId) {
-//       localStorage.setItem('requestId', successFindRepairman.requestId);
-//       setStoredRequestId(successFindRepairman.requestId);
+//     if (finalRequestId) {
+//       socket.on(`dealPriceUpdate_${finalRequestId}`, () => {
+//         dispatch(viewRepairmanDeal(finalRequestId)); // Gọi API khi có deal giá mới
+//       });
 //     }
-//   }, [successFindRepairman]);
 
-//   // Log để kiểm tra
-//   useEffect(() => {
-//     console.log("triggerSearch:", triggerSearch);
-//     console.log("repairmanDeals:", repairmanDeals);
-//   }, [triggerSearch, repairmanDeals]);
+//     return () => {
+//       socket.off(`dealPriceUpdate_${finalRequestId}`);
+//     };
+//   }, [finalRequestId, dispatch]);
 
 //   return (
 //     <div className="find-repairman-container">
@@ -121,45 +126,50 @@
 //           setTriggerSearch={setTriggerSearch}
 //         />
 //       </div>
-//       {/* Luôn hiển thị results-section, chỉ thay đổi nội dung */}
-//       <div className={`results-section ${isAnimating ? "animate" : triggerSearch ? "active" : ""}`}>
-//         {triggerSearch ? (
-//           <p>Đang tìm thợ...</p>
-//         ) : repairmanDeals && repairmanDeals.length > 0 ? (
-//           <RepairmanList requestId={finalRequestId} />
-//         ) : (
+//       {repairmanDeals && repairmanDeals.length > 0 ? (
+//         <div className={`results-section ${isAnimating ? "animate" : triggerSearch ? "active" : ""}`}>
+//           <RepairmanList repairmanDeals={repairmanDeals} />
+//         </div>
+//       ) : triggerSearch ? (
+//         <div className={`results-section ${isAnimating ? "animate" : "active"}`}>
 //           <p>Không tìm thấy thợ nào.</p>
-//         )}
-//       </div>
+//         </div>
+//       ) : null}
 //     </div>
 //   );
 // };
 
 // export default FindRepairman;
 
+
 import React, { useState, useRef, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import MapView from "../../../component/users/customer/FindComponent/MapView";
 import SearchBar from "../../../component/users/SearchBar/SearchBar";
 import RepairmanList from "../../../component/users/customer/FindComponent/RepairmanList";
-import { useSelector } from "react-redux";
+import { viewRepairmanDeal } from "../../../store/actions/userActions.js";
 import "./FindRepairman.css";
+import socket from "../../../socket"; // Import socket
 
 const FindRepairman = () => {
+  const dispatch = useDispatch();
   const [selectedRadius, setSelectedRadius] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [triggerSearch, setTriggerSearch] = useState(false);
   const [searchData, setSearchData] = useState({});
   const [isAnimating, setIsAnimating] = useState(false);
-  const [storedRequestId, setStoredRequestId] = useState(localStorage.getItem('requestId'));
+  const [storedRequestId, setStoredRequestId] = useState(localStorage.getItem("requestId"));
   const mapSectionRef = useRef(null);
 
-  const { successFindRepairman, requestId, repairmanDeals } = useSelector(state => state.user);
+  const { errorViewRepairmanDeal, requestId, repairmanDeals } = useSelector((state) => state.user);
   const finalRequestId = requestId || storedRequestId;
 
+  // Xử lý dữ liệu tìm kiếm từ SearchBar
   const handleDataChange = (data) => {
     setSearchData(data);
   };
 
+  // Hàm cuộn mượt mà tới section bản đồ
   const smoothScrollTo = (element, duration) => {
     const start = window.scrollY;
     const targetPosition = element.getBoundingClientRect().top + start - 50;
@@ -182,6 +192,7 @@ const FindRepairman = () => {
     requestAnimationFrame(animation);
   };
 
+  // Xử lý sự kiện tìm kiếm
   const handleSearch = () => {
     const { description, serviceIndustryId, detailAddress, ward, district, city, selectedRadius } = searchData;
 
@@ -225,15 +236,27 @@ const FindRepairman = () => {
       smoothScrollTo(mapSectionRef.current, 1500);
     }
 
+    // Gọi API viewRepairmanDeal nếu cần
+    if (finalRequestId) {
+      dispatch(viewRepairmanDeal(finalRequestId));
+    }
+
     setTimeout(() => setIsAnimating(false), 1500);
   };
 
+  // Lắng nghe WebSocket và gọi API khi có thông báo
   useEffect(() => {
-    if (successFindRepairman && successFindRepairman.requestId) {
-      localStorage.setItem('requestId', successFindRepairman.requestId);
-      setStoredRequestId(successFindRepairman.requestId);
+    if (finalRequestId) {
+      socket.on('dealPriceUpdate', () => {
+        console.log('Deal price update received');
+        dispatch(viewRepairmanDeal(finalRequestId)); // Gọi API để lấy danh sách mới nhất
+      });
     }
-  }, [successFindRepairman]);
+
+    return () => {
+      socket.off('dealPriceUpdate');
+    };
+  }, [finalRequestId, dispatch]);
 
   return (
     <div className="find-repairman-container">
@@ -254,16 +277,17 @@ const FindRepairman = () => {
           setTriggerSearch={setTriggerSearch}
         />
       </div>
-      {/* Hiển thị results-section nếu có repairmanDeals hoặc đang tìm kiếm */}
-      {(repairmanDeals && repairmanDeals.length > 0) || triggerSearch ? (
-        <div className={`results-section ${isAnimating ? "animate" : triggerSearch ? "active" : ""}`}>
-          {repairmanDeals && repairmanDeals.length > 0 ? (
-            <RepairmanList requestId={finalRequestId} />
-          ) : (
+      {
+        repairmanDeals && repairmanDeals.length > 0 ? (
+          <div className={`results-section ${isAnimating ? "animate" : triggerSearch ? "active" : ""}`}>
+            <RepairmanList repairmanDeals={repairmanDeals} />
+          </div>
+        ) : triggerSearch ? (
+          <div className={`results-section ${isAnimating ? "animate" : "active"}`}>
             <p>Không tìm thấy thợ nào.</p>
-          )}
-        </div>
-      ) : null}
+          </div>
+        ) : null
+      }
     </div>
   );
 };

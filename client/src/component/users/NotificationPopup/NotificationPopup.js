@@ -1,36 +1,29 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { viewRequest } from "../../../store/actions/userActions";
+import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import useWebSocketNotifications from "../../../utils/hook/useWebSocketNotifications";
 import "./NotificationPopup.css";
 
 const NotificationPopup = () => {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
     const { request } = useSelector((state) => state.user);
     const [showPopup, setShowPopup] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [closedRequests, setClosedRequests] = useState(() => {
-        // Khởi tạo closedRequests từ localStorage khi component mount
         const savedClosedRequests = localStorage.getItem("closedRequests");
         return savedClosedRequests ? JSON.parse(savedClosedRequests) : [];
     });
 
-    // Polling để kiểm tra đơn mới
-    // useEffect(() => {
-    //     const interval = setInterval(() => {
-    //         dispatch(viewRequest());
-    //     }, 5000);
-    //     return () => clearInterval(interval);
-    // }, [dispatch]);
+    // Sử dụng custom hook để lắng nghe WebSocket
+    useWebSocketNotifications();
 
-    // Lưu closedRequests vào localStorage mỗi khi nó thay đổi
+    // Lưu closedRequests vào localStorage
     useEffect(() => {
         localStorage.setItem("closedRequests", JSON.stringify(closedRequests));
     }, [closedRequests]);
 
-    // Hiển thị popup khi có đơn mới và chưa bị đóng
+    // Hiển thị popup khi có đơn mới
     useEffect(() => {
         if (
             request &&
@@ -51,7 +44,7 @@ const NotificationPopup = () => {
 
     const handleClosePopup = (requestId) => {
         setShowPopup(false);
-        setClosedRequests((prev) => [...prev, requestId]); // Thêm đơn vào danh sách đã đóng
+        setClosedRequests((prev) => [...prev, requestId]);
     };
 
     return (
@@ -67,10 +60,16 @@ const NotificationPopup = () => {
                     <p>Có đơn hàng khách hàng cần sửa chữa!</p>
                     <p><strong>Mô tả:</strong> {request.description}</p>
                     <div className="popup-buttons">
-                        <button onClick={() => handleViewDetails(request._id)} className="view-details-button">
+                        <button
+                            onClick={() => handleViewDetails(request._id)}
+                            className="view-details-button"
+                        >
                             Xem chi tiết đơn hàng
                         </button>
-                        <button onClick={() => handleClosePopup(request._id)} className="close-button">
+                        <button
+                            onClick={() => handleClosePopup(request._id)}
+                            className="close-button"
+                        >
                             Đóng
                         </button>
                     </div>

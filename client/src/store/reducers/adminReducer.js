@@ -78,6 +78,9 @@ const initialState = {
     errorPendingSupplementary: null,
     errorVerifySupplementary: null,
     successVerifySupplementary: null,
+
+    totalsProfit: null, // Lưu object chứa các loại phí
+    totalAll: 0, // Tổng tất cả giao dịch
 };
 
 // Reducer function
@@ -622,7 +625,29 @@ const adminReducer = (state = initialState, action) => {
             };
 
 
-
+        case "GET_ALL_PROFIT_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "GET_ALL_PROFIT_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                totalsProfit: action.payload.totalsProfit,
+                totalAll: action.payload.totalAll,
+                // successMessage: action.payload.message,
+                // error: null,
+            };
+        case "GET_ALL_PROFIT_FAIL":
+            return {
+                ...state,
+                loading: false,
+                totalsProfit: null,
+                totalAll: 0,
+                // successMessage: null,
+                // error: action.payload,
+            };
 
 
         case "RESET_ERROR":

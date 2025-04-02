@@ -1,152 +1,374 @@
+// import React, { useEffect } from "react";
+// import { useDispatch, useSelector } from "react-redux";
+// import { viewRequest, viewCustomerRequest, resetError, resetSuccess } from "../../../store/actions/userActions";
+// import { useNavigate } from "react-router-dom";
+// import Loading from "../../../component/Loading/Loading";
+// import Swal from "sweetalert2";
+// import "./ViewRequests.css";
+
+// const ViewRequests = () => {
+//     const dispatch = useDispatch();
+//     const navigate = useNavigate();
+
+//     // States from userReducer (both viewRequest and viewCustomerRequest)
+//     const {
+//         loading,
+//         request,
+//         errorViewRequest,
+//         customerRequest,
+//         successRequest,
+//         errorRequest
+//     } = useSelector((state) => state.user);
+
+//     //console.log(request);
+
+//     useEffect(() => {
+//         // Dispatch both actions to fetch requests
+//         dispatch(viewRequest());
+//         dispatch(viewCustomerRequest());
+//     }, [dispatch]);
+
+//     // Handle successRequest with Swal
+//     // useEffect(() => {
+//     //     if (successRequest) {
+//     //         Swal.fire({
+//     //             icon: "success",
+//     //             title: "Thành công",
+//     //             text: successRequest,
+//     //             timer: 5000,
+//     //             timerProgressBar: true,
+//     //             showConfirmButton: false,
+//     //             showCloseButton: false,
+//     //         }).then(() => {
+//     //             dispatch(resetSuccess()); // Reset customer request state
+//     //         });
+//     //     }
+//     // }, [successRequest, dispatch]);
+
+//     // Handle errorRequest with Swal
+//     useEffect(() => {
+//         if (errorRequest) {
+//             Swal.fire({
+//                 icon: "error",
+//                 title: "Lỗi",
+//                 text: errorRequest,
+//                 timer: 5000,
+//                 timerProgressBar: true,
+//                 showConfirmButton: false,
+//                 showCloseButton: false,
+//             }).then(() => {
+//                 dispatch(resetError()); // Reset customer request state
+//             });
+//         }
+//     }, [errorRequest, dispatch]);
+
+//     // Handle errorViewRequest with Swal
+//     useEffect(() => {
+//         if (errorViewRequest) {
+//             Swal.fire({
+//                 icon: "error",
+//                 title: "Lỗi",
+//                 text: errorViewRequest,
+//                 timer: 5000,
+//                 timerProgressBar: true,
+//                 showConfirmButton: false,
+//                 showCloseButton: false,
+//             }).then(() => {
+//                 dispatch(resetError()); // Reset view request state
+//             });
+//         }
+//     }, [errorViewRequest, dispatch]);
+
+//     const shortenAddress = (address) => {
+//         const parts = address.split(", ");
+//         return parts.slice(1, 4).join(", ");
+//     };
+
+//     // Handle navigation to detail pages
+//     const handleViewRequestDetail = (requestData) => {
+//         navigate(`/repairman/detail-request/${requestData._id}`, {
+//             state: { requestData },
+//         });
+//     };
+
+//     const handleViewCustomerRequestDetail = (customerRequest) => {
+//         navigate(`/repairman/order-detail/${customerRequest._id}`, {
+//             state: { customerRequest },
+//         });
+//     };
+
+//     if (loading) {
+//         return <Loading />;
+//     }
+
+//     return (
+//         <div className="repairman-requests-container">
+//             <h2 className="page-title">Danh sách đơn sửa chữa</h2>
+
+//             {/* Display customerRequest if it exists */}
+//             {customerRequest && customerRequest.status === "Proceed with repair" ? (
+//                 <div className="request-card active-request">
+//                     <div className="request-header">
+//                         <h3 className="request-title">Đơn hàng đang thực hiện</h3>
+//                         <span className="request-status active">Thực hiện sửa chữa</span>
+//                     </div>
+//                     <p><strong>Mô tả:</strong> {customerRequest.description || "Không có mô tả"}</p>
+//                     <p><strong>Khu vực:</strong> {shortenAddress(customerRequest.address)}</p>
+//                     <p><strong>Ngày tạo:</strong> {new Date(customerRequest.createdAt).toLocaleString()}</p>
+//                     <button
+//                         className="view-detail-button"
+//                         onClick={() => handleViewCustomerRequestDetail(customerRequest)}
+//                     >
+//                         Xem chi tiết
+//                     </button>
+//                 </div>
+//             ) : request && (request.status === "Deal price" || request.status === "Done deal price") ? (
+//                 <div className="request-card">
+//                     <div className="request-header">
+//                         <h3 className="request-title">Đơn hàng chờ chốt giá</h3>
+//                         <span className="request-status">Chờ bạn chốt giá</span>
+//                     </div>
+//                     <p><strong>Mô tả:</strong> {request.description}</p>
+//                     <p><strong>Khu vực:</strong> {shortenAddress(request.address)}</p>
+//                     <p><strong>Ngày tạo:</strong> {new Date(request.createdAt).toLocaleString()}</p>
+//                     <p>
+//                         <strong>Vùng giá:</strong>{" "}
+//                         {request.minPrice?.toLocaleString() || "N/A"} -{" "}
+//                         {request.maxPrice?.toLocaleString() || "N/A"} VNĐ
+//                     </p>
+//                     <button
+//                         className="view-detail-button"
+//                         onClick={() => handleViewRequestDetail(request)}
+//                     >
+//                         Xem chi tiết
+//                     </button>
+//                 </div>
+//             ) : (
+//                 <p className="no-requests">Không có đơn sửa chữa nào.</p>
+//             )}
+//         </div>
+//     );
+// };
+
+// export default ViewRequests;
+
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { viewRequest, viewCustomerRequest, resetError, resetSuccess } from "../../../store/actions/userActions";
+import {
+  viewRequest,
+  viewCustomerRequest,
+  resetError,
+  resetSuccess,
+} from "../../../store/actions/userActions";
 import { useNavigate } from "react-router-dom";
 import Loading from "../../../component/Loading/Loading";
 import Swal from "sweetalert2";
+import socket from "../../../socket";
 import "./ViewRequests.css";
+import useWebSocketNotifications from "../../../utils/hook/useWebSocketNotifications";
 
 const ViewRequests = () => {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-    // States from userReducer (both viewRequest and viewCustomerRequest)
-    const {
-        loading,
-        request,
-        errorViewRequest,
-        customerRequest,
-        successRequest,
-        errorRequest
-    } = useSelector((state) => state.user);
+  const {
+    loading,
+    request,
+    errorViewRequest,
+    customerRequest,
+    successRequest,
+    errorRequest,
+  } = useSelector((state) => state.user);
 
+  console.log("request", request);
 
-    useEffect(() => {
-        // Dispatch both actions to fetch requests
-        dispatch(viewRequest());
-        dispatch(viewCustomerRequest());
-    }, [dispatch]);
+  // Load dữ liệu ban đầu
+  useEffect(() => {
+    dispatch(viewRequest());
+    dispatch(viewCustomerRequest());
+  }, [dispatch]);
 
-    // Handle successRequest with Swal
-    // useEffect(() => {
-    //     if (successRequest) {
-    //         Swal.fire({
-    //             icon: "success",
-    //             title: "Thành công",
-    //             text: successRequest,
-    //             timer: 5000,
-    //             timerProgressBar: true,
-    //             showConfirmButton: false,
-    //             showCloseButton: false,
-    //         }).then(() => {
-    //             dispatch(resetSuccess()); // Reset customer request state
-    //         });
-    //     }
-    // }, [successRequest, dispatch]);
+  // Sử dụng custom hook để lắng nghe newRequest
+  useWebSocketNotifications();
 
-    // Handle errorRequest with Swal
-    useEffect(() => {
-        if (errorRequest) {
-            Swal.fire({
-                icon: "error",
-                title: "Lỗi",
-                text: errorRequest,
-                timer: 5000,
-                timerProgressBar: true,
-                showConfirmButton: false,
-                showCloseButton: false,
-            }).then(() => {
-                dispatch(resetError()); // Reset customer request state
-            });
-        }
-    }, [errorRequest, dispatch]);
+  // Lắng nghe repairmanAssigned riêng trong ViewRequests
+  useEffect(() => {
+    socket.on("repairmanAssigned", () => {
+      console.log("Repairman assigned received");
+      dispatch(viewCustomerRequest()); // Re-fetch dữ liệu viewCustomerRequest
+      Swal.fire({
+        icon: "success",
+        title: "Đơn hàng được giao",
+        text: "Bạn đã được giao một đơn hàng sửa chữa!",
+        timer: 5000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+    });
 
-    // Handle errorViewRequest with Swal
-    useEffect(() => {
-        if (errorViewRequest) {
-            Swal.fire({
-                icon: "error",
-                title: "Lỗi",
-                text: errorViewRequest,
-                timer: 5000,
-                timerProgressBar: true,
-                showConfirmButton: false,
-                showCloseButton: false,
-            }).then(() => {
-                dispatch(resetError()); // Reset view request state
-            });
-        }
-    }, [errorViewRequest, dispatch]);
-
-    const shortenAddress = (address) => {
-        const parts = address.split(", ");
-        return parts.slice(1, 4).join(", ");
+    return () => {
+      socket.off("repairmanAssigned");
     };
+  }, [dispatch]);
 
-    // Handle navigation to detail pages
-    const handleViewRequestDetail = (requestData) => {
-        navigate(`/repairman/detail-request/${requestData._id}`, {
-            state: { requestData },
-        });
-    };
+  // useEffect(() => {
+  //     if (successRequest) {
+  //         Swal.fire({
+  //             icon: "success",
+  //             title: "Thành công",
+  //             text: successRequest,
+  //             timer: 5000,
+  //             timerProgressBar: true,
+  //             showConfirmButton: false,
+  //             showCloseButton: false,
+  //         }).then(() => {
+  //             dispatch(resetSuccess()); // Reset customer request state
+  //         });
+  //     }
+  // }, [successRequest, dispatch]);
 
-    const handleViewCustomerRequestDetail = (customerRequest) => {
-        navigate(`/repairman/order-detail/${customerRequest._id}`, {
-            state: { customerRequest },
-        });
-    };
-
-    if (loading) {
-        return <Loading />;
+  // Handle errorViewRequest with Swal
+  useEffect(() => {
+    if (errorRequest) {
+      Swal.fire({
+        icon: "error",
+        title: "Lỗi",
+        text: errorRequest,
+        timer: 5000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        showCloseButton: false,
+      }).then(() => {
+        dispatch(resetError()); // Reset view request state
+      });
     }
+  }, [errorRequest, dispatch]);
 
-    return (
-        <div className="repairman-requests-container">
-            <h2 className="page-title">Danh sách đơn sửa chữa</h2>
+  useEffect(() => {
+    if (errorViewRequest) {
+      Swal.fire({
+        icon: "error",
+        title: "Lỗi",
+        text: errorViewRequest,
+        timer: 5000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        showCloseButton: false,
+      }).then(() => {
+        dispatch(resetError());
+      });
+    }
+  }, [errorViewRequest, dispatch]);
 
-            {/* Display customerRequest if it exists */}
-            {customerRequest && customerRequest.status === "Proceed with repair" ? (
-                <div className="request-card active-request">
-                    <div className="request-header">
-                        <h3 className="request-title">Đơn hàng đang thực hiện</h3>
-                        <span className="request-status active">Thực hiện sửa chữa</span>
-                    </div>
-                    <p><strong>Mô tả:</strong> {customerRequest.description || "Không có mô tả"}</p>
-                    <p><strong>Khu vực:</strong> {shortenAddress(customerRequest.address)}</p>
-                    <p><strong>Ngày tạo:</strong> {new Date(customerRequest.createdAt).toLocaleString()}</p>
-                    <button
-                        className="view-detail-button"
-                        onClick={() => handleViewCustomerRequestDetail(customerRequest)}
-                    >
-                        Xem chi tiết
-                    </button>
-                </div>
-            ) : request && request.status === "Deal price" ? (
-                <div className="request-card">
-                    <div className="request-header">
-                        <h3 className="request-title">Đơn hàng chờ chốt giá</h3>
-                        <span className="request-status">Chờ bạn chốt giá</span>
-                    </div>
-                    <p><strong>Mô tả:</strong> {request.description}</p>
-                    <p><strong>Khu vực:</strong> {shortenAddress(request.address)}</p>
-                    <p><strong>Ngày tạo:</strong> {new Date(request.createdAt).toLocaleString()}</p>
-                    <p>
-                        <strong>Vùng giá:</strong>{" "}
-                        {request.minPrice?.toLocaleString() || "N/A"} -{" "}
-                        {request.maxPrice?.toLocaleString() || "N/A"} VNĐ
-                    </p>
-                    <button
-                        className="view-detail-button"
-                        onClick={() => handleViewRequestDetail(request)}
-                    >
-                        Xem chi tiết
-                    </button>
-                </div>
-            ) : (
-                <p className="no-requests">Không có đơn sửa chữa nào.</p>
-            )}
+  const shortenAddress = (address) => {
+    const parts = address.split(", ");
+    return parts.slice(1, 4).join(", ");
+  };
+
+  const handleViewRequestDetail = (requestData, status) => {
+    navigate(`/repairman/detail-request/${requestData._id}`, {
+      state: { requestData, status },
+    });
+  };
+
+  const handleViewCustomerRequestDetail = (customerRequest) => {
+    navigate(`/repairman/order-detail/${customerRequest._id}`, {
+      state: { customerRequest },
+    });
+  };
+
+  if (loading) return <Loading />;
+
+  return (
+    <div className="repairman-requests-container">
+      <h2 className="page-title">Danh sách đơn sửa chữa</h2>
+
+      {/* Display customerRequest if it exists */}
+      {customerRequest && customerRequest.status === "Proceed with repair" ? (
+        <div className="request-card active-request">
+          <div className="request-header">
+            <h3 className="request-title">Đơn hàng đang thực hiện</h3>
+            <span className="request-status active">Thực hiện sửa chữa</span>
+          </div>
+          <p>
+            <strong>Mô tả:</strong>{" "}
+            {customerRequest.description || "Không có mô tả"}
+          </p>
+          <p>
+            <strong>Khu vực:</strong> {shortenAddress(customerRequest.address)}
+          </p>
+          <p>
+            <strong>Ngày tạo:</strong>{" "}
+            {new Date(customerRequest.createdAt).toLocaleString()}
+          </p>
+          <button
+            className="view-detail-button"
+            onClick={() => handleViewCustomerRequestDetail(customerRequest)}
+          >
+            Xem chi tiết
+          </button>
         </div>
-    );
+      ) : request && request.status === "Deal price" ? (
+        <div className="request-card">
+          <div className="request-header">
+            <h3 className="request-title">Đơn hàng chờ chốt giá</h3>
+            <span className="request-status">Chờ bạn chốt giá</span>
+          </div>
+          <p>
+            <strong>Mô tả:</strong> {request.description}
+          </p>
+          <p>
+            <strong>Khu vực:</strong> {shortenAddress(request.address)}
+          </p>
+          <p>
+            <strong>Ngày tạo:</strong>{" "}
+            {new Date(request.createdAt).toLocaleString()}
+          </p>
+          <p>
+            <strong>Vùng giá:</strong>{" "}
+            {request.minPrice?.toLocaleString() || "N/A"} -{" "}
+            {request.maxPrice?.toLocaleString() || "N/A"} VNĐ
+          </p>
+          <button
+            className="view-detail-button"
+            onClick={() => handleViewRequestDetail(request, true)}
+          >
+            Xem chi tiết
+          </button>
+        </div>
+      ) : request && request.status === "Done deal price" ? (
+        <div className="request-card">
+          <div className="request-header">
+            <h3 className="request-title">Đơn hàng chờ khách hàng xác nhận</h3>
+            <span className="request-status">Đã chốt giá</span>
+          </div>
+          <p>
+            <strong>Mô tả:</strong> {request.description}
+          </p>
+          <p>
+            <strong>Khu vực:</strong> {shortenAddress(request.address)}
+          </p>
+          <p>
+            <strong>Ngày tạo:</strong>{" "}
+            {new Date(request.createdAt).toLocaleString()}
+          </p>
+          <p>
+            <strong>Vùng giá:</strong>{" "}
+            {request.minPrice?.toLocaleString() || "N/A"} -{" "}
+            {request.maxPrice?.toLocaleString() || "N/A"} VNĐ
+          </p>
+          <button
+            className="view-detail-button"
+            onClick={() => handleViewRequestDetail(request, false)}
+          >
+            Xem chi tiết
+          </button>
+        </div>
+      ) : (
+        <p className="no-requests">Không có đơn sửa chữa nào.</p>
+      )}
+    </div>
+  );
 };
 
 export default ViewRequests;

@@ -19,10 +19,11 @@ const RepairmanInfoModal = ({ isOpen, onClose, repairman, request }) => {
         reviews = [],
     } = repairman || {};
 
+    //console.log(repairman);
 
     const handleBook = () => {
         onClose();
-        navigate(`"/make-payment/:${request.requestId}/:${repairmanId}"`, { state: { repairman, request } });
+        navigate(`/make-payment/${request.parentRequest}/${repairmanId}`, { state: { repairman, request } });
         //console.log(repairman);
         //console.log(dealPrice);
     };

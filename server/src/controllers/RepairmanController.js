@@ -273,6 +273,7 @@ const toggleStatusRepairman = async (req, res) => {
 };
 const dealPrice = async (req, res) => {
   try {
+    const io = req.app.get('io'); // Lấy io từ app
     const { requestId } = req.params;
     const { deal_price, isDeal } = req.body; // Nhận thêm trường isDeal từ request body
     const userId = req.user.id; // Lấy user ID của thợ sửa chữa từ token
@@ -388,6 +389,14 @@ const dealPrice = async (req, res) => {
       dealPriceRequest.status = 'Done deal price';
       await dealPriceRequest.save();
 
+      // Gửi thông báo WebSocket tới khách hàng (không cần dữ liệu chi tiết)
+      const parentRequest = await Request.findById(requestId);
+      if (parentRequest) {
+        const customerId = parentRequest.user_id.toString();
+        console.log('Sending dealPriceUpdate to customer:', customerId);
+        io.to(customerId).emit('dealPriceUpdate'); // Chỉ gửi sự kiện, không gửi data
+      }
+
       res.status(201).json({
         EC: 1,
         EM: "Deal giá thành công!",
@@ -465,7 +474,7 @@ const viewRequest = async (req, res) => {
     // Tìm Request có status 'Deal price' và được gán cho repairman này
     const dealPriceRequest = await Request.findOne({
       repairman_id: repairmanId,
-      status: 'Deal price' // Hoặc trạng thái phù hợp của bạn
+      status: { $in: ["Done deal price", "Deal price"] }, // Hoặc trạng thái phù hợp của bạn
     }).sort({ createdAt: -1 }); // Lấy request mới nhất nếu có nhiều request
 
     if (!dealPriceRequest) {
@@ -794,15 +803,15 @@ const viewCustomerRequest = async (req, res) => {
 const cofirmRequest = async (req, res) => {
   try {
     const userId = req.user.id;
-    const {confirm }= req.body;
-    const repairman = await RepairmanUpgradeRequest.findOne({user_id: userId});
-    if(!repairman){
+    const { confirm } = req.body;
+    const repairman = await RepairmanUpgradeRequest.findOne({ user_id: userId });
+    if (!repairman) {
       res.status(400).json({
         EC: 0,
         EM: "Không tìm thấy thợ sửa chữa"
       })
     }
-    if(confirm === "Completed"){
+    if (confirm === "Completed") {
       repairman.status = 'Active';
       await repairman.save();
       res.status(201).json({
@@ -810,16 +819,16 @@ const cofirmRequest = async (req, res) => {
         EM: 'Xác nhận hoàn thành đơn hàng thành công, vui lòng đợi khách hàng xác nhận để nhận tiền'
       })
     }
-    
+
   } catch (error) {
     console.log(error);
     res.status(500).json({
       EC: 0,
       EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
-      
+
     });
   }
-  
+
 }
 module.exports = {
   requestRepairmanUpgrade,

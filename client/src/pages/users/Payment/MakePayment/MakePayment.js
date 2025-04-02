@@ -107,6 +107,8 @@ const MakePayment = () => {
     const { balance, loading, errorFetchBalance, successMakePayment, errorMakePayment } = useSelector((state) => state.user);
     const [isProcessing, setIsProcessing] = useState(false);
 
+    console.log(repairman);
+
     // Fetch balance on component mount
     useEffect(() => {
         dispatch(fetchBalance());
@@ -142,7 +144,7 @@ const MakePayment = () => {
                 showCloseButton: false,
             }).then(() => {
                 dispatch(resetSuccess()); // Reset success after displaying
-                navigate(`"/order-detail/:${request.requestId}"`, { state: { repairman, request } }); // Navigate after success
+                navigate(`/order-detail/${request.parentRequest}`, { state: { repairman, request } }); // Navigate after success
             });
         }
     }, [successMakePayment, dispatch, navigate, repairman, request]);
@@ -182,7 +184,7 @@ const MakePayment = () => {
         setIsProcessing(true);
         try {
             // Dispatch assignRepairman action
-            await dispatch(assignRepairman(request.requestId, repairman.repairmanId));
+            await dispatch(assignRepairman(request.parentRequest, repairman.repairmanId));
         } catch (error) {
             console.error("Lỗi thanh toán:", error);
         } finally {
@@ -242,11 +244,15 @@ const MakePayment = () => {
                     </div>
                     <div className="info-item">
                         <label className="info-label">Số tiền cần thanh toán:</label>
-                        <span className="info-value">{repairman.dealPrice.toLocaleString("vi-VN")} VNĐ</span>
+                        <span className="info-value">
+                            {(repairman?.dealPrice ?? 0).toLocaleString("vi-VN")} VNĐ
+                        </span>
                     </div>
                     <div className="info-item">
                         <label className="info-label">Số dư tài khoản:</label>
-                        <span className="info-value">{balance.toLocaleString("vi-VN")} VNĐ</span>
+                        <span className="info-value">
+                            {(balance ?? 0).toLocaleString("vi-VN")} VNĐ
+                        </span>
                     </div>
                 </div>
 

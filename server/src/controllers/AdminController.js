@@ -2026,7 +2026,7 @@ const getMostUsedVipService = async (req, res) => {
 };
 const getAllProfit = async (req, res) => {
     try {
-        const { year, month } = req.body;
+        const { year, month } = req.query;
 
         if (!year || !month) {
             return res.status(400).json({
