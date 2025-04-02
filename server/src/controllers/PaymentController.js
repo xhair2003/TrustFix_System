@@ -89,6 +89,8 @@ const payment = async (req, res) => {
 
 const callbackPayOS = async (req, res) => {
   console.log("callback values:", req.body);
+  console.log("callback called");
+  
   const { data } = req.body;
   if (!data) {
     return res.status(400).json({ message: "Missing required fields" });
