@@ -102,6 +102,15 @@ const requestRepairmanUpgrade = async (req, res) => {
     // Update user's address
     await User.findByIdAndUpdate(userId, { address: address });
 
+    const check = await RepairmanUpgradeRequest.findOne({
+      user_id: userId
+    })
+    if(check){
+      return res.status(400).json({
+        EC: 0,
+        EM: "Bạn đã gửi yêu cầu nâng cấp trước đó vui lòng chờ phản hồi từ hệ thống!",
+      });
+    }
     // Create new Repairman Upgrade Request
     const newRequest = new RepairmanUpgradeRequest({
       user_id: userId,
