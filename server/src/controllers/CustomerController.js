@@ -14,7 +14,26 @@ const {
 const cloudinary = require("../../config/cloudinary");
 const fetch = require("node-fetch");
 const user = require("../models/user");
-const { sendEmail } = require("../constants");
+
+const sendEmail = async (to, subject, htmlContent) => {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
+  // Định nghĩa mailOptions
+  const mailOptions = {
+    from: process.env.EMAIL_USER, // Người gửi
+    to: to,                       // Người nhận
+    subject: subject,            // Chủ đề email
+    html: htmlContent            // Nội dung HTML
+  };
+
+  await transporter.sendMail(mailOptions);
+};
 
 
 const getBalance = async (req, res) => {

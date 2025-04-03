@@ -25,7 +25,7 @@ const RepairmanUpgradeRequestSchema = new mongoose.Schema(
     },
     supplementaryPracticeCertificate: {
       type: [String],
-      default: null,
+      default: [],
       timestamps: true,
     },
     imgCCCD: {
@@ -34,7 +34,7 @@ const RepairmanUpgradeRequestSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Active", "Inactive", "pending", "Deal price", "Done deal price","Proceed with repair","In review","Second certificate rejected","Second certificate approved"],
+      enum: ["Active", "Inactive", "pending", "Deal price", "Done deal price", "Proceed with repair", "In review", "Second certificate rejected", "Second certificate approved"],
       default: "pending",
     },
     serviceTypes: {

@@ -201,13 +201,13 @@ export const addServicePrice = (serviceName, price, description) => async (dispa
     }
 };
 
-export const updateServicePrice = (serviceName, price, description) => async (dispatch, getState) => {
+export const updateServicePrice = (id, name, price, description) => async (dispatch, getState) => {
     try {
         const token = getState().auth.token || localStorage.getItem('token');
 
         const response = await axios.put(
             `http://localhost:8080/api/admin/service/update`,
-            { serviceName, price, description },
+            { id, name, price, description },
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
