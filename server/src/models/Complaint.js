@@ -31,7 +31,7 @@ const ComplaintSchema = new mongoose.Schema({
     }, // Nếu là phản hồi, tham chiếu đến khiếu nại cha
     status: {
         type: String,
-        enum: ['pending', 'replied'], // Trạng thái khiếu nại (chưa phản hồi hoặc đã phản hồi)
+        enum: ['pending', 'replied', "ok"], // Trạng thái khiếu nại (chưa phản hồi hoặc đã phản hồi)
         default: 'pending', // Mặc định là 'pending'
     }, // Trạng thái của khiếu nại
 }, { timestamps: true });
@@ -41,6 +41,12 @@ ComplaintSchema.virtual('replies', {
     ref: 'Complaint',
     localField: '_id',
     foreignField: 'parentComplaint'
+});
+ComplaintSchema.virtual('request', {
+    ref: 'Request',
+    localField: 'request_id',
+    foreignField: '_id',
+    justOne: true
 });
 
 module.exports = mongoose.model('Complaint', ComplaintSchema);
