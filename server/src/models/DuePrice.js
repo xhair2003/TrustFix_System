@@ -23,7 +23,11 @@ DuePriceSchema.virtual('request', {
     foreignField: '_id',
     justOne: true
 });
-
+DuePriceSchema.virtual("prices", {
+    ref: "Price",
+    localField: "_id",
+    foreignField: "duePrice_id",
+  });
 // Index for due date
 DuePriceSchema.index({ dueDate: 1 });
 

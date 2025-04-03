@@ -122,6 +122,15 @@ const requestRepairmanUpgrade = async (req, res) => {
     // Update user's address
     await User.findByIdAndUpdate(userId, { address: address });
 
+    const check = await RepairmanUpgradeRequest.findOne({
+      user_id: userId
+    })
+    if(check){
+      return res.status(400).json({
+        EC: 0,
+        EM: "Bạn đã gửi yêu cầu nâng cấp trước đó vui lòng chờ phản hồi từ hệ thống!",
+      });
+    }
     // Create new Repairman Upgrade Request
     const newRequest = new RepairmanUpgradeRequest({
       user_id: userId,
@@ -836,9 +845,22 @@ const cofirmRequest = async (req, res) => {
         EM: "Không tìm thấy thợ sửa chữa"
       })
     }
+    const request = await Request.findOne({
+      repairman_id: repairman._id,
+      status: "Proceed with repair"
+    })
+    if (!request) {
+      res.status(400).json({
+        EC: 0,
+        EM: "Không tìm thấy đơn hàng sửa chữa"
+      })
+    }
     if (confirm === "Completed") {
       repairman.status = 'Active';
       await repairman.save();
+
+      request.status = 'Repairman confirmed completion';
+      await request.save();
       res.status(201).json({
         EC: 1,
         EM: 'Xác nhận hoàn thành đơn hàng thành công, vui lòng đợi khách hàng xác nhận để nhận tiền'
