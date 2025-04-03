@@ -1,7 +1,27 @@
 const { User, Role, RepairmanUpgradeRequest, ServiceIndustry, Service, Vip, DuePrice, Price, Rating, Request, Transaction, Wallet } = require("../models");
 const cloudinary = require("../../config/cloudinary");
-const { MONTHLY_FEE, sendEmail } = require("../constants");
+const { MONTHLY_FEE } = require("../constants");
 const { findOne } = require("../models/RepairmanUpgradeRequest");
+
+const sendEmail = async (to, subject, htmlContent) => {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
+  // Định nghĩa mailOptions
+  const mailOptions = {
+    from: process.env.EMAIL_USER, // Người gửi
+    to: to,                       // Người nhận
+    subject: subject,            // Chủ đề email
+    html: htmlContent            // Nội dung HTML
+  };
+
+  await transporter.sendMail(mailOptions);
+};
 
 // lấy type của ServiceIndustry
 // API GET để lấy tất cả các loại dịch vụ (type)
@@ -746,12 +766,17 @@ const addSecondCertificate = async (req, res) => {
       });
     }
 
-    // Check if the status is "Active"
+    // Check if the status is "Active" or "Inactive"
     if (repairmanRequest.status !== "Active" && repairmanRequest.status !== "Inactive") {
       return res.status(400).json({
         EC: 0,
         EM: "Chỉ có thể yêu cầu bổ sung chứng chỉ khi không nhận đơn hàng nào !",
       });
+    }
+
+    // Ensure supplementaryPracticeCertificate is an array
+    if (!Array.isArray(repairmanRequest.supplementaryPracticeCertificate)) {
+      repairmanRequest.supplementaryPracticeCertificate = [];
     }
 
     // Extract file paths and update the supplementaryPracticeCertificate

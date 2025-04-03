@@ -145,3 +145,16 @@
 .modal-buttons button:last-child:hover {
     background-color: #c82333;
 }
+
+/* Style cho input lỗi */
+.input-error {
+    border: 1px solid #e57373;
+}
+
+/* Style cho thông báo lỗi */
+.error-text {
+    color: #e57373;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+}

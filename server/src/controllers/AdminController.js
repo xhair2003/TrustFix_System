@@ -1079,12 +1079,29 @@ const addServicePrice = async (req, res) => {
     try {
         const { serviceName, price, description } = req.body;
 
-        const name = serviceName;
+        const name = serviceName ? serviceName.trim() : ""; // Chuẩn hóa name
+
+        // Kiểm tra name không được để trống hoặc chỉ chứa khoảng trắng
+        if (!name || name.length === 0) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Tên dịch vụ không được để trống hoặc chỉ chứa khoảng trắng!"
+            });
+        }
+
+        // Kiểm tra xem name đã tồn tại chưa (sau khi chuẩn hóa)
+        const existingService = await Vip.findOne({ name });
+        if (existingService) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Tên dịch vụ đã tồn tại! Vui lòng chọn tên khác."
+            });
+        }
 
         const servicePrice = new Vip({
             name,
             price,
-            description
+            description: description ? description.trim() : description // Chuẩn hóa description nếu có
         });
 
         await servicePrice.save();
@@ -1104,20 +1121,47 @@ const addServicePrice = async (req, res) => {
 };
 const updateServicePrice = async (req, res) => {
     try {
-        const { serviceName, price, description } = req.body;
+        const { id, name, price, description } = req.body;
 
-        const name = serviceName;
+        // Kiểm tra xem id có được cung cấp không
+        if (!id) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "ID dịch vụ là bắt buộc để cập nhật!"
+            });
+        }
+
+        const normalizedName = name ? name.trim() : ""; // Chuẩn hóa name nếu có
+
+        // Nếu có name mới, kiểm tra không được để trống hoặc chỉ chứa khoảng trắng
+        if (normalizedName && normalizedName.length === 0) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Tên dịch vụ không được để trống hoặc chỉ chứa khoảng trắng!"
+            });
+        }
+
+        // Nếu có name mới, kiểm tra xem name đã tồn tại ở dịch vụ khác chưa
+        if (normalizedName) {
+            const existingService = await Vip.findOne({ name: normalizedName, _id: { $ne: id } });
+            if (existingService) {
+                return res.status(400).json({
+                    EC: 0,
+                    EM: "Tên dịch vụ đã tồn tại! Vui lòng chọn tên khác."
+                });
+            }
+        }
 
         const updateFields = {};
-        if (name) updateFields.name = name;
+        if (normalizedName) updateFields.name = normalizedName;
         if (price) updateFields.price = price;
-        if (description) updateFields.description = description;
+        if (description) updateFields.description = description.trim(); // Chuẩn hóa description nếu có
 
-        // Tìm và cập nhật dịch vụ
+        // Tìm và cập nhật dịch vụ dựa trên _id
         const servicePrice = await Vip.findOneAndUpdate(
-            { name: name }, // Điều kiện tìm kiếm
-            { $set: updateFields }, // Trường cần cập nhật
-            { new: true } // Trả về tài liệu đã được cập nhật
+            { _id: id },
+            { $set: updateFields },
+            { new: true }
         );
 
         if (!servicePrice) {

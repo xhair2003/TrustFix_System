@@ -41,7 +41,7 @@ const ViewPaymentHistory = () => {
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesStatus =
-      statusFilter === "all" || payment.status === statusFilter;
+      statusFilter === "all" || parseInt(payment.status) === parseInt(statusFilter);
     return matchesSearch && matchesStatus;
   });
 
@@ -99,9 +99,9 @@ const ViewPaymentHistory = () => {
             onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="all">Tất cả trạng thái</option>
-            <option value="complete">Hoàn tất</option>
-            <option value="peding">Đang xử lý</option>
-            <option value="fail">Thất bại</option>
+            <option value="1">Thành công</option>
+            <option value="0">Đang xử lý</option>
+            <option value="2">Thất bại</option>
           </select>
         </div>
 
@@ -130,7 +130,13 @@ const ViewPaymentHistory = () => {
                   <td>{payment.payCode}</td>
                   <td>{payment.amount?.toLocaleString()} VNĐ</td>
                   <td>{payment.balanceAfterTransact?.toLocaleString()} VNĐ</td>
-                  <td>{payment.status}</td>
+                  <td>{payment.status === 0
+                    ? "Đang xử lý"
+                    : payment.status === 1
+                      ? "Thành công"
+                      : payment.status === 2
+                        ? "Thất bại"
+                        : "Không xác định"}</td>
                   <td>
                     <button
                       className="payment-history-action-btn"
@@ -193,7 +199,15 @@ const ViewPaymentHistory = () => {
                   <p>Mã giao dịch: {selectedPayment.payCode}</p>
                   <p>Số tiền: {selectedPayment.amount?.toLocaleString()} VNĐ</p>
                   <p>Số dư sau giao dịch: {selectedPayment.balanceAfterTransact?.toLocaleString()} VNĐ</p>
-                  <p>Trạng thái: {selectedPayment.status}</p>
+                  <p>
+                    Trạng thái: {selectedPayment.status === 0
+                      ? "Đang xử lý"
+                      : selectedPayment.status === 1
+                        ? "Thành công"
+                        : selectedPayment.status === 2
+                          ? "Thất bại"
+                          : "Không xác định"}
+                  </p>
                   <p>Nội dung giao dịch: {selectedPayment.content}</p>
                 </div>
                 <div className="payment-history-details-section">
