@@ -157,6 +157,25 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch, onDataChange }
         }
     }, [errorFindRepairman, dispatch]);
 
+    // Thêm hàm validateImageFiles
+    const validateImageFiles = (files) => {
+        const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+        const invalidFiles = Array.from(files).filter(file => !validTypes.includes(file.type));
+
+        if (invalidFiles.length > 0) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi",
+                text: "Chỉ hỗ trợ định dạng JPG, PNG, JPEG hoặc GIF!",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+            return false;
+        }
+        return true;
+    };
+
     // Xử lý tìm kiếm và gọi API findRepairman
     const handleSearchClick = () => {
         const selectedWard = wards.find((w) => w.ward_id === ward)?.ward_name || "";
@@ -265,7 +284,14 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch, onDataChange }
             <input
                 type="file"
                 multiple
-                onChange={(e) => setImageFiles(Array.from(e.target.files))}
+                onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    if (validateImageFiles(files)) {
+                        setImageFiles(files);
+                    } else {
+                        e.target.value = null; // Reset input nếu file không hợp lệ
+                    }
+                }}
                 className="search-file-input"
             />
         </div>

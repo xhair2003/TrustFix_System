@@ -29,6 +29,8 @@ const UpdateInfo = ({ initialData, onSave }) => {
   const [phoneValid, setPhoneValid] = useState(false);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [newCertificates, setNewCertificates] = useState([]);
+  // Thêm state để lưu lỗi cho firstName và lastName
+  const [nameErrors, setNameErrors] = useState({ firstName: '', lastName: '' });
 
   useEffect(() => {
     if (successSupplementary) {
@@ -62,8 +64,16 @@ const UpdateInfo = ({ initialData, onSave }) => {
 
   if (loading) return <Loading />;
 
+  // Thêm hàm validateName
+  const validateName = (name) => {
+    const nameRegex = /^[a-zA-ZÀ-ỹ\s]+$/; // Chỉ cho phép chữ cái và khoảng trắng, hỗ trợ tiếng Việt
+    return nameRegex.test(name);
+  };
+
+  // Sửa hàm handleChange để validate firstName và lastName
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     if (name === 'phone') {
       const phoneRegex = /^[0-9]{10,11}$/;
       if (!phoneRegex.test(value)) {
@@ -74,6 +84,24 @@ const UpdateInfo = ({ initialData, onSave }) => {
         setPhoneValid(true);
       }
     }
+
+    if (name === 'firstName' || name === 'lastName') {
+      const trimmedValue = value.trim();
+      if (!trimmedValue) {
+        setNameErrors(prev => ({
+          ...prev,
+          [name]: `${name === 'firstName' ? 'Họ' : 'Tên'} là bắt buộc`
+        }));
+      } else if (!validateName(trimmedValue)) {
+        setNameErrors(prev => ({
+          ...prev,
+          [name]: `${name === 'firstName' ? 'Họ' : 'Tên'} không được chứa ký tự đặc biệt`
+        }));
+      } else {
+        setNameErrors(prev => ({ ...prev, [name]: '' }));
+      }
+    }
+
     setPersonalInfo(prevState => ({
       ...prevState,
       [name]: value
@@ -149,15 +177,34 @@ const UpdateInfo = ({ initialData, onSave }) => {
     dispatch(requestSupplementaryPracticeCertificate(certificateFiles));
   };
 
+  // Sửa hàm handleSave để kiểm tra lỗi trước khi lưu
   const handleSave = () => {
-    if (phoneError) {
-      alert('Vui lòng nhập số điện thoại hợp lệ trước khi lưu!');
+    const trimmedFirstName = personalInfo.firstName.trim();
+    const trimmedLastName = personalInfo.lastName.trim();
+
+    let validationErrors = {};
+    if (!trimmedFirstName) {
+      validationErrors.firstName = 'Họ là bắt buộc';
+    } else if (!validateName(trimmedFirstName)) {
+      validationErrors.firstName = 'Hử không được chứa ký tự đặc biệt';
+    }
+    if (!trimmedLastName) {
+      validationErrors.lastName = 'Tên là bắt buộc';
+    } else if (!validateName(trimmedLastName)) {
+      validationErrors.lastName = 'Tên không được chứa ký tự đặc biệt';
+    }
+
+    if (phoneError || Object.keys(validationErrors).length > 0) {
+      setNameErrors(validationErrors);
+      alert('Vui lòng kiểm tra lại thông tin trước khi lưu!');
       return;
     }
 
     if (onSave) {
       const updatedInfo = {
         ...personalInfo,
+        firstName: trimmedFirstName,
+        lastName: trimmedLastName,
         image: personalInfo.imgAvt
       };
       onSave(updatedInfo);
@@ -200,6 +247,7 @@ const UpdateInfo = ({ initialData, onSave }) => {
             className="input-field"
             placeholder="Nhập họ"
           />
+          {nameErrors.firstName && <p className="error-text">{nameErrors.firstName}</p>}
         </div>
         <div className="user-info-item">
           <label className="label">Tên</label>
@@ -211,6 +259,7 @@ const UpdateInfo = ({ initialData, onSave }) => {
             className="input-field"
             placeholder="Nhập tên"
           />
+          {nameErrors.lastName && <p className="error-text">{nameErrors.lastName}</p>}
         </div>
         <div className="user-info-item">
           <label className="label">Địa chỉ Email (*)</label>

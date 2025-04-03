@@ -14,6 +14,7 @@ const {
 const cloudinary = require("../../config/cloudinary");
 const fetch = require("node-fetch");
 const user = require("../models/user");
+const nodemailer = require('nodemailer'); // Import nodemailer để gửi email
 
 const sendEmail = async (to, subject, htmlContent) => {
   const transporter = nodemailer.createTransport({
@@ -271,8 +272,7 @@ const getRatingById = async (req, res) => {
 const addRating = async (req, res) => {
   try {
     const { request_id, rate, comment } = req.body;
-    const user_id = req.user.id;
-    const user_email = req.user.email;
+    //const user_email = req.user.email;
 
     if (!rate || rate < 1 || rate > 5) {
       return res.status(400).json({
@@ -289,7 +289,7 @@ const addRating = async (req, res) => {
     }
 
     // Kiểm tra xem người dùng đã đánh giá yêu cầu này chưa
-    const existingRating = await Rating.findOne({ request_id, user_id });
+    const existingRating = await Rating.findOne({ request_id });
     if (existingRating) {
       return res.status(400).json({
         EC: 0,
@@ -299,7 +299,6 @@ const addRating = async (req, res) => {
 
     const newRating = new Rating({
       request_id,
-      user_id,
       rate,
       comment,
     });
@@ -307,7 +306,7 @@ const addRating = async (req, res) => {
     const savedRating = await newRating.save();
 
     console.log("Rating saved:", savedRating);
-    console.log("Rating by:", user_email);
+    //console.log("Rating by:", user_email);
 
     res.status(201).json({
       EC: 1,
@@ -916,7 +915,7 @@ const viewRepairmanDeal = async (req, res) => {
     for (const request of requests) {
       const repairmanInfor = await RepairmanUpgradeRequest.findById(request.repairman_id)
         .select('_id')
-        .populate('user_id', 'firstName lastName imgAvt address description')
+        .populate('user_id', 'firstName lastName imgAvt address description email phone')
       //const repairmanInfor = await User.findById(repairman.user_id).select('firstName lastName email phone imgAvt address description repairman._id');
 
       // Lấy certificationImage từ RepairmanUpgradeRequest dựa trên user_id
@@ -1232,7 +1231,7 @@ const confirmRequest = async (req, res) => {
     // }
     const request = await Request.findOne({
       user_id: userId,
-      status: {$in: ["Proceed with repair", "Repairman confirmed completion"]},
+      status: { $in: ["Proceed with repair", "Repairman confirmed completion"] },
     }).sort({ createdAt: -1 })
       .populate({
         path: 'repairman_id',
@@ -1241,7 +1240,7 @@ const confirmRequest = async (req, res) => {
           select: 'firstName lastName email' // Select email here to ensure it's retrieved
         }
       })
-    console.log("request: "+ request)
+    console.log("request: " + request)
     if (!request) {
       res.status(404).json({
         EC: 0,

@@ -51,6 +51,7 @@ const LoginForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    dispatch(resetError());
     dispatch(login(email, password));
   };
 

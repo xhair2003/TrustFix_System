@@ -424,7 +424,7 @@ const getAllComplaints = async (req, res) => {
 const getComplaintById = async (req, res) => {
     try {
         const complaintId = req.params.id;
-        const complaint = await Complaint.find({_id: complaintId, status: { $in: ["pending", "replied"] }})
+        const complaint = await Complaint.find({ _id: complaintId, status: { $in: ["pending", "replied"] } })
             .populate({  // Populate thông tin người dùng thông qua Request
                 path: 'request_id',
                 populate: { path: 'user_id', select: 'firstName lastName email' }
@@ -501,13 +501,13 @@ const replyToComplaint = async (req, res) => {
             });
         }
         const newReply = new Complaint({
-                user_id: user.id,
-                image: parentComplaint.image,
-                complaintContent: complaintContent,
-                complaintType: parentComplaint.complaintType, // Lấy loại khiếu nại từ khiếu nại gốc
-                request_id: parentComplaint.request_id._id,
-                parentComplaint: complaintId,
-                status: 'replied'
+            user_id: user.id,
+            image: parentComplaint.image,
+            complaintContent: complaintContent,
+            complaintType: parentComplaint.complaintType, // Lấy loại khiếu nại từ khiếu nại gốc
+            request_id: parentComplaint.request_id._id,
+            parentComplaint: complaintId,
+            status: 'replied'
         });
         await newReply.save();
         // Create the email content
