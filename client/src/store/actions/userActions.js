@@ -981,7 +981,7 @@ export const confirmRequest = (confirmData) => async (dispatch, getState) => {
             }
         };
 
-        const { data } = await axios.post(
+        const { data } = await axios.put(
             'http://localhost:8080/api/customer/confirmRequest',
             { confirm: confirmData },
             config
