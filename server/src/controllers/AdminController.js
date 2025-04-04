@@ -1855,10 +1855,14 @@ const totalServicePrices = async (req, res) => {
 const viewPendingSupplementaryCertificates = async (req, res) => {
     try {
         // Find all RepairmanUpgradeRequests with status "In review"
-        const pendingCertificates = await RepairmanUpgradeRequest.find({ status: "In review" })
-            .populate("user_id", "firstName lastName email phone address imgAvt") // Populate user details
-            .populate("serviceIndustry_id", "type") // Populate service industry details
-            .populate("vip_id", "name price"); // Populate VIP details if applicable
+        const pendingCertificates = await User.find({ status: "In review" })
+            .populate({
+                path: "repairmanUpgradeRequests", // Trường liên kết với RepairmanUpgradeRequest
+                populate: [
+                { path: "serviceIndustry_id", select: "type" }, // Lấy chi tiết service industry
+                { path: "vip_id", select: "name price" },        // Lấy chi tiết VIP
+                ],
+            });  
 
         // if (!pendingCertificates || pendingCertificates.length === 0) {
         //     return res.status(404).json({
@@ -1866,7 +1870,7 @@ const viewPendingSupplementaryCertificates = async (req, res) => {
         //         EM: "Không có yêu cầu nào đang ở trạng thái 'In review'!",
         //     });
         // }
-
+        console.log(pendingCertificates);
         res.status(200).json({
             EC: 1,
             EM: "Lấy danh sách yêu cầu bổ sung chứng chỉ thành công!",
@@ -1886,7 +1890,7 @@ const verifyPracticeCertificate = async (req, res) => {
 
     try {
         // Find the repairman upgrade request by certificate ID
-        const repairmanRequest = await RepairmanUpgradeRequest.findById(requestId).populate("user_id", "email firstName lastName");
+        const repairmanRequest = await RepairmanUpgradeRequest.findById(requestId).populate("user_id", "email firstName lastName status");
 
         if (!repairmanRequest) {
             return res.status(404).json({
@@ -1897,8 +1901,8 @@ const verifyPracticeCertificate = async (req, res) => {
 
         // Check the action (approve or reject)
         if (action === "approve") {
-            repairmanRequest.status = "Second certificate approved";
-            await repairmanRequest.save();
+            repairmanRequest.user_id.status = "Second certificate approved";
+            await repairmanRequest.user_id.save();
 
             // Send approval email
             const emailContent = `
@@ -1922,8 +1926,9 @@ const verifyPracticeCertificate = async (req, res) => {
 
             // Clear all images from supplementaryPracticeCertificate
             repairmanRequest.supplementaryPracticeCertificate = [];
-            repairmanRequest.status = "Second certificate rejected";
+            repairmanRequest.user_id.status = "Second certificate rejected";
             await repairmanRequest.save();
+            await repairmanRequest.user_id.save();
             console.log("Ảnh chứng chỉ bổ sung đã được xóa!");
 
             // Send rejection email

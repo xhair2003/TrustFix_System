@@ -767,7 +767,8 @@ const addSecondCertificate = async (req, res) => {
     }
 
     // Find the repairman upgrade request by user ID
-    const repairmanRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId });
+    const repairmanRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId })
+      .populate('user_id');
 
     if (!repairmanRequest) {
       return res.status(404).json({
@@ -777,12 +778,12 @@ const addSecondCertificate = async (req, res) => {
     }
 
     // Check if the status is "Active" or "Inactive"
-    if (repairmanRequest.status !== "Active" && repairmanRequest.status !== "Inactive") {
-      return res.status(400).json({
-        EC: 0,
-        EM: "Chỉ có thể yêu cầu bổ sung chứng chỉ khi không nhận đơn hàng nào !",
-      });
-    }
+    // if (repairmanRequest.status !== "Active" && repairmanRequest.status !== "Inactive") {
+    //   return res.status(400).json({
+    //     EC: 0,
+    //     EM: "Chỉ có thể yêu cầu bổ sung chứng chỉ khi không nhận đơn hàng nào !",
+    //   });
+    // }
 
     // Ensure supplementaryPracticeCertificate is an array
     if (!Array.isArray(repairmanRequest.supplementaryPracticeCertificate)) {
@@ -792,10 +793,11 @@ const addSecondCertificate = async (req, res) => {
     // Extract file paths and update the supplementaryPracticeCertificate
     const filePaths = files.map(file => file.path);
     repairmanRequest.supplementaryPracticeCertificate.push(...filePaths);
-    repairmanRequest.status = "In review";
+    repairmanRequest.user_id.status = "In review";
 
     // Save the updated request
     await repairmanRequest.save();
+    repairmanRequest.user_id.save();
 
     res.status(200).json({
       EC: 1,
