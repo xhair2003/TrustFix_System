@@ -103,10 +103,19 @@ const RepairmanOrderDetail = () => {
                         <span className="info-label">Ngày tạo:</span>
                         <span className="info-value">{new Date(customerRequest.createdAt).toLocaleDateString("vi-VN")}</span>
                     </div>
-                    {customerRequest.image && (
+                    {customerRequest.image && Array.isArray(customerRequest.image) && customerRequest.image.length > 0 && (
                         <div className="info-item">
                             <span className="info-label">Hình ảnh:</span>
-                            <img src={customerRequest.image} alt="Request" className="request-image" />
+                            <div className="request-images-container">
+                                {customerRequest.image.map((imageUrl, index) => (
+                                    <img
+                                        key={index}
+                                        src={imageUrl}
+                                        alt={`Request ${index + 1}`}
+                                        className="request-image"
+                                    />
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>

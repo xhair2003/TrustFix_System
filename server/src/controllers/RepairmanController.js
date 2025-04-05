@@ -2,6 +2,7 @@ const { User, Role, RepairmanUpgradeRequest, ServiceIndustry, Service, Vip, DueP
 const cloudinary = require("../../config/cloudinary");
 const { MONTHLY_FEE } = require("../constants");
 const { findOne } = require("../models/RepairmanUpgradeRequest");
+const nodemailer = require('nodemailer'); // Import nodemailer để gửi email
 
 const sendEmail = async (to, subject, htmlContent) => {
   const transporter = nodemailer.createTransport({
@@ -122,6 +123,15 @@ const requestRepairmanUpgrade = async (req, res) => {
     // Update user's address
     await User.findByIdAndUpdate(userId, { address: address });
 
+    const check = await RepairmanUpgradeRequest.findOne({
+      user_id: userId
+    })
+    if (check) {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Bạn đã gửi yêu cầu nâng cấp trước đó vui lòng chờ phản hồi từ hệ thống!",
+      });
+    }
     // Create new Repairman Upgrade Request
     const newRequest = new RepairmanUpgradeRequest({
       user_id: userId,
@@ -827,6 +837,7 @@ const viewCustomerRequest = async (req, res) => {
 }
 const cofirmRequest = async (req, res) => {
   try {
+    const io = req.app.get('io'); // Lấy io từ app
     const userId = req.user.id;
     const { confirm } = req.body;
     const repairman = await RepairmanUpgradeRequest.findOne({ user_id: userId });
@@ -836,9 +847,28 @@ const cofirmRequest = async (req, res) => {
         EM: "Không tìm thấy thợ sửa chữa"
       })
     }
+    const request = await Request.findOne({
+      repairman_id: repairman._id,
+      status: "Proceed with repair"
+    })
+    if (!request) {
+      res.status(400).json({
+        EC: 0,
+        EM: "Không tìm thấy đơn hàng sửa chữa"
+      })
+    }
     if (confirm === "Completed") {
       repairman.status = 'Active';
       await repairman.save();
+
+      request.status = 'Repairman confirmed completion';
+      await request.save();
+
+      // Gửi thông báo WebSocket tới khách hàng
+      const customerId = request.user_id.toString();
+      console.log('Sending repairmanConfirmedCompletion to customer:', customerId);
+      io.to(customerId).emit('repairmanConfirmedCompletion'); // Gửi sự kiện tới khách hàng
+
       res.status(201).json({
         EC: 1,
         EM: 'Xác nhận hoàn thành đơn hàng thành công, vui lòng đợi khách hàng xác nhận để nhận tiền'

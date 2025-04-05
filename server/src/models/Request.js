@@ -104,5 +104,10 @@ RequestSchema.virtual("repairman", {
   foreignField: "_id",
   //justOne: true
 });
-
+// Virtual for duePrice
+RequestSchema.virtual("duePrices", {
+  ref: "DuePrice",
+  localField: "_id",
+  foreignField: "request_id",
+});
 module.exports = mongoose.model("Request", RequestSchema);

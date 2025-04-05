@@ -402,6 +402,7 @@ const getAllComplaints = async (req, res) => {
         const complaints = await Complaint.find()
             .populate({ // Populate thông tin người dùng thông qua Request
                 path: 'request_id',
+                model: Request,
                 populate: { path: 'user_id', select: 'firstName lastName email phone address' }
             })
             .populate('parentComplaint', 'complaintContent')
@@ -423,13 +424,13 @@ const getAllComplaints = async (req, res) => {
 const getComplaintById = async (req, res) => {
     try {
         const complaintId = req.params.id;
-        const complaint = await Complaint.findById(complaintId)
+        const complaint = await Complaint.find({ _id: complaintId, status: { $in: ["pending", "replied"] } })
             .populate({  // Populate thông tin người dùng thông qua Request
                 path: 'request_id',
                 populate: { path: 'user_id', select: 'firstName lastName email' }
             })
-            .populate('parentComplaint', 'complaintContent')
-            .populate('replies');
+            .populate('parentComplaint')
+
 
         if (!complaint) {
             return res.status(404).json({
@@ -454,7 +455,7 @@ const getComplaintById = async (req, res) => {
 
 const replyToComplaint = async (req, res) => {
     try {
-        const parentComplaintId = req.params.id; // ID của khiếu nại gốc
+        const { complaintId } = req.params; // ID của khiếu nại gốc
         const { complaintContent } = req.body; // Chỉ lấy complaintContent từ request body
 
         // Kiểm tra xem nội dung phản hồi có được cung cấp không
@@ -466,11 +467,11 @@ const replyToComplaint = async (req, res) => {
         }
 
         // Tìm khiếu nại gốc từ cơ sở dữ liệu và kiểm tra tính hợp lệ
-        const parentComplaint = await Complaint.findById(parentComplaintId).populate({
+        const parentComplaint = await Complaint.findById(complaintId).populate({
             path: 'request_id',
             populate: {
                 path: 'user_id',
-                select: 'email firstName lastName'
+                select: 'email firstName lastName status'
             }
         });
 
@@ -499,7 +500,16 @@ const replyToComplaint = async (req, res) => {
                 EM: "Không tìm thấy người dùng đã tạo đơn hàng!"
             });
         }
-
+        const newReply = new Complaint({
+            user_id: user.id,
+            image: parentComplaint.image,
+            complaintContent: complaintContent,
+            complaintType: parentComplaint.complaintType, // Lấy loại khiếu nại từ khiếu nại gốc
+            request_id: parentComplaint.request_id._id,
+            parentComplaint: complaintId,
+            status: 'replied'
+        });
+        await newReply.save();
         // Create the email content
         const emailContent = `
             <h1>Thông báo phản hồi khiếu nại</h1>
@@ -530,13 +540,13 @@ const replyToComplaint = async (req, res) => {
         await transporter.sendMail(mailOptions);
 
         // Update the complaint status to 'replied'
-        parentComplaint.status = 'replied';
+        parentComplaint.status = 'ok';
         await parentComplaint.save();
 
-        res.status(200).json({
+        res.status(201).json({
             EC: 1,
             EM: "Phản hồi khiếu nại thành công và đã gửi email đến người dùng!",
-            DT: parentComplaint // You can send the complaint or the response data
+            DT: newReply // You can send the complaint or the response data
 
             // // Kiểm tra xem thông tin người dùng có hợp lệ không
             // if (!parentComplaint.request_id || !parentComplaint.request_id.user_id) {
@@ -1294,6 +1304,26 @@ const viewRepairBookingHistory = async (req, res) => {
                 path: "ratings",
                 select: "rate comment request_id", // Include request_id in the populated data
                 model: Rating,
+            })
+            .populate({
+                path: "repairman_id",
+                select: "user_id",
+                model: RepairmanUpgradeRequest,
+                populate: {
+                    path: "user_id",
+                    select: "firstName lastName phone email",
+                    model: User,
+                }
+            })
+            .populate({
+                path: "duePrices",
+                select: "minPrice maxPrice",
+                //model: DuePrice,
+                populate: {
+                    path: "prices",
+                    select: "priceToPay",
+                    //model: Price,
+                }
             })
             .sort({ createdAt: -1 }); // Sort by creation date in descending order
 

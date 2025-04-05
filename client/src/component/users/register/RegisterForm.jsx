@@ -24,24 +24,50 @@ const RegisterForm = ({ onRegisterSuccess }) => {
     return pwd.length >= 8;
   };
 
+  const validatePhone = (phone) => {
+    const phoneRegex = /^[0-9]{10}$/; // Kiểm tra số điện thoại 10 chữ số
+    return phoneRegex.test(phone);
+  };
+
+  const validateName = (name) => {
+    const nameRegex = /^[a-zA-ZÀ-ỹ\s]+$/; // Chỉ cho phép chữ cái và khoảng trắng, hỗ trợ tiếng Việt
+    return nameRegex.test(name);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({}); // Reset lỗi trước khi kiểm tra
 
+    // Loại bỏ khoảng trắng từ các trường nhập liệu
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    const trimmedRePassword = rePassword.trim();
+    const trimmedPhone = phone.trim();
+
     let validationErrors = {};
-    if (!firstName.trim()) {
+    if (!trimmedFirstName) {
       validationErrors.firstName = "Họ là bắt buộc";
+    } else if (!validateName(trimmedFirstName)) {
+      validationErrors.firstName = "Họ không được chứa ký tự đặc biệt";
     }
-    if (!lastName.trim()) {
+
+    if (!trimmedLastName) {
       validationErrors.lastName = "Tên là bắt buộc";
+    } else if (!validateName(trimmedLastName)) {
+      validationErrors.lastName = "Tên không được chứa ký tự đặc biệt";
     }
-    if (!validatePassword(password)) {
+
+    if (!validatePassword(trimmedPassword)) {
       validationErrors.password = "Mật khẩu phải ít nhất 8 ký tự";
     }
-    if (password !== rePassword) {
+    if (trimmedPassword !== trimmedRePassword) {
       validationErrors.rePassword = "Mật khẩu không khớp";
     }
-    if (!phone.trim()) {
+    if (!validatePhone(trimmedPhone)) {
+      validationErrors.phone = "Số điện thoại không hợp lệ (phải là 10 chữ số)";
+    } else if (!trimmedPhone) {
       validationErrors.phone = "Số điện thoại là bắt buộc";
     }
 
@@ -52,12 +78,12 @@ const RegisterForm = ({ onRegisterSuccess }) => {
 
     try {
       const newUserData = {
-        firstName,
-        lastName,
-        email,
-        pass: password,
-        confirmPassword: rePassword,
-        phone,
+        firstName: trimmedFirstName,
+        lastName: trimmedLastName,
+        email: trimmedEmail,
+        pass: trimmedPassword,
+        confirmPassword: trimmedRePassword,
+        phone: trimmedPhone,
         role: 'customer',
       };
 

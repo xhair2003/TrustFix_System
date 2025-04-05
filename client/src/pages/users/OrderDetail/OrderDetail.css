@@ -47,6 +47,11 @@
     padding-bottom: 0.5rem;
 }
 
+.info-value {
+    font-size: 0.875rem;
+    color: #1f2937;
+}
+
 /* Order Info */
 .info-item {
     display: flex;
@@ -55,22 +60,29 @@
 }
 
 .info-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #374151;
-}
+    font-weight: 600;
+    color: #333;
+    margin-right: 10px;
+  }
 
-.info-value {
-    font-size: 0.875rem;
-    color: #1f2937;
+.order-images-container {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 10px; 
+    margin-top: 5px;
 }
 
 .order-image {
-    max-width: 150px;
-    max-height: 150px;
+    width: 100px; 
+    height: 100px;
     object-fit: cover;
     border-radius: 4px;
-    margin-top: 0.5rem;
+    border: 1px solid #e0e0e0;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: scale(1.05);
+    }
 }
 
 /* Repairman Info */
@@ -215,4 +227,21 @@
 .rate-btn:hover {
     background-color: #1d4ed8;
     transform: translateY(-2px);
+}
+
+.confirm-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+.confirm-button.disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+  
+.confirm-button.active {
+    background-color: #28a745;
+    color: white;
 }

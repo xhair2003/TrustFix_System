@@ -213,11 +213,16 @@ const Header = () => {
                         <FaUser className="user-icon" onClick={toggleDropdown} />
                         {isDropdownOpen && (
                             <div className="dropdown-menu">
-                                {role === "repairman" &&
-                                    <div className="dropdown-item" onClick={() => navigate("/repairman/view-requests")}>
-                                        <FaWrench className="dropdown-icon" /> Đơn hàng sửa chữa
-                                    </div>
-                                }
+                                {role === "repairman" && (
+                                    <>
+                                        <div className="dropdown-item" onClick={() => navigate("/repairman/view-requests")}>
+                                            <FaWrench className="dropdown-icon" /> Đơn hàng sửa chữa
+                                        </div>
+                                        <div className="dropdown-item" onClick={() => navigate("/repairman/dashboard")}>
+                                            <FaWrench className="dropdown-icon" /> Dashboard cho thợ
+                                        </div>
+                                    </>
+                                )}
                                 <div className="dropdown-item" onClick={() => navigate("/profile")}>
                                     <FaUser className="dropdown-icon" /> Thông tin cá nhân
                                 </div>
@@ -233,11 +238,11 @@ const Header = () => {
                                 <div className="dropdown-item" onClick={() => navigate("/wallet")}>
                                     <FaWallet className="dropdown-icon" /> Ví tiền
                                 </div>
-                                {role === "customer" &&
+                                {role === "customer" && (
                                     <div className="dropdown-item" onClick={() => navigate("/upgrade-repair-man")}>
                                         <FaLevelUpAlt className="dropdown-icon" /> Nâng cấp lên thợ
                                     </div>
-                                }
+                                )}
                                 <div className="dropdown-item" onClick={handleLogout}>
                                     <FaSignOutAlt className="dropdown-icon" /> Đăng xuất
                                 </div>

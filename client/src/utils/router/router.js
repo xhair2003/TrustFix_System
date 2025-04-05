@@ -36,6 +36,7 @@ export const ROUTERS = {
         VIEW_REQUESTS: '/repairman/view-requests',
         DETAIL_REQUEST: '/repairman/detail-request/:requestId',
         REPAIRMAN_ORDER_DETAIL: '/repairman/order-detail/:requestId',
+        REPAIMAN_DASHBOARD: '/repairman/dashboard'
     },
 
     ADMIN: {

@@ -13,6 +13,8 @@ const RepairmanList = ({ repairmanDeals }) => {
     const handleViewDetails = (repairman) => {
         const formattedRepairman = {
             repairmanId: repairman.repairman._id,
+            email: repairman.repairman.user_id.email || "Không có email",
+            phone: repairman.repairman.user_id.phone || "Không có số điện thoại",
             fullName: `${repairman.repairman.user_id.firstName} ${repairman.repairman.user_id.lastName}`,
             profileImage: repairman.repairman.user_id.imgAvt || null,
             description: repairman.repairman.user_id.description || "Không có mô tả",
@@ -57,10 +59,10 @@ const RepairmanList = ({ repairmanDeals }) => {
                         <li key={index} className="repairman-item">
                             <div className="repairman-info">
                                 <span className="repairman-name">
-                                    {repairman.repairman.firstName} {repairman.repairman.lastName}
+                                    {repairman.repairman.user_id.firstName} {repairman.repairman.user_id.lastName}
                                 </span>
                                 <span className="repairman-service">
-                                    {repairman.repairman.description || "Không có mô tả dịch vụ"}
+                                    {repairman.repairman.user_id.description || "Không có mô tả"}
                                 </span>
                             </div>
                             <div className="repairman-price">

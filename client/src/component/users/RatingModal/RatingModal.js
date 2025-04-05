@@ -131,7 +131,7 @@ import Loading from "../../Loading/Loading";
 
 const RatingModal = ({ isOpen, onClose, repairmanName, requestId }) => {
     const dispatch = useDispatch();
-    const { loading, successRating, errorRating } = useSelector((state) => state.rating);
+    const { loading, successRating, errorRating } = useSelector((state) => state.user);
 
     const [rating, setRating] = useState(0); // Chỉ giữ một giá trị sao tổng thể
     const [criteria, setCriteria] = useState([]); // Lưu các tiêu chí được chọn
