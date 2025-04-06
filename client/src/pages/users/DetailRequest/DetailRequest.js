@@ -14,16 +14,13 @@ const DetailRequest = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-  const { loading, errorDealPrice, successDealPrice } =
-    useSelector((state) => state.user);
+  const { loading, errorDealPrice, successDealPrice } = useSelector((state) => state.user);
   const [dealPriceValue, setDealPriceValue] = useState("");
   const { requestData, status } = location.state || {};
 
-  // Lấy tất cả deal prices từ localStorage
   const storedDealPrices = JSON.parse(localStorage.getItem("deal_prices") || "{}");
   const storedDealPrice = storedDealPrices[requestData.parentRequest];
 
-  // Chỉ chạy useEffect nếu status !== false
   useEffect(() => {
     if (status !== false) {
       if (errorDealPrice) {
@@ -44,14 +41,13 @@ const DetailRequest = () => {
           timer: 5000,
           showConfirmButton: false,
         });
-        // Cập nhật deal_prices trong localStorage
         const updatedDealPrices = {
           ...storedDealPrices,
           [requestData.parentRequest]: dealPriceValue,
         };
         const keys = Object.keys(updatedDealPrices);
         if (keys.length > 100) {
-          delete updatedDealPrices[keys[0]]; // Xóa deal cũ nhất
+          delete updatedDealPrices[keys[0]];
         }
         localStorage.setItem("deal_prices", JSON.stringify(updatedDealPrices));
         dispatch(resetSuccess());
@@ -66,28 +62,53 @@ const DetailRequest = () => {
   };
 
   const handleDealSubmit = () => {
-    const dealData = {
-      deal_price: dealPriceValue,
-      isDeal: "true",
-    };
-    dispatch(dealPrice(requestData.parentRequest, dealData));
+    Swal.fire({
+      title: "Xác nhận Deal giá?",
+      text: `Bạn có chắc muốn deal với giá ${dealPriceValue} VNĐ không?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Xác nhận",
+      cancelButtonText: "Hủy",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const dealData = {
+          deal_price: dealPriceValue,
+          isDeal: "true",
+        };
+        dispatch(dealPrice(requestData.parentRequest, dealData));
+      }
+    });
   };
 
   const handleCancel = () => {
-    const dealData = {
-      isDeal: "false",
-    };
-    setDealPriceValue("");
-    dispatch(dealPrice(requestData.parentRequest, dealData));
-    // Xóa deal_price của request này khỏi localStorage
-    const updatedDealPrices = { ...storedDealPrices };
-    delete updatedDealPrices[requestData.parentRequest];
-    localStorage.setItem("deal_prices", JSON.stringify(updatedDealPrices));
-    navigate(-1);
+    Swal.fire({
+      title: "Xác nhận hủy bỏ?",
+      text: "Bạn có chắc muốn hủy bỏ deal giá không?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Xác nhận",
+      cancelButtonText: "Hủy",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const dealData = {
+          isDeal: "false",
+        };
+        setDealPriceValue("");
+        dispatch(dealPrice(requestData.parentRequest, dealData));
+        const updatedDealPrices = { ...storedDealPrices };
+        delete updatedDealPrices[requestData.parentRequest];
+        localStorage.setItem("deal_prices", JSON.stringify(updatedDealPrices));
+        navigate(-1);
+      }
+    });
   };
 
   const handleBack = () => {
     navigate(-1);
+  };
+
+  const handleClose = () => {
+    navigate(-1); // Đóng modal bằng cách quay lại trang trước
   };
 
   if (loading) return <Loading />;
@@ -113,16 +134,23 @@ const DetailRequest = () => {
             </p>
             <p>
               <strong>Ngày tạo:</strong>{" "}
-              {new Date(requestData.createdAt).toLocaleString()}
+              {new Date(requestData.createdAt).toLocaleDateString('vi-VN')}
             </p>
             <p>
-              <strong>Trạng thái:</strong> {requestData.status}
-            </p>
-            <p>
-              <strong>Loại dịch vụ:</strong> {requestData.serviceIndustry_id}
-            </p>
-            <p>
-              <strong>Mã đơn gốc:</strong> {requestData.parentRequest}
+              <strong>Trạng thái:</strong>
+              {
+                requestData.status === "Completed" ? "Đã hoàn thành" :
+                  requestData.status === "Confirmed" ? "Đã xác nhận" :
+                    requestData.status === "Pending" ? "Đang chờ xử lý" :
+                      requestData.status === "Cancelled" ? "Đã hủy" :
+                        requestData.status === "Requesting Details" ? "Yêu cầu chi tiết" :
+                          requestData.status === "Deal price" ? "Thỏa thuận giá" :
+                            requestData.status === "Done deal price" ? "Đã chốt giá" :
+                              requestData.status === "Make payment" ? "Chờ thanh toán" :
+                                requestData.status === "Repairman confirmed completion" ? "Thợ xác nhận hoàn thành" :
+                                  requestData.status === "Proceed with repair" ? "Tiến hành sửa chữa" :
+                                    "Trạng thái không xác định"
+              }
             </p>
           </div>
         </section>
@@ -162,12 +190,17 @@ const DetailRequest = () => {
                   placeholder="Nhập giá deal (VND)"
                   className="deal-input"
                 />
-                <div className="deal-buttons">
-                  <button onClick={handleDealSubmit} className="confirm-button">
-                    Xác nhận
-                  </button>
-                  <button onClick={handleCancel} className="cancel-button">
-                    Hủy bỏ
+                <div className="deal-buttons-container">
+                  <div className="deal-buttons">
+                    <button onClick={handleDealSubmit} className="confirm-button">
+                      Xác nhận
+                    </button>
+                    <button onClick={handleCancel} className="cancel-button">
+                      Hủy bỏ
+                    </button>
+                  </div>
+                  <button onClick={handleClose} className="close-button">
+                    Đóng
                   </button>
                 </div>
               </div>

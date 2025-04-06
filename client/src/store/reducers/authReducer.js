@@ -5,6 +5,7 @@ const initialState = {
     user: null,
     loading: false,
     resetToken: null,
+    user_id: null,
 
     error: null,
     errorRegister: null,
@@ -43,6 +44,7 @@ const authReducer = (state = initialState, action) => {
                 isAuthenticated: action.payload.isAuthenticated,
                 errorLogin: null,
                 user: action.payload.user,
+                user_id: action.payload.user._id,
                 loading: false,
                 successLogin: action.payload.successLogin,
                 role: action.payload.role,
@@ -84,7 +86,7 @@ const authReducer = (state = initialState, action) => {
 
 
         case "LOGIN_FAIL":
-            return { ...state, loading: false, errorLogin: action.payload, successLogin: null };
+            return { ...state, loading: false, errorLogin: action.payload, successLogin: null, user_id: null, user: null, role: null, isAuthenticated: null, token: null };
         case "FORGOT_PASSWORD_FAIL":
             return { ...state, loading: false, errorForgotPassword: action.payload.EM, successForgotPassword: null };
         case "VERIFY_OTP_FAIL":

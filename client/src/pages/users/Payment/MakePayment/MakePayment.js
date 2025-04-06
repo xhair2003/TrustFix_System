@@ -1,96 +1,3 @@
-// import React, { useState, useEffect } from "react";
-// import { useLocation, useNavigate } from "react-router-dom";
-// import { fetchBalance, assignRepairman, resetError, resetSuccess } from '../../../../store/actions/userActions';
-// import { useDispatch, useSelector } from 'react-redux';
-// import Loading from '../../../../component/Loading/Loading';
-// import "./MakePayment.css";
-// import Swal from "sweetalert2";
-
-// const MakePayment = () => {
-//     const dispatch = useDispatch();
-//     const navigate = useNavigate();
-//     const location = useLocation();
-//     const { repairman, request } = location.state || {};
-//     const { balance, loading, errorFetchBalance } = useSelector((state) => state.user);
-//     const [isProcessing, setIsProcessing] = useState(false);
-
-//     useEffect(() => {
-//         dispatch(fetchBalance());
-//     }, [dispatch]);
-
-//     if (loading) {
-//         return <Loading />;
-//     }
-
-//     if (errorFetchBalance) {
-//         return <p style={{ color: 'red' }}>{errorFetchBalance}</p>;
-//     }
-
-//     const handlePaymentWithWallet = async () => {
-//         setIsProcessing(true);
-//         try {
-//             // Giả lập gọi API thanh toán bằng ví tài khoản
-//             await new Promise((resolve) => setTimeout(resolve, 1000)); // Delay 1 giây để giả lập
-
-//             // if (walletBalance < dealPrice) {
-//             //     alert("Số dư tài khoản không đủ để thanh toán!");
-//             //     return;
-//             // }
-
-//             alert("Thanh toán thành công!");
-//             // Chuyển hướng đến trang .booking
-//             navigate("/booking", { state: { repairman, paymentMethod: "wallet" } });
-//         } catch (error) {
-//             console.error("Lỗi thanh toán:", error);
-//             alert("Đã xảy ra lỗi khi thanh toán. Vui lòng thử lại!");
-//         } finally {
-//             setIsProcessing(false);
-//         }
-//     };
-
-//     if (!repairman || !repairman.dealPrice) {
-//         return <div>Không tìm thấy thông tin để thanh toán.</div>;
-//     }
-
-//     return (
-//         <div className="payment-page">
-//             <h2 className="payment-title">Thanh toán đặt thợ</h2>
-//             <div className="payment-container">
-//                 <div className="payment-info">
-//                     <h3 className="section-title">Thông tin thanh toán</h3>
-//                     <div className="info-item">
-//                         <label className="info-label">Thợ:</label>
-//                         <span className="info-value">{repairman.fullName}</span>
-//                     </div>
-//                     <div className="info-item">
-//                         <label className="info-label">Số tiền cần thanh toán:</label>
-//                         <span className="info-value">{repairman.dealPrice.toLocaleString("vi-VN")} VNĐ</span>
-//                     </div>
-//                     <div className="info-item">
-//                         <label className="info-label">Số dư tài khoản:</label>
-//                         <span className="info-value">{balance.toLocaleString("vi-VN")} VNĐ</span>
-//                     </div>
-//                 </div>
-
-//                 <div className="payment-options">
-//                     <div className="option-buttons">
-//                         <button
-//                             className="option-btn wallet-btn"
-//                             onClick={handlePaymentWithWallet}
-//                             disabled={isProcessing}
-//                         >
-//                             {isProcessing ? "Đang xử lý..." : "Thanh toán bằng ví tài khoản"}
-//                         </button>
-//                     </div>
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default MakePayment;
-
-
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { fetchBalance, assignRepairman, resetError, resetSuccess } from '../../../../store/actions/userActions';
@@ -107,7 +14,7 @@ const MakePayment = () => {
     const { balance, loading, errorFetchBalance, successMakePayment, errorMakePayment } = useSelector((state) => state.user);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    console.log(repairman);
+    //console.log(repairman);
 
     // Fetch balance on component mount
     useEffect(() => {
@@ -221,16 +128,40 @@ const MakePayment = () => {
                     </div>
                     <div className="info-item">
                         <label className="info-label">Trạng thái:</label>
-                        <span className="info-value">{request.status}</span>
+                        <span className="info-value">
+                            {
+                                request.status === "Completed" ? "Đã hoàn thành" :
+                                    request.status === "Confirmed" ? "Đã xác nhận" :
+                                        request.status === "Pending" ? "Đang chờ xử lý" :
+                                            request.status === "Cancelled" ? "Đã hủy" :
+                                                request.status === "Requesting Details" ? "Yêu cầu chi tiết" :
+                                                    request.status === "Deal price" ? "Thỏa thuận giá" :
+                                                        request.status === "Done deal price" ? "Đã chốt giá" :
+                                                            request.status === "Make payment" ? "Chờ thanh toán" :
+                                                                request.status === "Repairman confirmed completion" ? "Thợ xác nhận hoàn thành" :
+                                                                    request.status === "Proceed with repair" ? "Tiến hành sửa chữa" :
+                                                                        "Trạng thái không xác định"
+                            }
+                        </span>
+
                     </div>
                     <div className="info-item">
                         <label className="info-label">Ngày tạo:</label>
-                        <span className="info-value">{request.createdAt}</span>
+                        <span className="info-value">{new Date(request.createdAt).toLocaleDateString('vi-VN')}</span>
                     </div>
-                    {request.image && (
+                    {request.image && Array.isArray(request.image) && request.image.length > 0 && (
                         <div className="info-item">
-                            <label className="info-label">Hình ảnh:</label>
-                            <img src={request.image} alt="Order" className="order-image" />
+                            <span className="info-label">Hình ảnh:</span>
+                            <div className="order-images-container">
+                                {request.image.map((imageUrl, index) => (
+                                    <img
+                                        key={index}
+                                        src={imageUrl}
+                                        alt={`Order ${index + 1}`}
+                                        className="order-image"
+                                    />
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>

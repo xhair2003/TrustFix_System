@@ -52,6 +52,9 @@ const initialState = {
 
     successConfirmRequestRepairman: null,
     errorConfirmRequestRepairman: null,
+
+    requestStatus: null,
+    errorRequestStatus: null
 };
 
 const userReducer = (state = initialState, action) => {
@@ -286,12 +289,12 @@ const userReducer = (state = initialState, action) => {
         case "FIND_REPAIRMAN_REQUEST":
             return {
                 ...state,
-                loading: true,
+                //loading: true,
             };
         case "FIND_REPAIRMAN_SUCCESS":
             return {
                 ...state,
-                loading: false,
+                //loading: false,
                 requestId: action.payload.requestId, // Lưu dữ liệu từ BE
                 successFindRepairman: action.payload.message, // Lưu dữ liệu từ BE (VD: { EC: 1, EM: "Gửi yêu cầu thành công!" })
                 errorFindRepairman: null,
@@ -299,7 +302,7 @@ const userReducer = (state = initialState, action) => {
         case "FIND_REPAIRMAN_FAIL":
             return {
                 ...state,
-                loading: false,
+                //loading: false,
                 successFindRepairman: null,
                 requestId: null,
                 errorFindRepairman: action.payload, // Lưu thông báo lỗi
@@ -505,6 +508,16 @@ const userReducer = (state = initialState, action) => {
             };
 
 
+
+        case "FETCH_REQUEST_STATUS_REQUEST":
+            return { ...state, loading: true };
+        case "FETCH_REQUEST_STATUS_SUCCESS":
+            return { ...state, loading: false, requestStatus: action.payload, errorRequestStatus: null };
+        case "FETCH_REQUEST_STATUS_FAIL":
+            return { ...state, loading: false, errorRequestStatus: action.payload, requestStatus: null };
+
+
+
         case "CONFIRM_REQUEST_REPAIRMAN_REQUEST":
             return {
                 ...state,
@@ -514,15 +527,15 @@ const userReducer = (state = initialState, action) => {
             return {
                 ...state,
                 loading: false,
-                successConfirmRequestRepairman: action.payload,
-                errorConfirmRequestRepairman: null
+                successConfirmRequestRepairman: action.payload.EM,
+                errorConfirmRequestRepairman: null,
             };
         case "CONFIRM_REQUEST_REPAIRMAN_FAIL":
             return {
                 ...state,
                 loading: false,
                 successConfirmRequestRepairman: null,
-                errorConfirmRequestRepairman: action.payload
+                errorConfirmRequestRepairman: action.payload,
             };
 
 
@@ -558,6 +571,8 @@ const userReducer = (state = initialState, action) => {
                 errorConfirmRequest: null,
 
                 errorConfirmRequestRepairman: null,
+
+                errorRequestStatus: null
             };
         case "RESET_SUCCESS":
             return {

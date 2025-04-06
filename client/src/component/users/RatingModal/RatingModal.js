@@ -131,9 +131,11 @@ import {
 import Swal from "sweetalert2";
 import "./RatingModal.css";
 import Loading from "../../Loading/Loading";
+import { useNavigate } from "react-router-dom";
 
 const RatingModal = ({ isOpen, onClose, repairmanName, requestId }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { loading, successRating, errorRating } = useSelector(
     (state) => state.user
   );
@@ -165,9 +167,10 @@ const RatingModal = ({ isOpen, onClose, repairmanName, requestId }) => {
       }).then(() => {
         dispatch(resetSuccess()); // Reset rating state
         onClose(); // Close the modal
+        navigate("/view-repair-booking-history");
       });
     }
-  }, [successRating, dispatch, onClose]);
+  }, [successRating, dispatch, onClose, navigate]);
 
   // Handle errorRating with Swal
   useEffect(() => {

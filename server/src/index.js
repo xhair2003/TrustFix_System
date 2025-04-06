@@ -18,7 +18,33 @@ const io = new Server(httpServer, {
         credentials: true
     }
 });
+// WebSocket middleware
+io.use((socket, next) => {
+    const token = socket.handshake.auth.token;
+    if (!token) {
+        console.error('Authentication error: No token provided');
+        return next(new Error('Authentication error: No token provided'));
+    }
 
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_ACCESS_KEY);
+        socket.user = decoded;
+        socket.join(decoded.id.toString()); // Tham gia room dựa trên user ID
+        console.log(`User ${decoded.id} authenticated and joined room`);
+        next();
+    } catch (error) {
+        console.error('JWT verification failed:', error.message);
+        next(new Error('Authentication error: Invalid token'));
+    }
+});
+
+io.on('connection', (socket) => {
+    console.log('A user connected:', socket.id);
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+});
 // Lưu io vào app để dùng trong controller
 app.set('io', io);
 
@@ -86,28 +112,6 @@ app.use((err, req, res, next) => {
         EC: 0,
         EM: "Đã có lỗi xảy ra!",
         DT: process.env.NODE_ENV === 'development' ? err.message : {}
-    });
-});
-
-// WebSocket middleware và logic
-io.use((socket, next) => {
-    const token = socket.handshake.auth.token;
-    if (!token) return next(new Error('Authentication error: No token provided'));
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_ACCESS_KEY);
-        socket.user = decoded;
-        socket.join(decoded.id.toString()); // Tham gia room dựa trên user ID
-        next();
-    } catch (error) {
-        next(new Error('Authentication error: Invalid token'));
-    }
-});
-
-io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
-
-    socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
     });
 });
 

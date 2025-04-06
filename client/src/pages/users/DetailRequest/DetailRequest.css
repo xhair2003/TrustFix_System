@@ -179,3 +179,34 @@
 .back-button:hover {
   background-color: #bbb;
 }
+
+/* Thêm container để căn chỉnh nút */
+.deal-buttons-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+}
+
+/* Điều chỉnh lại deal-buttons để không bị lệch */
+.deal-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+/* Style cho nút Đóng */
+.close-button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #6c757d; /* Màu xám */
+  color: white;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.close-button:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+}

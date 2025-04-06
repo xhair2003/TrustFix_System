@@ -1,5 +1,6 @@
 // actions/auth.js
 import axios from 'axios';
+import socket from '../../socket';
 
 export const login = (email, pass) => {
     return async (dispatch) => {
@@ -9,11 +10,17 @@ export const login = (email, pass) => {
 
             if (response.data.EC === 1) {
                 const { accessToken } = response.data.DT;
-
+                const newUserId = response.data.DT._id;
                 // Lưu token vào localStorage, không cần
                 localStorage.setItem('token', accessToken);
                 localStorage.setItem('isAuthenticated', true);
                 localStorage.setItem('role', response.data.DT.roles[0]);
+                localStorage.setItem('user_id', newUserId);
+
+                if (socket && socket.connected) {
+                    socket.emit('join', newUserId.toString()); // Tham gia room mới
+                }
+
                 // Đẩy action vào Redux
                 dispatch({
                     type: "LOGIN_SUCCESS",
@@ -34,19 +41,49 @@ export const login = (email, pass) => {
     };
 };
 
-export const logout = () => {
-    return (dispatch) => {
-        // Xóa token khỏi localStorage
+export const logout = () => async (dispatch, getState) => {
+    const oldUserId = getState().auth.user_id || localStorage.getItem('user_id');
+
+    try {
+        // Gửi yêu cầu đến API logout để cập nhật status trong RepairmanUpgradeRequest
+        const token = getState().auth.token || localStorage.getItem('token'); // Lấy token từ state auth hoặc localStorage
+        if (token) {
+            await axios.post(
+                'http://localhost:8080/api/authen/logout', // Đường dẫn API logout
+                {}, // Body trống vì userId được lấy từ token
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+        }
+
+        // Rời room socket nếu có
+        if (oldUserId && socket) {
+            socket.emit('leave', oldUserId.toString());
+        }
+
+        // Xóa thông tin khỏi localStorage
         localStorage.removeItem('token');
         localStorage.removeItem('isAuthenticated');
         localStorage.removeItem('role');
-        localStorage.removeItem("closedRequests");
-        // Đẩy action logout vào Redux
+        localStorage.removeItem('closedRequests');
+        localStorage.removeItem('user_id');
+
+        // Dispatch action LOGOUT để reset state Redux
         dispatch({
-            type: "LOGOUT",
+            type: 'LOGOUT',
         });
-    };
+    } catch (error) {
+        console.error('Lỗi khi đăng xuất:', error);
+        // Vẫn dispatch LOGOUT ngay cả khi API thất bại để đảm bảo client-side logout
+        dispatch({
+            type: 'LOGOUT',
+        });
+    }
 };
+
 
 export const registerUser = (userData) => async (dispatch) => {
     dispatch({ type: "REGISTER_REQUEST" });

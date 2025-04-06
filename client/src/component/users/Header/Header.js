@@ -29,14 +29,14 @@ const Header = () => {
     useEffect(() => {
         if (role === "repairman") {
             dispatch(getStatusRepairman()); // Fetch initial status
-            dispatch(viewRequest()); // Fetch requests
+            //dispatch(viewRequest()); // Fetch requests
         }
     }, [dispatch, role]);
 
     // Update isActive based on fetched status
     useEffect(() => {
         if (status !== null && status !== undefined) {
-            setIsActive(status === 'Active'); // Compare with 'Active' (case-sensitive)
+            setIsActive(status !== 'Inactive'); // True nếu status không phải Inactive, False nếu là Inactive
         }
     }, [status]);
 
@@ -78,10 +78,10 @@ const Header = () => {
                 showCloseButton: false,
             }).then(() => {
                 dispatch(resetError()); // Reset error state
-                setIsActive(status === 'Active'); // Revert switch state on error
+                setIsActive(!isActive);
             });
         }
-    }, [errorToggleStatus, dispatch, status]);
+    }, [errorToggleStatus, dispatch, status, isActive]);
 
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
@@ -176,7 +176,7 @@ const Header = () => {
                             </div>
                         )}
 
-                        <div className="notification-wrapper">
+                        {/* <div className="notification-wrapper">
                             <FaBell className="icon" onClick={toggleNotificationDropdown} />
                             {unreadCount > 0 && (
                                 <span className="notification-badge">{unreadCount}</span>
@@ -207,7 +207,7 @@ const Header = () => {
                                     )}
                                 </div>
                             )}
-                        </div>
+                        </div> */}
 
                         <div className="divider"></div>
                         <FaUser className="user-icon" onClick={toggleDropdown} />

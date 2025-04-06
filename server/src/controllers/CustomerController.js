@@ -656,6 +656,7 @@ const sendRequest = async (req, res, next) => {
 
 const findRepairman = async (req, res) => {
   try {
+    const userId = req.user.id; // Lấy từ middleware verifyToken
     const io = req.app.get('io'); // Lấy io từ app (sẽ cấu hình trong index.js)
     const requestId = req.savedRequest.requestId;
     const { radius, minPrice, maxPrice } = req.body; // Get radius from request parameters
@@ -699,6 +700,7 @@ const findRepairman = async (req, res) => {
     const repairmanUpgradeRequests = await RepairmanUpgradeRequest.find({
       status: "Active",
       serviceIndustry_id: originalRequest.serviceIndustry_id,
+      user_id: { $ne: userId }, // Đảm bảo user_id khác với userId
     });
     const repairmanUserIds = repairmanUpgradeRequests.map(
       (request) => request.user_id
@@ -720,7 +722,7 @@ const findRepairman = async (req, res) => {
     const nearbyRepairmen = [];
 
     for (const repairman of repairmenUsers) {
-      if (repairman.address) {
+      if (repairman.address) { // Bỏ qua chính mình
         const gomapApiUrl = `https://maps.gomaps.pro/maps/api/distancematrix/json?destinations=${encodeURIComponent(
           repairman.address
         )}&origins=${encodeURIComponent(address)}&key=${gomapApiKey}`;
@@ -854,15 +856,25 @@ const findRepairman = async (req, res) => {
 
 const viewRepairHistory = async (req, res) => {
   try {
-    const userId = req.user.id; // Get user ID from the token
+    const userId = req.user.id; // Lấy user ID từ token
 
-    // Fetch all requests for the user
-    const requests = await Request.find({ user_id: userId }).populate({
-      path: "serviceIndustry_id", // Populate the serviceIndustry_id field
-      select: "type", // Select only the type field from ServiceIndustry
-    });
+    // Fetch tất cả requests của user và populate hai cấp
+    const requests = await Request.find({ user_id: userId })
+      .sort({ createdAt: -1 }) // Sắp xếp theo thời gian mới nhất trước
+      .populate({
+        path: "serviceIndustry_id",
+        select: "type",
+      })
+      .populate({
+        path: "repairman_id", // Populate từ RepairmanUpgradeRequest
+        populate: {
+          path: "user_id", // Populate tiếp từ User
+          model: "User",
+          select: "firstName lastName phone email imgAvt address description",
+        },
+      });
 
-    // Check if requests exist
+    // Kiểm tra nếu không có request
     if (!requests || requests.length === 0) {
       return res.status(404).json({
         EC: 0,
@@ -870,13 +882,27 @@ const viewRepairHistory = async (req, res) => {
       });
     }
 
-    // Map through requests to include service type
-    const repairHistory = requests.map((request) => ({
-      ...request.toObject(), // Convert Mongoose document to plain object
-      serviceType: request.serviceIndustry_id
-        ? request.serviceIndustry_id.type
-        : null, // Add service type
-    }));
+    // Map dữ liệu để trả về thông tin từ User thay vì RepairmanUpgradeRequest
+    const repairHistory = requests.map((request) => {
+      const requestObj = request.toObject();
+      const repairmanData = request.repairman_id && request.repairman_id.user_id
+        ? {
+          firstName: request.repairman_id.user_id.firstName,
+          lastName: request.repairman_id.user_id.lastName,
+          phone: request.repairman_id.user_id.phone,
+          email: request.repairman_id.user_id.email,
+          imgAvt: request.repairman_id.user_id.imgAvt,
+          address: request.repairman_id.user_id.address,
+          description: request.repairman_id.user_id.description,
+        }
+        : null;
+
+      return {
+        ...requestObj,
+        serviceType: request.serviceIndustry_id ? request.serviceIndustry_id.type : null,
+        repairman: repairmanData, // Trả về thông tin từ User
+      };
+    });
 
     res.status(200).json({
       EC: 1,
@@ -1301,7 +1327,50 @@ const confirmRequest = async (req, res) => {
     });
   }
 }
+
+const getRequestStatus = async (req, res) => {
+  try {
+    const userId = req.user.id; // Lấy userId từ token
+    const { request_id } = req.query; // Lấy request_id từ query
+
+    if (!request_id) {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Vui lòng cung cấp request_id!",
+      });
+    }
+
+    // Tìm yêu cầu dựa trên request_id và user_id của khách hàng
+    const request = await Request.findOne({
+      _id: request_id,
+      user_id: userId,
+      status: ["Repairman confirmed completion", "Completed"]
+    });
+
+    if (!request) {
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy đơn hàng!",
+      });
+    }
+
+    // Trả về trạng thái và thông tin cần thiết
+    res.status(200).json({
+      EC: 1,
+      EM: "Lấy trạng thái đơn hàng thành công",
+      DT: request.status,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+    });
+  }
+};
+
 module.exports = {
+  getRequestStatus,
   getBalance,
   getAllHistoryPayment,
   getAllDepositeHistory,
