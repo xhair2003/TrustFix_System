@@ -35,6 +35,7 @@ import FindRepairman from "./pages/users/FindRepairman/FindRepairman.jsx";
 import OrderDetail from "./pages/users/OrderDetail/OderDetail.js";
 import ManagePracticeCertificates from "./pages/admin/ManagePracticeSertificates/ManagePracticeSertificates.jsx";
 import RepairmanOrderDetail from "./pages/users/RepairmanOrderDetail/RepairmanOrderDetail.js";
+import RepairmanDashboard from "./pages/users/RepairmanDashboard/RepairmanDashboard.jsx";
 
 const UserROUTERS = () => {
     const routers = [
@@ -102,6 +103,11 @@ const UserROUTERS = () => {
             path: ROUTERS.REPAIRMAN.VIEW_SERVICE_PRICES,
             component: <ServicePrice />,
             layout: MasterLayoutUser, // Routes using MasterLayout
+        },
+        {
+            path: ROUTERS.REPAIRMAN.REPAIMAN_DASHBOARD,
+            component: <RepairmanDashboard/>,
+            layout: MasterLayoutUser,
         },
         {
             path: ROUTERS.ADMIN.MANAGE_USER_ACCOUNT,
