@@ -5,9 +5,11 @@ import Swal from "sweetalert2";
 import Loading from "../../../component/Loading/Loading";
 import "./RepairmanOrderDetail.css";
 import { confirmRequestRepairman, resetError, resetSuccess } from "../../../store/actions/userActions.js";
+import { useNavigate } from "react-router-dom"; // Thêm useNavigate vào import
 
 const RepairmanOrderDetail = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const location = useLocation();
     const { customerRequest } = location.state || {};
     const { loading, successConfirmRequestRepairman, errorConfirmRequestRepairman } = useSelector(state => state.user);
@@ -44,6 +46,10 @@ const RepairmanOrderDetail = () => {
 
     const handleConfirmCompletion = () => {
         dispatch(confirmRequestRepairman()); // Không cần truyền confirmData
+    };
+
+    const handleBackToRequests = () => {
+        navigate("/repairman/view-requests"); // Điều hướng về trang quản lý đơn sửa chữa
     };
 
     if (!customerRequest) {
@@ -97,7 +103,21 @@ const RepairmanOrderDetail = () => {
                     </div>
                     <div className="info-item">
                         <span className="info-label">Trạng thái:</span>
-                        <span className="info-value">{customerRequest.status}</span>
+                        <span className="info-value">
+                            {
+                                customerRequest.status === "Completed" ? "Đã hoàn thành" :
+                                    customerRequest.status === "Confirmed" ? "Đã xác nhận" :
+                                        customerRequest.status === "Pending" ? "Đang chờ xử lý" :
+                                            customerRequest.status === "Cancelled" ? "Đã hủy" :
+                                                customerRequest.status === "Requesting Details" ? "Yêu cầu chi tiết" :
+                                                    customerRequest.status === "Deal price" ? "Thỏa thuận giá" :
+                                                        customerRequest.status === "Done deal price" ? "Đã chốt giá" :
+                                                            customerRequest.status === "Make payment" ? "Chờ thanh toán" :
+                                                                customerRequest.status === "Repairman confirmed completion" ? "Thợ xác nhận hoàn thành" :
+                                                                    customerRequest.status === "Proceed with repair" ? "Tiến hành sửa chữa" :
+                                                                        "Trạng thái không xác định"
+                            }
+                        </span>
                     </div>
                     <div className="info-item">
                         <span className="info-label">Ngày tạo:</span>
@@ -122,6 +142,12 @@ const RepairmanOrderDetail = () => {
             </div>
 
             <div className="action-buttons">
+                <button
+                    className="back-btn"
+                    onClick={handleBackToRequests}
+                >
+                    Quay lại
+                </button>
                 {!isCompleted && (
                     <button
                         className="confirm-btn"

@@ -5,7 +5,7 @@ const user = require("../models/user");
 const hashPassword = require("../utils/password");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
-
+const RepairmanUpgradeRequest = require("../models/RepairmanUpgradeRequest");
 
 // JWT configuration
 const JWT_ACCESS_KEY = process.env.JWT_ACCESS_KEY || "your_jwt_access_secret_key";
@@ -433,16 +433,39 @@ const refreshToken = async (req, res) => {
 };
 
 const logout = async (req, res) => {
-    res.clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: false,
-        path: "/",
-        sameSite: "strict"
-    });
-    return res.status(200).json({
-        EC: 1,
-        EM: "Logged out successfully!"
-    });
+    try {
+        const userId = req.user.id; // Lấy userId từ token đã xác thực
+
+        // Cập nhật status trong RepairmanUpgradeRequest thành Inactive
+        const updatedRepairman = await RepairmanUpgradeRequest.updateOne(
+            { user_id: userId }, // Điều kiện: user_id khớp với userId
+            { $set: { status: "Inactive" } } // Cập nhật status thành Inactive
+        );
+
+        // Kiểm tra xem có bản ghi nào được cập nhật không
+        if (updatedRepairman.nModified === 0) {
+            console.log(`Không tìm thấy RepairmanUpgradeRequest với user_id: ${userId}`);
+        }
+
+        // Xóa cookie refreshToken
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: false, // Đặt thành true nếu dùng HTTPS
+            path: "/",
+            sameSite: "strict"
+        });
+
+        return res.status(200).json({
+            EC: 1,
+            EM: "Đăng xuất thành công!"
+        });
+    } catch (error) {
+        console.error("Lỗi khi đăng xuất:", error);
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra khi đăng xuất. Vui lòng thử lại sau!"
+        });
+    }
 };
 
 const getRole = async (req, res) => {

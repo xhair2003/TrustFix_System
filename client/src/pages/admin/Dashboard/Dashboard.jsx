@@ -20,6 +20,7 @@ import {
   totalServicesByIndustry,
   totalServicePrices,
   getMostUsedVipService,
+  getAllProfit, // Thêm action getAllProfit
   resetError,
 } from '../../../store/actions/adminActions';
 import {
@@ -82,7 +83,7 @@ const Modal = ({ isOpen, onClose, title, barData, tableData, total, columns }) =
                       <span className="color-dot" style={{ backgroundColor: item.color }}></span>
                       {item.type}
                     </td>
-                    <td>{item.count}</td>
+                    <td>{item.count.toLocaleString('vi-VN')} VNĐ</td>
                     <td>{total > 0 ? ((item.count / total) * 100).toFixed(1) : 0}%</td>
                   </tr>
                 ))}
@@ -97,11 +98,16 @@ const Modal = ({ isOpen, onClose, title, barData, tableData, total, columns }) =
 
 const Dashboard = () => {
   const dispatch = useDispatch();
+
+  // State cho biểu đồ doanh thu
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showCompletedModal, setShowCompletedModal] = useState(false);
   const [showRevenueModal, setShowRevenueModal] = useState(false);
-  const [revenueFilter, setRevenueFilter] = useState('month');
+
+  // State cho bộ lọc doanh thu (năm và tháng)
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Mặc định là năm hiện tại
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Mặc định là tháng hiện tại
 
   const {
     totalBannedUsers: b,
@@ -119,11 +125,14 @@ const Dashboard = () => {
     totalServicesByIndustry: p,
     totalServicePrices: q,
     mostUsedVipService: a,
+    totalsProfit, // Lấy totalsProfit từ state
+    totalAll, // Lấy totalAll từ state
     loading,
     error,
   } = useSelector((state) => state.admin);
 
   useEffect(() => {
+    // Gọi các API khác
     dispatch(totalRepairmen());
     dispatch(totalCustomers());
     dispatch(totalBannedUsers());
@@ -139,7 +148,10 @@ const Dashboard = () => {
     dispatch(totalServicesByIndustry());
     dispatch(totalServicePrices());
     dispatch(getMostUsedVipService());
-  }, [dispatch]);
+
+    // Gọi API getAllProfit với năm và tháng mặc định
+    dispatch(getAllProfit(selectedMonth, selectedYear));
+  }, [dispatch, selectedMonth, selectedYear]); // Gọi lại API khi selectedMonth hoặc selectedYear thay đổi
 
   useEffect(() => {
     if (error) {
@@ -248,58 +260,27 @@ const Dashboard = () => {
 
   const revenueDetails = [];
 
-  // Dữ liệu giả lập cho doanh thu
-  const revenueByMonth = [
-    { type: 'Tháng 1', count: 50 },
-    { type: 'Tháng 2', count: 70 },
-    { type: 'Tháng 3', count: 60 },
-    { type: 'Tháng 4', count: 90 },
-    { type: 'Tháng 5', count: 120 },
-    { type: 'Tháng 6', count: 150 },
-  ];
-
-  const revenueByWeek = [
-    { type: 'Tuần 1', count: 20 },
-    { type: 'Tuần 2', count: 30 },
-    { type: 'Tuần 3', count: 25 },
-    { type: 'Tuần 4', count: 40 },
-  ];
-
-  const revenueByMonths = [
-    { type: '3 Tháng Gần Nhất', count: 360 },
-    { type: '6 Tháng Gần Nhất', count: 540 },
-  ];
-
-  const revenueByYear = [
-    { type: 'Năm 2024', count: 540 },
-    { type: 'Năm 2023', count: 450 },
-  ];
-
-  // Cập nhật dữ liệu doanh thu dựa trên bộ lọc
-  let selectedRevenueData = [];
-  if (revenueFilter === 'month') selectedRevenueData = revenueByMonth;
-  else if (revenueFilter === 'week') selectedRevenueData = revenueByWeek;
-  else if (revenueFilter === 'months') selectedRevenueData = revenueByMonths;
-  else if (revenueFilter === 'year') selectedRevenueData = revenueByYear;
-
-  revenueData.labels = selectedRevenueData.map(item => item.type);
-  revenueData.datasets[0].data = selectedRevenueData.map(item => item.count);
-  selectedRevenueData.forEach((item, index) => {
-    revenueDetails.push({
-      type: item.type,
-      count: item.count,
-      color: revenueData.datasets[0].backgroundColor[index % revenueData.datasets[0].backgroundColor.length],
+  // Chuyển đổi dữ liệu từ totalsProfit thành định dạng cho biểu đồ
+  if (totalsProfit) {
+    revenueData.labels = Object.keys(totalsProfit);
+    revenueData.datasets[0].data = Object.values(totalsProfit);
+    Object.entries(totalsProfit).forEach(([type, count], index) => {
+      revenueDetails.push({
+        type,
+        count,
+        color: revenueData.datasets[0].backgroundColor[index % revenueData.datasets[0].backgroundColor.length],
+      });
     });
-  });
+  }
 
-  const totalRevenue = selectedRevenueData.reduce((sum, item) => sum + item.count, 0);
+  const totalRevenue = totalAll || 0; // Sử dụng totalAll từ API
 
   // Dữ liệu cho biểu đồ Bar chi tiết
   const getBarData = (details) => ({
     labels: details.map(item => item.type),
     datasets: [
       {
-        label: 'Số Lượng',
+        label: 'Doanh Thu (VNĐ)',
         data: details.map(item => item.count),
         backgroundColor: details.map(item => item.color),
         borderRadius: 8,
@@ -307,6 +288,13 @@ const Dashboard = () => {
       },
     ],
   });
+
+  // Tạo danh sách năm từ 2020 đến năm hiện tại
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 2019 }, (_, i) => 2020 + i);
+
+  // Danh sách tháng
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
 
   return (
     <div className="modern-dashboard">
@@ -460,14 +448,28 @@ const Dashboard = () => {
         />
 
         {/* Biểu đồ Doanh Thu (Doughnut Chart) */}
-        <div className="chart-container doughnut-chart" >
+        <div className="chart-container doughnut-chart">
           <h2>Phân Bố Doanh Thu</h2>
           <div className="filter-options">
-            <select onChange={(e) => setRevenueFilter(e.target.value)} value={revenueFilter}>
-              <option value="month">Theo Tháng</option>
-              <option value="week">Theo Tuần</option>
-              <option value="months">Theo Số Tháng</option>
-              <option value="year">Theo Năm</option>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+            >
+              {years.map((year) => (
+                <option key={year} value={year}>
+                  Năm {year}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(Number(e.target.value))}
+            >
+              {months.map((month) => (
+                <option key={month} value={month}>
+                  Tháng {month}
+                </option>
+              ))}
             </select>
           </div>
           <div className="doughnut-wrapper" onClick={() => setShowRevenueModal(true)}>
@@ -486,7 +488,9 @@ const Dashboard = () => {
                     ctx.fillStyle = '#1e3a8a';
                     const centerX = (chartArea.left + chartArea.right) / 2;
                     const centerY = (chartArea.top + chartArea.bottom) / 2;
-                    ctx.fillText(`${totalRevenue} triệu`, centerX, centerY);
+                    // Hiển thị totalAll dưới dạng triệu VNĐ
+                    const totalInMillions = (totalRevenue / 1000000).toFixed(2);
+                    ctx.fillText(`${totalInMillions} triệu`, centerX, centerY);
                     ctx.restore();
                   },
                 },
@@ -498,11 +502,11 @@ const Dashboard = () => {
         <Modal
           isOpen={showRevenueModal}
           onClose={() => setShowRevenueModal(false)}
-          title="Chi Tiết Phân Bố Doanh Thu"
+          title={`Chi Tiết Doanh Thu Tháng ${selectedMonth}/${selectedYear}`}
           barData={getBarData(revenueDetails)}
           tableData={revenueDetails}
           total={totalRevenue}
-          columns={['Thời Gian', 'Doanh Thu (triệu VNĐ)', 'Tỷ Lệ']}
+          columns={['Loại Phí', 'Doanh Thu', 'Tỷ Lệ']}
         />
       </div>
 
@@ -523,7 +527,7 @@ const Dashboard = () => {
       </section>
 
       <section className="services-section" style={{ marginTop: '20px' }}>
-        <h2>Dịch vụ để xuất đang được sử dụng nhiều nhất</h2>
+        <h2>Dịch vụ đề xuất đang được sử dụng nhiều nhất</h2>
         <div className="services-list">
           {a}
         </div>

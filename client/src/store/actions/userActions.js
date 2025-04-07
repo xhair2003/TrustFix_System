@@ -948,11 +948,52 @@ export const confirmRequestRepairman = () => async (dispatch, getState) => {
         if (data.EC === 1) {
             dispatch({
                 type: 'CONFIRM_REQUEST_REPAIRMAN_SUCCESS',
-                payload: data.EM,
+                payload: data,
             });
         } else {
             dispatch({
                 type: 'CONFIRM_REQUEST_REPAIRMAN_FAIL',
+                payload: data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "CONFIRM_REQUEST_REPAIRMAN_FAIL",
+            payload: error.response && error.response.data.EM
+                ? error.response.data.EM
+                : error.message
+        });
+    }
+};
+
+
+export const fetchRequestStatus = (requestId) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "FETCH_REQUEST_STATUS_REQUEST" });
+
+        // Get token from state or localStorage
+        const token = getState().auth.token || localStorage.getItem('token');
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            }
+        };
+
+        const { data } = await axios.get(
+            `http://localhost:8080/api/customer/request/status?request_id=${requestId}`,
+            config
+        );
+
+        if (data.EC === 1) {
+            dispatch({
+                type: 'FETCH_REQUEST_STATUS_SUCCESS',
+                payload: data.DT,
+            });
+        } else {
+            dispatch({
+                type: 'FETCH_REQUEST_STATUS_FAIL',
                 payload: data.EM,
             });
         }

@@ -34,5 +34,5 @@ router.post("/buy-vip-package", AuthMiddleware.verifyRepairman, RepairmanControl
 //add 2nd certificate
 router.post("/add-second-certificate", AuthMiddleware.verifyRepairman, upload.array("img2ndCertificate", 5), RepairmanController.addSecondCertificate);
 
-router.put('/confirmRequest', AuthMiddleware.verifyRepairman, RepairmanController.cofirmRequest);
+router.put('/confirmRequest', AuthMiddleware.verifyRepairman, RepairmanController.confirmRequest);
 module.exports = router;

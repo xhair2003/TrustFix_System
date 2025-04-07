@@ -1,114 +1,211 @@
-/* .search-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
+/* SearchBar.css */
+
+.search-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 1200px;
+  /* Slightly wider for better spacing */
+  margin: 20px auto;
+  /* Added margin for breathing room */
+  gap: 15px;
+  /* Space between rows */
 }
 
-.search-top, .search-bottom {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-    width: 100%;
+.search-row {
+  display: flex;
+  gap: 12px;
+  /* Increased gap for better separation */
+  width: 100%;
+  flex-wrap: wrap;
+  /* Allow wrapping on smaller screens */
 }
 
 .search-input-description {
-    flex: 3;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
+  flex: 3;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  /* Softer gray */
+  border-radius: 6px;
+  outline: none;
+  font-size: 16px;
+  transition: border-color 0.2s ease;
 }
 
-.search-input, .search-dropdown, .search-file-input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
+.search-input-description:focus {
+  border-color: #3961fb;
+  /* Highlight on focus */
+  box-shadow: 0 0 0 2px rgba(57, 97, 251, 0.2);
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  outline: none;
+  font-size: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #3961fb;
+  box-shadow: 0 0 0 2px rgba(57, 97, 251, 0.2);
+}
+
+.search-dropdown {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  outline: none;
+  font-size: 16px;
+  background-color: #fff;
+  appearance: none;
+  /* Remove default arrow */
+  background-image: url('data:image/svg+xml;utf8,<svg fill="gray" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+  /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.search-dropdown:focus {
+  border-color: #3961fb;
+  box-shadow: 0 0 0 2px rgba(57, 97, 251, 0.2);
+}
+
+.search-button-container {
+  display: flex;
+  align-items: center;
+  /* Vertically center the button */
 }
 
 .search-button {
-    padding: 10px 20px;
-    background-color: #3961fb;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+  padding: 12px 24px;
+  background-color: #3961fb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease;
 }
 
 .search-button:hover {
-    background-color: #2f4fc2;
-} */
+  background-color: #2f4fc2;
+}
 
+.search-button:active {
+  transform: scale(0.98);
+  /* Slight press effect */
+}
 
-.search-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    padding: 0; /* Loại bỏ padding mặc định để phù hợp với search-section */
+.search-button:disabled {
+  background-color: #a3bffa;
+  /* Lighter blue when disabled */
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.file-input-row {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 8px;
+}
+
+.file-input-label {
+  font-size: 14px;
+  color: #4b5563;
+  /* Gray for label */
+  font-weight: 500;
+}
+
+.search-file-input {
+  padding: 10px;
+  border: 1px dashed #d1d5db;
+  /* Dashed border for file input */
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: #f9fafb;
+  /* Light background */
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.search-file-input:hover {
+  border-color: #9ca3af;
+}
+
+.search-file-input:focus {
+  border-color: #3961fb;
+  outline: none;
+}
+
+.selected-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.selected-files span {
+  background-color: #e5e7eb;
+  /* Light gray for file tags */
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #374151;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .search-container {
+    padding: 15px;
+    max-width: 100%;
   }
-  
-  .search-top,
-  .search-bottom {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 0; /* Loại bỏ margin-bottom mặc định */
+
+  .search-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .search-input-description,
+  .search-input,
+  .search-dropdown {
+    flex: none;
+    /* Reset flex for full width */
     width: 100%;
   }
-  
-  .search-input-description {
-    flex: 3;
+
+  .search-button-container {
+    width: 100%;
+  }
+
+  .search-button {
+    width: 100%;
     padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    outline: none;
-    font-size: 16px;
-    transition: border-color 0.3s;
   }
-  
-  .search-input-description:focus,
-  .search-input:focus,
-  .search-dropdown:focus {
-    border-color: #3961fb;
+}
+
+@media (max-width: 480px) {
+  .search-container {
+    padding: 10px;
   }
-  
+
+  .search-input-description,
   .search-input,
   .search-dropdown,
-  .search-file-input {
-    flex: 1;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    outline: none;
-    font-size: 16px;
-    transition: border-color 0.3s;
-  }
-  
   .search-button {
-    padding: 12px 25px;
-    background-color: #3961fb;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    transition: background-color 0.3s, transform 0.2s;
+    font-size: 14px;
   }
-  
-  .search-button:hover {
-    background-color: #2f4fc2;
-    transform: translateY(-2px);
-  }
-  
-  .search-button:active {
-    transform: translateY(0);
-  }
+}

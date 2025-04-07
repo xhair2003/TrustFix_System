@@ -304,8 +304,12 @@ const toggleStatusRepairman = async (req, res) => {
 const dealPrice = async (req, res) => {
   try {
     const io = req.app.get('io'); // Lấy io từ app
+    if (!io) {
+      throw new Error('WebSocket IO instance not found');
+    }
+
     const { requestId } = req.params;
-    const { deal_price, isDeal } = req.body; // Nhận thêm trường isDeal từ request body
+    const { deal_price, isDeal } = req.body;
     const userId = req.user.id; // Lấy user ID của thợ sửa chữa từ token
 
     // Tìm RepairmanUpgradeRequest dựa trên user_id từ token
@@ -320,15 +324,14 @@ const dealPrice = async (req, res) => {
       });
     }
 
-    // Sử dụng _id từ RepairmanUpgradeRequest làm repairmanId
     const repairmanId = repairmanUpgradeRequest._id;
 
     // Tìm Request có status 'Deal price' và được gán cho repairman này
     const dealPriceRequest = await Request.findOne({
       repairman_id: repairmanId,
-      status: 'Deal price', // Hoặc trạng thái phù hợp của bạn
+      status: 'Deal price',
       parentRequest: requestId
-    })
+    });
 
     if (!dealPriceRequest) {
       return res.status(404).json({
@@ -337,7 +340,6 @@ const dealPrice = async (req, res) => {
       });
     }
 
-    // Lấy duePrice_id từ Request tìm được
     const duePrice = await DuePrice.findOne({ request_id: dealPriceRequest._id });
     if (!duePrice) {
       return res.status(404).json({
@@ -345,21 +347,28 @@ const dealPrice = async (req, res) => {
         EM: "Không tìm thấy DuePrice cho yêu cầu deal giá này!"
       });
     }
-    const duePrice_id = duePrice._id; // Lấy _id của DuePrice
 
+    const duePrice_id = duePrice._id;
 
-    if (isDeal === 'false') { // Kiểm tra nếu isDeal là false, tức là không deal giá
-      // Xóa DuePrice
+    if (isDeal === 'false') {
+      // Xóa DuePrice và Request
       await DuePrice.findByIdAndDelete(duePrice_id);
-      // Xóa Request
       await Request.findByIdAndDelete(dealPriceRequest._id);
+
+      // Gửi thông báo hủy deal (nếu cần) tới customer
+      const parentRequest = await Request.findById(requestId);
+      if (parentRequest && parentRequest.user_id) {
+        const customerId = parentRequest.user_id.toString();
+        console.log('Sending dealPriceCancel to customer:', customerId);
+        io.to(customerId).emit('dealPriceCancel'); // Thêm sự kiện mới cho hủy deal
+      }
 
       return res.status(200).json({
         EC: 1,
         EM: "Đã hủy bỏ deal giá và xóa yêu cầu thành công!",
-        DT: {} // Không cần trả về DT trong trường hợp hủy deal
+        DT: {}
       });
-    } else { // Nếu isDeal không phải false hoặc không được cung cấp, tiến hành deal giá như bình thường
+    } else {
       if (!deal_price) {
         return res.status(400).json({
           EC: 0,
@@ -373,7 +382,6 @@ const dealPrice = async (req, res) => {
           EM: "Giá deal phải là một số!"
         });
       }
-
 
       const minPrice = parseFloat(duePrice.minPrice);
       const maxPrice = parseFloat(duePrice.maxPrice);
@@ -389,52 +397,24 @@ const dealPrice = async (req, res) => {
       const newPrice = new Price({
         duePrice_id: duePrice_id,
         repairman_id: repairmanId,
-        priceToPay: deal_price
+        priceToPay: parsedDealPrice
       });
       const savedPrice = await newPrice.save();
 
-      // // Lấy thông tin repairman
-      // const repairmanInfo = await User.findById(userId).select('firstName lastName email phone imgAvt address description'); // Vẫn lấy thông tin User dựa trên userId từ token
-      // if (!repairmanInfo) {
-      //     return res.status(404).json({
-      //         EC: 0,
-      //         EM: "Không tìm thấy thông tin thợ sửa chữa!"
-      //     });
-      // }
-
-      // // Tìm các Request đã hoàn thành của repairman này
-      // const completedRequests = await Request.find({
-      //     repairman_id: repairmanId, // Sử dụng repairmanId (_id của RepairmanUpgradeRequest)
-      //     status: 'Completed'
-      // });
-
-      // // Lấy danh sách request_id từ các Request đã hoàn thành
-      // const completedRequestIds = completedRequests.map(request => request._id);
-
-      // // Lấy tất cả ratings của repairman dựa trên request_id và populate thông tin request
-      // const repairmanRatings = await Rating.find({
-      //     request_id: { $in: completedRequestIds } // Lọc ratings theo request_id
-      // }).populate('request_id', 'description status');
-      // Cập nhật trạng thái của dealPriceRequest thành 'Done deal price'
       dealPriceRequest.status = 'Done deal price';
       await dealPriceRequest.save();
 
-      // Gửi thông báo WebSocket tới khách hàng (không cần dữ liệu chi tiết)
+      // Gửi thông báo tới khách hàng
       const parentRequest = await Request.findById(requestId);
-      if (parentRequest) {
+      if (parentRequest && parentRequest.user_id) {
         const customerId = parentRequest.user_id.toString();
         console.log('Sending dealPriceUpdate to customer:', customerId);
-        io.to(customerId).emit('dealPriceUpdate'); // Chỉ gửi sự kiện, không gửi data
+        io.to(customerId).emit('dealPriceUpdate');
       }
 
       res.status(201).json({
         EC: 1,
-        EM: "Deal giá thành công!",
-        // DT: {
-        //     // repairman: repairmanInfo,
-        //     // ratings: repairmanRatings,
-        //     dealPrice: savedPrice
-        // }
+        EM: "Deal giá thành công!"
       });
     }
   } catch (error) {
@@ -444,7 +424,7 @@ const dealPrice = async (req, res) => {
       EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
     });
   }
-}
+};
 // const viewRequest = async (req, res) => {
 //     try {
 //         const userId = req.user.id; // Lấy user ID của thợ sửa chữa từ token
@@ -767,7 +747,8 @@ const addSecondCertificate = async (req, res) => {
     }
 
     // Find the repairman upgrade request by user ID
-    const repairmanRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId });
+    const repairmanRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId })
+      .populate('user_id');
 
     if (!repairmanRequest) {
       return res.status(404).json({
@@ -777,12 +758,12 @@ const addSecondCertificate = async (req, res) => {
     }
 
     // Check if the status is "Active" or "Inactive"
-    if (repairmanRequest.status !== "Active" && repairmanRequest.status !== "Inactive") {
-      return res.status(400).json({
-        EC: 0,
-        EM: "Chỉ có thể yêu cầu bổ sung chứng chỉ khi không nhận đơn hàng nào !",
-      });
-    }
+    // if (repairmanRequest.status !== "Active" && repairmanRequest.status !== "Inactive") {
+    //   return res.status(400).json({
+    //     EC: 0,
+    //     EM: "Chỉ có thể yêu cầu bổ sung chứng chỉ khi không nhận đơn hàng nào !",
+    //   });
+    // }
 
     // Ensure supplementaryPracticeCertificate is an array
     if (!Array.isArray(repairmanRequest.supplementaryPracticeCertificate)) {
@@ -792,10 +773,11 @@ const addSecondCertificate = async (req, res) => {
     // Extract file paths and update the supplementaryPracticeCertificate
     const filePaths = files.map(file => file.path);
     repairmanRequest.supplementaryPracticeCertificate.push(...filePaths);
-    repairmanRequest.status = "In review";
+    repairmanRequest.user_id.status = "In review";
 
     // Save the updated request
     await repairmanRequest.save();
+    repairmanRequest.user_id.save();
 
     res.status(200).json({
       EC: 1,
@@ -835,56 +817,71 @@ const viewCustomerRequest = async (req, res) => {
     });
   }
 }
-const cofirmRequest = async (req, res) => {
+const confirmRequest = async (req, res) => {
   try {
     const io = req.app.get('io'); // Lấy io từ app
+    if (!io) {
+      throw new Error('WebSocket IO instance not found');
+    }
+
     const userId = req.user.id;
     const { confirm } = req.body;
+
+    // Tìm RepairmanUpgradeRequest
     const repairman = await RepairmanUpgradeRequest.findOne({ user_id: userId });
     if (!repairman) {
-      res.status(400).json({
+      return res.status(400).json({
         EC: 0,
-        EM: "Không tìm thấy thợ sửa chữa"
-      })
+        EM: "Không tìm thấy thông tin thợ sửa chữa"
+      });
     }
+
+    // Tìm Request
     const request = await Request.findOne({
       repairman_id: repairman._id,
       status: "Proceed with repair"
-    })
+    });
+
     if (!request) {
-      res.status(400).json({
+      return res.status(400).json({
         EC: 0,
         EM: "Không tìm thấy đơn hàng sửa chữa"
-      })
+      });
     }
+
     if (confirm === "Completed") {
+      // Cập nhật trạng thái
       repairman.status = 'Active';
       await repairman.save();
 
       request.status = 'Repairman confirmed completion';
       await request.save();
 
-      // Gửi thông báo WebSocket tới khách hàng
-      const customerId = request.user_id.toString();
+      // Gửi thông báo WebSocket tới khách hàng (dựa trên user_id của customer)
+      const customerId = request.user_id.toString(); // Giả sử request có field user_id là ID của khách hàng
       console.log('Sending repairmanConfirmedCompletion to customer:', customerId);
-      io.to(customerId).emit('repairmanConfirmedCompletion'); // Gửi sự kiện tới khách hàng
+      io.to(customerId).emit('repairmanConfirmedCompletion', { requestId: request._id }); // Gửi thêm requestId để frontend dễ xử lý
 
       res.status(201).json({
         EC: 1,
-        EM: 'Xác nhận hoàn thành đơn hàng thành công, vui lòng đợi khách hàng xác nhận để nhận tiền'
-      })
+        EM: 'Xác nhận hoàn thành đơn hàng thành công, vui lòng đợi khách hàng xác nhận để nhận tiền',
+        DT: request.status
+      });
+    } else {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Giá trị xác nhận không hợp lệ"
+      });
     }
 
   } catch (error) {
-    console.log(error);
+    console.error("Error in confirmRequest API:", error);
     res.status(500).json({
       EC: 0,
-      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
-
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
     });
   }
-
-}
+};
 module.exports = {
   requestRepairmanUpgrade,
   getAllVips,
@@ -897,5 +894,5 @@ module.exports = {
   registerVipPackage,
   addSecondCertificate,
   viewCustomerRequest,
-  cofirmRequest
+  confirmRequest
 };

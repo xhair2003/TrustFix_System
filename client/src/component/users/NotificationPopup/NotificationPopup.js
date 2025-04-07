@@ -49,7 +49,7 @@ const NotificationPopup = () => {
 
     return (
         <>
-            {showPopup && request && (
+            {showPopup && request && request.status === "Deal price" && (
                 <motion.div
                     className="notification-popup"
                     initial={{ y: -100, opacity: 0 }}

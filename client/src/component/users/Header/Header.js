@@ -29,14 +29,14 @@ const Header = () => {
     useEffect(() => {
         if (role === "repairman") {
             dispatch(getStatusRepairman()); // Fetch initial status
-            dispatch(viewRequest()); // Fetch requests
+            //dispatch(viewRequest()); // Fetch requests
         }
     }, [dispatch, role]);
 
     // Update isActive based on fetched status
     useEffect(() => {
         if (status !== null && status !== undefined) {
-            setIsActive(status === 'Active'); // Compare with 'Active' (case-sensitive)
+            setIsActive(status !== 'Inactive'); // True nếu status không phải Inactive, False nếu là Inactive
         }
     }, [status]);
 
@@ -78,10 +78,10 @@ const Header = () => {
                 showCloseButton: false,
             }).then(() => {
                 dispatch(resetError()); // Reset error state
-                setIsActive(status === 'Active'); // Revert switch state on error
+                setIsActive(!isActive);
             });
         }
-    }, [errorToggleStatus, dispatch, status]);
+    }, [errorToggleStatus, dispatch, status, isActive]);
 
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
@@ -176,7 +176,7 @@ const Header = () => {
                             </div>
                         )}
 
-                        <div className="notification-wrapper">
+                        {/* <div className="notification-wrapper">
                             <FaBell className="icon" onClick={toggleNotificationDropdown} />
                             {unreadCount > 0 && (
                                 <span className="notification-badge">{unreadCount}</span>
@@ -207,17 +207,22 @@ const Header = () => {
                                     )}
                                 </div>
                             )}
-                        </div>
+                        </div> */}
 
                         <div className="divider"></div>
                         <FaUser className="user-icon" onClick={toggleDropdown} />
                         {isDropdownOpen && (
                             <div className="dropdown-menu">
-                                {role === "repairman" &&
-                                    <div className="dropdown-item" onClick={() => navigate("/repairman/view-requests")}>
-                                        <FaWrench className="dropdown-icon" /> Đơn hàng sửa chữa
-                                    </div>
-                                }
+                                {role === "repairman" && (
+                                    <>
+                                        <div className="dropdown-item" onClick={() => navigate("/repairman/view-requests")}>
+                                            <FaWrench className="dropdown-icon" /> Đơn hàng sửa chữa
+                                        </div>
+                                        <div className="dropdown-item" onClick={() => navigate("/repairman/dashboard")}>
+                                            <FaWrench className="dropdown-icon" /> Dashboard cho thợ
+                                        </div>
+                                    </>
+                                )}
                                 <div className="dropdown-item" onClick={() => navigate("/profile")}>
                                     <FaUser className="dropdown-icon" /> Thông tin cá nhân
                                 </div>
@@ -233,11 +238,11 @@ const Header = () => {
                                 <div className="dropdown-item" onClick={() => navigate("/wallet")}>
                                     <FaWallet className="dropdown-icon" /> Ví tiền
                                 </div>
-                                {role === "customer" &&
+                                {role === "customer" && (
                                     <div className="dropdown-item" onClick={() => navigate("/upgrade-repair-man")}>
                                         <FaLevelUpAlt className="dropdown-icon" /> Nâng cấp lên thợ
                                     </div>
-                                }
+                                )}
                                 <div className="dropdown-item" onClick={handleLogout}>
                                     <FaSignOutAlt className="dropdown-icon" /> Đăng xuất
                                 </div>

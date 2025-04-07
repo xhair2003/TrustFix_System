@@ -12,7 +12,7 @@ const RepairmentHistoryItem = ({
     <div className="repairment-history-item">
       <div className="header">
         <span className="time">{time}</span>
-        <span className={`status ${status === 1 ? 'completed' : status === 0 ? 'processing' : 'cancelled'}`}>{status === 1 ? 'Đã hoàn thành' : status === 0 ? 'Đang xử lý' : 'Đã hủy'}</span>
+        <span className="status">{status}</span>
         <span className="info-icon">ⓘ</span>
       </div>
       <div className="details">

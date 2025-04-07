@@ -16,7 +16,7 @@ import useWebSocketNotifications from "../../../utils/hook/useWebSocketNotificat
 const ViewRequests = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  const userId = useSelector((state) => state.auth.user_id) || localStorage.getItem('user_id');
   const {
     loading,
     request,
@@ -26,7 +26,7 @@ const ViewRequests = () => {
     errorRequest,
   } = useSelector((state) => state.user);
 
-  console.log("request", request);
+  //console.log("request", request);
 
   // Load dữ liệu ban đầu
   useEffect(() => {
@@ -39,9 +39,15 @@ const ViewRequests = () => {
 
   // Lắng nghe repairmanAssigned riêng trong ViewRequests
   useEffect(() => {
-    socket.on("repairmanAssigned", () => {
-      console.log("Repairman assigned received");
-      dispatch(viewCustomerRequest()); // Re-fetch dữ liệu viewCustomerRequest
+    if (!userId) {
+      console.warn("User ID not found, WebSocket notifications will not be set up.");
+      return;
+    }
+
+    // Chỉ cần lắng nghe sự kiện, không cần join/leave vì socket.js đã xử lý
+    const handleRepairmanAssigned = () => {
+      //console.log("Repairman assigned received for user:", userId);
+      dispatch(viewCustomerRequest());
       Swal.fire({
         icon: "success",
         title: "Đơn hàng được giao",
@@ -50,12 +56,20 @@ const ViewRequests = () => {
         timerProgressBar: true,
         showConfirmButton: false,
       });
-    });
-
-    return () => {
-      socket.off("repairmanAssigned");
     };
-  }, [dispatch]);
+
+    socket.on("repairmanAssigned", handleRepairmanAssigned);
+
+    socket.on('connect', () => console.log('WebSocket connected:', socket.id));
+    socket.on('connect_error', (err) => console.error('WebSocket connect error:', err));
+
+    // Cleanup: Hủy lắng nghe khi component unmount
+    return () => {
+      socket.off("repairmanAssigned", handleRepairmanAssigned);
+      socket.off('connect');
+      socket.off('connect_error');
+    };
+  }, [dispatch, userId]);
 
   // useEffect(() => {
   //     if (successRequest) {

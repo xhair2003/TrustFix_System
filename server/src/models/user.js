@@ -29,7 +29,7 @@ const UserSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Active', 'Inactive', 'Banned']
+        enum: ['Active', 'Inactive', 'Banned',"In review", "Second certificate rejected", "Second certificate approved"]
     },
     address: {
         type: String,

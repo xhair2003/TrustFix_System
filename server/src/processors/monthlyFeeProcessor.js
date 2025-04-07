@@ -115,6 +115,23 @@ const processMonthlyFee = async () => {
         } catch (emailError) {
           console.error(`Failed to send warning email to ${user.email}:`, emailError);
         }
+
+        // Kiểm tra nếu đã gửi email cảnh báo và 1 ngày đã trôi qua nhưng người dùng chưa nạp tiền
+        const warningDelay = 24 * 60 * 60 * 1000; 
+        const lastTransaction = await Transaction.findOne({
+          wallet_id: wallet._id,
+          transactionType: "payment",
+          content: "Thanh toán phí thành viên hàng tháng",
+          createdAt: { $gte: currentDate - warningDelay }, // Tìm giao dịch trong vòng 1 ngày
+        });
+
+        // Nếu không có giao dịch nào trong 1 ngày, tiến hành khoá tài khoản người dùng
+        if (!lastTransaction) {
+          console.log(`User ${user._id} - Locking account due to no deposit after warning`);
+          user.status = 'Banned';  // Khoá tài khoản
+          await user.save();
+          console.log(`User ${user._id} account has been banned`);
+        }
       }
     }
     console.log('Chạy xong');
