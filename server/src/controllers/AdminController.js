@@ -400,10 +400,26 @@ const getAllComplaints = async (req, res) => {
         // Fetch only complaints that are 'pending'
         // const complaints = await Complaint.find({ status: 'pending' })
         const complaints = await Complaint.find()
-            .populate({ // Populate thông tin người dùng thông qua Request
+            // .populate({ // Populate thông tin người dùng thông qua Request
+            //     path: 'request_id',
+            //     model: Request,
+            //     populate: { path: 'user_id', select: 'firstName lastName email phone address' }
+            // })
+            .populate({
                 path: 'request_id',
                 model: Request,
-                populate: { path: 'user_id', select: 'firstName lastName email phone address' }
+                populate: [
+                    { path: 'user_id', model: 'User', select: 'firstName lastName email phone address' },
+                    {
+                        path: 'repairman_id',
+                        model: 'RepairmanUpgradeRequest',
+                        populate: {
+                            path: 'user_id',
+                            model: 'User',
+                            select: 'firstName lastName email phone address'
+                        }
+                    }
+                ]
             })
             .populate('parentComplaint', 'complaintContent')
             .populate('replies');
@@ -545,7 +561,7 @@ const replyToComplaint = async (req, res) => {
 
         res.status(201).json({
             EC: 1,
-            EM: "Phản hồi khiếu nại thành công và đã gửi email đến người dùng!",
+            EM: "Phản hồi khiếu nại thành công và đã gửi email đến khách hàng !",
             DT: newReply // You can send the complaint or the response data
 
             // // Kiểm tra xem thông tin người dùng có hợp lệ không
