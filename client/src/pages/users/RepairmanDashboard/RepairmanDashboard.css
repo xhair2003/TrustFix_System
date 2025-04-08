@@ -70,6 +70,73 @@
   .repairman-dashboard-cancelled {
     color: #e74c3c;
   }
+
+  .repairman-dashboard-card {
+    cursor: pointer;
+  }
+  
+  .repairman-dashboard-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .repairman-dashboard-modal-content {
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 30px;
+    width: 90%;
+    max-width: 800px;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    animation: modalFadeIn 0.3s ease;
+  }
+  
+  .repairman-dashboard-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  
+  .repairman-dashboard-modal-close:hover {
+    transform: rotate(90deg);
+    background: #c0392b;
+  }
+  
+  @keyframes modalFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .repairman-dashboard-modal-content {
+      width: 95%;
+      padding: 20px;
+    }
+  }
+
   
   /* Responsive design */
   @media (max-width: 768px) {
