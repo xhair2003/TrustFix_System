@@ -625,27 +625,27 @@ const adminReducer = (state = initialState, action) => {
             };
 
 
-            case "GET_ALL_PROFIT_REQUEST":
-                return {
-                    ...state,
-                    loading: true,
-                };
-            case "GET_ALL_PROFIT_SUCCESS":
-                return {
-                    ...state,
-                    loading: false,
-                    totalsProfit: action.payload.totalsProfit,
-                    totalAll: action.payload.totalAll,
-                };
-            case "GET_ALL_PROFIT_FAIL":
-                return {
-                    ...state,
-                    loading: false,
-                    totalsProfit: null,
-                    totalAll: 0,
-                };
+        case "GET_ALL_PROFIT_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "GET_ALL_PROFIT_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                totalsProfit: action.payload.totalsProfit,
+                totalAll: action.payload.totalAll,
+            };
+        case "GET_ALL_PROFIT_FAIL":
+            return {
+                ...state,
+                loading: false,
+                totalsProfit: null,
+                totalAll: 0,
+            };
 
-                
+
         case "RESET_ERROR":
             return {
                 ...state,

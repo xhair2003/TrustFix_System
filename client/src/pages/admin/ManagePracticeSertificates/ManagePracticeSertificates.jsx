@@ -18,6 +18,8 @@ const ManagePracticeSertificates = () => {
   const { pendingRequests, loading, errorPendingSupplementary,
     successVerifySupplementary, errorVerifySupplementary } = useSelector((state) => state.admin);
 
+  //console.log("pendingRequests", pendingRequests);
+
   useEffect(() => {
     dispatch(getPendingSupplementaryCertificateRequests());
   }, [dispatch]);
@@ -90,10 +92,10 @@ const ManagePracticeSertificates = () => {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
     const matchesSearch =
-      request.user_id.firstName.toLowerCase().includes(lowerCaseSearchTerm) ||
-      request.user_id.lastName.toLowerCase().includes(lowerCaseSearchTerm) ||
-      request.user_id.email.toLowerCase().includes(lowerCaseSearchTerm) ||
-      request.user_id.phone.includes(lowerCaseSearchTerm);
+      request.firstName.toLowerCase().includes(lowerCaseSearchTerm) ||
+      request.lastName.toLowerCase().includes(lowerCaseSearchTerm) ||
+      request.email.toLowerCase().includes(lowerCaseSearchTerm) ||
+      request.phone.includes(lowerCaseSearchTerm);
     return matchesSearch;
   });
 
@@ -124,13 +126,13 @@ const ManagePracticeSertificates = () => {
                 className="manage-upgrade-request-item"
                 onClick={() => openModal(request)}
               >
-                <img src={request.user_id.imgAvt} alt="Avatar" className="manage-upgrade-avatar" />
+                <img src={request.imgAvt} alt="Avatar" className="manage-upgrade-avatar" />
                 <div className="manage-upgrade-info">
-                  <p><strong>Tên:</strong> {`${request.user_id.firstName} ${request.user_id.lastName}`}</p>
-                  <p><strong>Email:</strong> {request.user_id.email}</p>
-                  <p><strong>SĐT:</strong> {request.user_id.phone}</p>
-                  <p><strong>Địa chỉ:</strong> {request.user_id.address}</p>
-                  <p><strong>Loại dịch vụ:</strong> {request.serviceIndustry_id.type}</p>
+                  <p><strong>Tên:</strong> {`${request.firstName} ${request.lastName}`}</p>
+                  <p><strong>Email:</strong> {request.email}</p>
+                  <p><strong>SĐT:</strong> {request.phone}</p>
+                  <p><strong>Địa chỉ:</strong> {request.address}</p>
+                  <p><strong>Loại dịch vụ:</strong> {request.repairmanUpgradeRequests[0].serviceIndustry_id.type}</p>
                 </div>
                 <div className="manage-upgrade-actions">
                   {request.status === "In review" && (
@@ -169,16 +171,16 @@ const ManagePracticeSertificates = () => {
             <div className="manage-upgrade-modal-content" onClick={(e) => e.stopPropagation()}>
               <button className="manage-upgrade-close-btn" onClick={closeModal}>Đóng</button>
               <h3>Thông tin chi tiết</h3>
-              <p><strong>Tên:</strong> {`${selectedRequest.user_id.firstName} ${selectedRequest.user_id.lastName}`}</p>
-              <p><strong>Email:</strong> {selectedRequest.user_id.email}</p>
-              <p><strong>SĐT:</strong> {selectedRequest.user_id.phone}</p>
-              <p><strong>Địa chỉ:</strong> {selectedRequest.user_id.address}</p>
-              <p><strong>Loại dịch vụ:</strong> {selectedRequest.serviceIndustry_id.type}</p>
+              <p><strong>Tên:</strong> {`${selectedRequest.firstName} ${selectedRequest.lastName}`}</p>
+              <p><strong>Email:</strong> {selectedRequest.email}</p>
+              <p><strong>SĐT:</strong> {selectedRequest.phone}</p>
+              <p><strong>Địa chỉ:</strong> {selectedRequest.address}</p>
+              <p><strong>Loại dịch vụ:</strong> {selectedRequest.repairmanUpgradeRequests[0].serviceIndustry_id.type}</p>
               <div className="manage-upgrade-documents">
                 <p><strong>Giấy chứng chỉ hành nghề:</strong></p>
-                {selectedRequest.imgCertificatePractice ? (
-                  Array.isArray(selectedRequest.imgCertificatePractice) ? (
-                    selectedRequest.imgCertificatePractice.map((img, index) => (
+                {selectedRequest.repairmanUpgradeRequests[0].imgCertificatePractice ? (
+                  Array.isArray(selectedRequest.repairmanUpgradeRequests[0].imgCertificatePractice) ? (
+                    selectedRequest.repairmanUpgradeRequests[0].imgCertificatePractice.map((img, index) => (
                       <img
                         key={index}
                         src={img}
@@ -188,7 +190,7 @@ const ManagePracticeSertificates = () => {
                     ))
                   ) : (
                     <img
-                      src={selectedRequest.imgCertificatePractice}
+                      src={selectedRequest.repairmanUpgradeRequests[0].imgCertificatePractice}
                       alt="Certificate"
                       className="manage-upgrade-document-img"
                     />
@@ -198,9 +200,9 @@ const ManagePracticeSertificates = () => {
                 )}
 
                 <p><strong>CMND/CCCD:</strong></p>
-                {selectedRequest.imgCCCD ? (
-                  Array.isArray(selectedRequest.imgCCCD) ? (
-                    selectedRequest.imgCCCD.map((img, index) => (
+                {selectedRequest.repairmanUpgradeRequests[0].imgCCCD ? (
+                  Array.isArray(selectedRequest.repairmanUpgradeRequests[0].imgCCCD) ? (
+                    selectedRequest.repairmanUpgradeRequests[0].imgCCCD.map((img, index) => (
                       <img
                         key={index}
                         src={img}
@@ -210,7 +212,7 @@ const ManagePracticeSertificates = () => {
                     ))
                   ) : (
                     <img
-                      src={selectedRequest.imgCCCD}
+                      src={selectedRequest.repairmanUpgradeRequests[0].imgCCCD}
                       alt="CCCD"
                       className="manage-upgrade-document-img"
                     />
@@ -220,9 +222,9 @@ const ManagePracticeSertificates = () => {
                 )}
 
                 <p><strong>Giấy chứng chỉ hành nghề yêu cầu bổ sung:</strong></p>
-                {selectedRequest.supplementaryPracticeCertificate ? (
-                  Array.isArray(selectedRequest.supplementaryPracticeCertificate) ? (
-                    selectedRequest.supplementaryPracticeCertificate.map((img, index) => (
+                {selectedRequest.repairmanUpgradeRequests[0].supplementaryPracticeCertificate ? (
+                  Array.isArray(selectedRequest.repairmanUpgradeRequests[0].supplementaryPracticeCertificate) ? (
+                    selectedRequest.repairmanUpgradeRequests[0].supplementaryPracticeCertificate.map((img, index) => (
                       <img
                         key={index}
                         src={img}
@@ -232,7 +234,7 @@ const ManagePracticeSertificates = () => {
                     ))
                   ) : (
                     <img
-                      src={selectedRequest.supplementaryPracticeCertificate}
+                      src={selectedRequest.repairmanUpgradeRequests[0].supplementaryPracticeCertificate}
                       alt="Supplementary Certificate"
                       className="manage-upgrade-document-img"
                     />
