@@ -1870,34 +1870,34 @@ const totalServicePrices = async (req, res) => {
 }
 const viewPendingSupplementaryCertificates = async (req, res) => {
     try {
-      // Find all RepairmanUpgradeRequests with status "In review"
-      const pendingCertificates = await RepairmanUpgradeRequest.find({ status: "In review" })
-        .populate("user_id", "firstName lastName email phone address imgAvt") // Populate user details
-        .populate("serviceIndustry_id", "type") // Populate service industry details
-        .populate("vip_id", "name price"); // Populate VIP details
-  
-      if (!pendingCertificates || pendingCertificates.length === 0) {
-        return res.status(404).json({
-          EC: 0,
-          EM: "Không có yêu cầu nào đang ở trạng thái 'In review'!",
-        });
-      }
-  
-      res.status(200).json({
-        EC: 1,
-        EM: "Lấy danh sách yêu cầu bổ sung chứng chỉ thành công!",
-        DT: pendingCertificates,
-      });
-    } catch (error) {
-      console.error("Error fetching pending supplementary certificates:", error);
-      res.status(500).json({
-        EC: 0,
-        EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
-      });
-    }
-  };
+        // Find all RepairmanUpgradeRequests with status "In review"
+        const pendingCertificates = await RepairmanUpgradeRequest.find({ status: "In review" })
+            .populate("user_id", "firstName lastName email phone address imgAvt") // Populate user details
+            .populate("serviceIndustry_id", "type") // Populate service industry details
+            .populate("vip_id", "name price"); // Populate VIP details
 
-  const verifyPracticeCertificate = async (req, res) => {
+        if (!pendingCertificates || pendingCertificates.length === 0) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không có yêu cầu nào đang ở trạng thái 'In review'!",
+            });
+        }
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy danh sách yêu cầu bổ sung chứng chỉ thành công!",
+            DT: pendingCertificates,
+        });
+    } catch (error) {
+        console.error("Error fetching pending supplementary certificates:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+        });
+    }
+};
+
+const verifyPracticeCertificate = async (req, res) => {
     const { requestId, action, rejectionReason } = req.body;
 
     try {
@@ -2245,115 +2245,6 @@ const getAllProfit = async (req, res) => {
     }
 };
 
-const getRequestStatusByMonth = async (req, res) => {
-    try {
-        const { year, month } = req.query;
-        if (!year || !month) {
-            return res.status(400).json({
-                EC: 0,
-                EM: "Vui lòng cung cấp đầy đủ năm và tháng.",
-            });
-        }
-
-        const startDate = new Date(year, month - 1, 1);
-        const endDate = new Date(year, month, 0, 23, 59, 59, 999);
-
-        const results = await Request.aggregate([
-            {
-                $match: {
-                    $or: [
-                        { createdAt: { $gte: startDate, $lte: endDate } },
-                        { updatedAt: { $gte: startDate, $lte: endDate } },
-                    ],
-                    status: { $in: ["Completed", "Cancelled"] },
-                },
-            },
-            {
-                $group: {
-                    _id: "$status",
-                    count: { $sum: 1 },
-                },
-            },
-        ]);
-
-        const response = {
-            Completed: 0,
-            Cancelled: 0,
-        };
-
-        results.forEach((item) => {
-            response[item._id] = item.count;
-        });
-
-        return res.status(200).json({
-            EC: 1,
-            EM: "Thống kê theo tháng thành công!",
-            DT: response,
-        });
-    } catch (error) {
-        console.error("Lỗi khi thống kê theo tháng:", error);
-        return res.status(500).json({
-            EC: 0,
-            EM: "Đã xảy ra lỗi. Vui lòng thử lại!",
-        });
-    }
-};
-
-const getRequestStatusByYear = async (req, res) => {
-    try {
-        const { year } = req.query;
-        if (!year) {
-            return res.status(400).json({
-                EC: 0,
-                EM: "Vui lòng cung cấp năm.",
-            });
-        }
-
-        const startDate = new Date(year, 0, 1);
-        const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
-
-        const results = await Request.aggregate([
-            {
-                $match: {
-                    $or: [
-                        { createdAt: { $gte: startDate, $lte: endDate } },
-                        { updatedAt: { $gte: startDate, $lte: endDate } },
-                    ],
-                    status: { $in: ["Completed", "Cancelled"] },
-                },
-            },
-            {
-                $group: {
-                    _id: "$status",
-                    count: { $sum: 1 },
-                },
-            },
-        ]);
-
-        const response = {
-            Completed: 0,
-            Cancelled: 0,
-        };
-
-        results.forEach((item) => {
-            response[item._id] = item.count;
-        });
-
-        return res.status(200).json({
-            EC: 1,
-            EM: "Thống kê theo năm thành công!",
-            DT: response,
-        });
-    } catch (error) {
-        console.error("Lỗi khi thống kê theo năm:", error);
-        return res.status(500).json({
-            EC: 0,
-            EM: "Đã xảy ra lỗi. Vui lòng thử lại!",
-        });
-    }
-};
-
-
 module.exports = {
     totalServicePrices,
     totalServicesByIndustry,
@@ -2403,7 +2294,5 @@ module.exports = {
     getAllRepairmanMonthlyPayments,
     getMostUsedVipService,
     getAllProfit,
-    getRequestStatusByMonth,
-    getRequestStatusByYear,
 };
 
