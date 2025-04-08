@@ -889,6 +889,147 @@ const confirmRequest = async (req, res) => {
     });
   }
 };
+
+const getRepairmanRevenueByTime = async (req, res) => {
+  try {
+    const { time = "month" } = req.query;
+    const userId = req.user.id;
+    // const userId = '67d78b87613614eb8f14da66';
+
+    if (time !== "month" && time !== "year") {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Giá trị 'time' không hợp lệ. Chỉ cho phép 'month' hoặc 'year'."
+      });
+    }
+
+    const repairman = await RepairmanUpgradeRequest.findOne({ user_id: userId });
+    if (!repairman) {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Không tìm thấy thông tin thợ sửa chữa"
+      });
+    }
+
+    const wallet = await Wallet.findOne({ user_id: userId });
+    if (!wallet) {
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy ví của người dùng."
+      });
+    }
+
+    const matchStage = {
+      wallet_id: wallet._id,
+      status: 1,
+      transactionType: "payment"
+    };
+
+    let groupStage, projectStage, sortStage;
+    if (time === "year") {
+      groupStage = {
+        _id: {
+          year: { $year: "$createdAt" },
+          month: { $month: "$createdAt" }
+        },
+        totalRevenue: { $sum: "$amount" }
+      };
+      projectStage = {
+        _id: 0,
+        year: "$_id.year",
+        month: "$_id.month",
+        totalRevenue: 1
+      };
+      sortStage = { "_id.year": 1, "_id.month": 1 };
+    } else {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1;
+
+      groupStage = {
+        _id: {
+          year: { $year: "$createdAt" },
+          month: { $month: "$createdAt" },
+          day: { $dayOfMonth: "$createdAt" }
+        },
+        totalRevenue: { $sum: "$amount" }
+      };
+      projectStage = {
+        _id: 0,
+        year: "$_id.year",
+        month: "$_id.month",
+        day: "$_id.day",
+        totalRevenue: 1
+      };
+      sortStage = { "_id.year": 1, "_id.month": 1, "_id.day": 1 };
+    }
+
+    const rawResult = await Transaction.aggregate([
+      { $match: matchStage },
+      { $group: groupStage },
+      { $sort: sortStage },
+      { $project: projectStage }
+    ]);
+
+    const filledResult = [];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+
+    // format lại data hiển thị
+    if (time === "year") {
+      const yearMap = new Map(); // dùng Map để để performance nhanh hơn
+      for (const r of rawResult) {
+        const key = `${r.year}`;
+        if (!yearMap.has(key)) yearMap.set(key, {});
+        yearMap.get(key)[r.month] = r.totalRevenue;
+      }
+
+      yearMap.forEach((months, year) => {
+        for (let i = 1; i <= 12; i++) {
+          filledResult.push({
+            year: parseInt(year),
+            month: i,
+            totalRevenue: months[i] || 0
+          });
+        }
+      });
+    } else {
+      const targetMonth = parseInt(req.query.month) || currentMonth;
+      const targetYear = parseInt(req.query.year) || currentYear;
+      const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+
+      const dayMap = new Map();
+      for (const r of rawResult) {
+        if (r.year === targetYear && r.month === targetMonth) {
+          dayMap.set(r.day, r.totalRevenue);
+        }
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        filledResult.push({
+          year: targetYear,
+          month: targetMonth,
+          day,
+          totalRevenue: dayMap.get(day) || 0
+        });
+      }
+    }
+
+    return res.status(200).json({
+      EC: 1,
+      EM: `Thống kê doanh thu theo ${time === "year" ? "năm" : "tháng"} thành công!`,
+      DT: filledResult
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy doanh thu:", error);
+    return res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+    });
+  }
+};
+
 module.exports = {
   requestRepairmanUpgrade,
   getAllVips,
@@ -901,5 +1042,6 @@ module.exports = {
   registerVipPackage,
   addSecondCertificate,
   viewCustomerRequest,
-  confirmRequest
+  confirmRequest,
+  getRepairmanRevenueByTime
 };
