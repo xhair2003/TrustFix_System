@@ -140,7 +140,7 @@ const ManagePracticeSertificates = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleApprove(request._id);
+                          handleApprove(request.repairmanUpgradeRequests[0]._id);
                         }}
                         disabled={loading}
                       >
@@ -254,7 +254,7 @@ const ManagePracticeSertificates = () => {
                     disabled={loading}
                   />
                   <button
-                    onClick={() => handleReject(selectedRequest._id)}
+                    onClick={() => handleReject(selectedRequest.repairmanUpgradeRequests[0]._id)}
                     disabled={loading}
                   >
                     {loading ? "Đang xử lý..." : "Xác nhận từ chối"}
