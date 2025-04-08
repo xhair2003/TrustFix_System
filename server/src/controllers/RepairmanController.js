@@ -894,7 +894,6 @@ const getRepairmanRevenueByTime = async (req, res) => {
   try {
     const { time = "month" } = req.query;
     const userId = req.user.id;
-    // const userId = '67d78b87613614eb8f14da66';
 
     if (time !== "month" && time !== "year") {
       return res.status(400).json({
