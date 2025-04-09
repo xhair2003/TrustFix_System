@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './UpdateInfo.scss';
-import { FaCheck } from "react-icons/fa";
 import { requestSupplementaryPracticeCertificate, resetError, resetSuccess } from '../../../store/actions/userActions';
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from "sweetalert2";
 import Loading from '../../../component/Loading/Loading';
+import { FaCheck, FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
 const UpdateInfo = ({ initialData, onSave }) => {
   const navigate = useNavigate();
@@ -23,6 +23,7 @@ const UpdateInfo = ({ initialData, onSave }) => {
     balance: initialData.balance || 0,
     type: initialData.type || '',
     certificates: initialData.certificates || [],
+    repairmanUpgradeRequests: initialData.repairmanUpgradeRequests || {},
   });
 
   const [phoneError, setPhoneError] = useState('');
@@ -31,6 +32,35 @@ const UpdateInfo = ({ initialData, onSave }) => {
   const [newCertificates, setNewCertificates] = useState([]);
   // Thêm state để lưu lỗi cho firstName và lastName
   const [nameErrors, setNameErrors] = useState({ firstName: '', lastName: '' });
+  const [showPracticeCertificateModal, setShowPracticeCertificateModal] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(null);
+
+  // Lấy tất cả các ảnh chứng chỉ vào một mảng
+  const getAllCertificates = () => {
+    const certificates = [];
+    const request = personalInfo.repairmanUpgradeRequests[0];
+    if (request?.imgCertificatePractice) {
+      certificates.push(request.imgCertificatePractice);
+    }
+    if (request?.supplementaryPracticeCertificate) {
+      certificates.push(...request.supplementaryPracticeCertificate);
+    }
+    return certificates;
+  };
+
+  const allCertificates = getAllCertificates();
+
+  const handleNextImage = () => {
+    setSelectedImageIndex((prev) =>
+      prev < allCertificates.length - 1 ? prev + 1 : 0
+    );
+  };
+
+  const handlePrevImage = () => {
+    setSelectedImageIndex((prev) =>
+      prev > 0 ? prev - 1 : allCertificates.length - 1
+    );
+  };
 
   useEffect(() => {
     if (successSupplementary) {
@@ -277,7 +307,7 @@ const UpdateInfo = ({ initialData, onSave }) => {
             readOnly
             type="text"
             name="balance"
-            value={`${personalInfo.balance} VNĐ`}
+            value={`${personalInfo.balance.toLocaleString('vi-VN')} VNĐ`}
             className="input-field"
           />
           <button className="deposit_bt" onClick={handleDeposit}>Nạp tiền</button>
@@ -297,14 +327,33 @@ const UpdateInfo = ({ initialData, onSave }) => {
             </button>
           )}
           {personalInfo.type !== 'customer' && (
-            <button
-              className="deposit_bt"
-              onClick={() => setShowCertificateModal(true)}
-            >
-              Thêm chứng chỉ
-            </button>
+            <>
+              <button
+                className="deposit_bt"
+                onClick={() => setShowPracticeCertificateModal(true)}
+              >
+                Xem chứng chỉ
+              </button>
+              <button
+                className="deposit_bt"
+                onClick={() => setShowCertificateModal(true)}
+              >
+                Bổ sung chứng chỉ
+              </button>
+            </>
           )}
         </div>
+        {personalInfo.type === 'repairman' && (
+          <div className="user-info-item">
+            <label className="label">Loại thợ</label>
+            <input
+              readOnly
+              type="text"
+              value={personalInfo.repairmanUpgradeRequests[0]?.serviceIndustry_id?.type || 'Chưa xác định'}
+              className="input-field"
+            />
+          </div>
+        )}
         <div className="user-info-item">
           <label className="label">Số điện thoại</label>
           <input
@@ -347,7 +396,7 @@ const UpdateInfo = ({ initialData, onSave }) => {
         {showCertificateModal && (
           <div className="certificate-modal">
             <div className="modal-content">
-              <h3>Tải lên chứng chỉ</h3>
+              <h3>Gửi yêu cầu bổ sung chứng chỉ</h3>
               <div
                 className="upload-area"
                 onDragOver={(e) => e.preventDefault()}
@@ -384,7 +433,7 @@ const UpdateInfo = ({ initialData, onSave }) => {
               </div>
               <div className="modal-buttons">
                 <button onClick={handleSaveCertificates} className="save-certificate">
-                  Lưu chứng chỉ
+                  Gửi yêu cầu
                 </button>
                 <button
                   onClick={() => setShowCertificateModal(false)}
@@ -400,6 +449,72 @@ const UpdateInfo = ({ initialData, onSave }) => {
         <div className="button-group">
           <button className="save-button" onClick={handleSave}>Lưu Thay Đổi</button>
         </div>
+
+
+        {showPracticeCertificateModal && (
+          <div className="certificate-modal">
+            <div className="modal-content">
+              <h3>Chứng chỉ hành nghề</h3>
+              <div className="certificates-preview">
+                {personalInfo.repairmanUpgradeRequests[0]?.imgCertificatePractice && (
+                  <img
+                    src={personalInfo.repairmanUpgradeRequests[0].imgCertificatePractice}
+                    alt="Chứng chỉ chính"
+                    className="certificate-image"
+                    onClick={() => setSelectedImageIndex(0)}
+                  />
+                )}
+                {personalInfo.repairmanUpgradeRequests[0]?.supplementaryPracticeCertificate?.map((cert, index) => (
+                  <img
+                    key={index}
+                    src={cert}
+                    alt={`Chứng chỉ bổ sung ${index + 1}`}
+                    className="certificate-image"
+                    onClick={() => setSelectedImageIndex(
+                      personalInfo.repairmanUpgradeRequests[0].imgCertificatePractice ? index + 1 : index
+                    )}
+                  />
+                ))}
+              </div>
+              <div className="modal-buttons">
+                <button
+                  onClick={() => setShowPracticeCertificateModal(false)}
+                  className="cancel-certificate"
+                >
+                  Đóng
+                </button>
+              </div>
+
+              {selectedImageIndex !== null && (
+                <div className="image-viewer">
+                  <button
+                    className="nav-button prev-button"
+                    onClick={handlePrevImage}
+                  >
+                    <FaArrowLeft />
+                  </button>
+                  <img
+                    src={allCertificates[selectedImageIndex]}
+                    alt="Xem chi tiết"
+                    className="full-image"
+                  />
+                  <button
+                    className="nav-button next-button"
+                    onClick={handleNextImage}
+                  >
+                    <FaArrowRight />
+                  </button>
+                  <button
+                    className="close-viewer"
+                    onClick={() => setSelectedImageIndex(null)}
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
