@@ -4,6 +4,7 @@ import './Dashboard.css';
 import Loading from "../../../component/Loading/Loading";
 import Swal from "sweetalert2";
 import { Doughnut, Bar } from 'react-chartjs-2';
+import * as XLSX from 'xlsx';
 import {
   totalBannedUsers,
   totalRepairmen,
@@ -20,7 +21,8 @@ import {
   totalServicesByIndustry,
   totalServicePrices,
   getMostUsedVipService,
-  getAllProfit, // Thêm action getAllProfit
+  getAllProfit,
+  getYearlyProfit,
   resetError,
 } from '../../../store/actions/adminActions';
 import {
@@ -33,15 +35,7 @@ import {
   LinearScale,
 } from 'chart.js';
 
-// Đăng ký các thành phần cần thiết cho Chart.js
-ChartJS.register(
-  ArcElement,
-  Tooltip,
-  Legend,
-  BarElement,
-  CategoryScale,
-  LinearScale
-);
+ChartJS.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
 const Modal = ({ isOpen, onClose, title, barData, tableData, total, columns }) => {
   if (!isOpen) return null;
@@ -99,15 +93,13 @@ const Modal = ({ isOpen, onClose, title, barData, tableData, total, columns }) =
 const Dashboard = () => {
   const dispatch = useDispatch();
 
-  // State cho biểu đồ doanh thu
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showCompletedModal, setShowCompletedModal] = useState(false);
   const [showRevenueModal, setShowRevenueModal] = useState(false);
 
-  // State cho bộ lọc doanh thu (năm và tháng)
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Mặc định là năm hiện tại
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Mặc định là tháng hiện tại
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
   const {
     totalBannedUsers: b,
@@ -125,14 +117,15 @@ const Dashboard = () => {
     totalServicesByIndustry: p,
     totalServicePrices: q,
     mostUsedVipService: a,
-    totalsProfit, // Lấy totalsProfit từ state
-    totalAll, // Lấy totalAll từ state
+    totalsProfit,
+    totalAll,
+    yearlyProfit,
+    totalAllByYear,
     loading,
     error,
   } = useSelector((state) => state.admin);
 
   useEffect(() => {
-    // Gọi các API khác
     dispatch(totalRepairmen());
     dispatch(totalCustomers());
     dispatch(totalBannedUsers());
@@ -148,10 +141,9 @@ const Dashboard = () => {
     dispatch(totalServicesByIndustry());
     dispatch(totalServicePrices());
     dispatch(getMostUsedVipService());
-
-    // Gọi API getAllProfit với năm và tháng mặc định
     dispatch(getAllProfit(selectedMonth, selectedYear));
-  }, [dispatch, selectedMonth, selectedYear]); // Gọi lại API khi selectedMonth hoặc selectedYear thay đổi
+    dispatch(getYearlyProfit()); // Lấy dữ liệu cho tất cả các năm
+  }, [dispatch, selectedMonth, selectedYear]);
 
   useEffect(() => {
     if (error) {
@@ -173,7 +165,6 @@ const Dashboard = () => {
 
   const servicesByIndustry = Array.isArray(p) ? p : [];
 
-  // Dữ liệu cho biểu đồ Doughnut (Phân Bố Yêu Cầu)
   const requestData = {
     labels: ['Xác Nhận', 'Đang Chờ', 'Hủy', 'Thanh Toán', 'Thương Lượng Giá'],
     datasets: [
@@ -197,7 +188,6 @@ const Dashboard = () => {
 
   const totalRequests = (f || 0) + (g || 0) + (i || 0) + (k || 0) + (l || 0);
 
-  // Dữ liệu cho biểu đồ Doughnut (Thống Kê Người Dùng)
   const userData = {
     labels: ['Thợ', 'Khách', 'TK Bị Khóa'],
     datasets: [
@@ -219,7 +209,6 @@ const Dashboard = () => {
 
   const totalUsers = (c || 0) + (d || 0) + (b || 0);
 
-  // Dữ liệu cho biểu đồ Doughnut (Xu Hướng Yêu Cầu Hoàn Thành)
   const completedRequestData = {
     labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
     datasets: [
@@ -244,7 +233,6 @@ const Dashboard = () => {
 
   const totalCompleted = completedDetails.reduce((sum, item) => sum + item.count, 0);
 
-  // Dữ liệu cho biểu đồ Doanh Thu (Doughnut Chart)
   const revenueData = {
     labels: [],
     datasets: [
@@ -259,8 +247,6 @@ const Dashboard = () => {
   };
 
   const revenueDetails = [];
-
-  // Chuyển đổi dữ liệu từ totalsProfit thành định dạng cho biểu đồ
   if (totalsProfit) {
     revenueData.labels = Object.keys(totalsProfit);
     revenueData.datasets[0].data = Object.values(totalsProfit);
@@ -273,9 +259,8 @@ const Dashboard = () => {
     });
   }
 
-  const totalRevenue = totalAll || 0; // Sử dụng totalAll từ API
+  const totalRevenue = totalAll || 0;
 
-  // Dữ liệu cho biểu đồ Bar chi tiết
   const getBarData = (details) => ({
     labels: details.map(item => item.type),
     datasets: [
@@ -289,18 +274,149 @@ const Dashboard = () => {
     ],
   });
 
-  // Tạo danh sách năm từ 2020 đến năm hiện tại
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 2019 }, (_, i) => 2020 + i);
-
-  // Danh sách tháng
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
+
+  // Hàm xuất dữ liệu ra file Excel
+  const exportToExcel = () => {
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1: Thống kê chung
+    const generalData = [
+      ['Thống Kê Chung', 'Số Lượng'],
+      ['Tổng Thợ', c || 0],
+      ['Tổng Khách', d || 0],
+      ['TK Bị Khóa', b || 0],
+      ['ĐH Đã Hoàn Thành', e || 0],
+      ['ĐH Đang Sửa', g || 0],
+      ['ĐH Bị Hủy', i || 0],
+      ['ĐH Chờ Thanh Toán', k || 0],
+      ['ĐH Đang Chốt Giá', l || 0],
+      ['Khiếu Nại Chờ Xử Lý', m || 0],
+      ['Nâng Cấp Chờ Duyệt', n || 0],
+      ['Tổng Chuyên Mục', o || 0],
+      ['Số Dịch Vụ Đề Xuất', q || 0],
+    ];
+    const ws1 = XLSX.utils.aoa_to_sheet(generalData);
+    XLSX.utils.book_append_sheet(wb, ws1, 'Thống Kê Chung');
+
+    // Sheet 2: Phân bố yêu cầu
+    const requestSheetData = [
+      ['Loại Yêu Cầu', 'Số Lượng', 'Tỷ Lệ (%)'],
+      ...requestDetails.map(item => [
+        item.type,
+        item.count,
+        totalRequests > 0 ? ((item.count / totalRequests) * 100).toFixed(1) : 0,
+      ]),
+      ['Tổng', totalRequests, '100%'],
+    ];
+    const ws2 = XLSX.utils.aoa_to_sheet(requestSheetData);
+    XLSX.utils.book_append_sheet(wb, ws2, 'Phân Bố Yêu Cầu');
+
+    // Sheet 3: Thống kê người dùng
+    const userSheetData = [
+      ['Loại Người Dùng', 'Số Lượng', 'Tỷ Lệ (%)'],
+      ...userDetails.map(item => [
+        item.type,
+        item.count,
+        totalUsers > 0 ? ((item.count / totalUsers) * 100).toFixed(1) : 0,
+      ]),
+      ['Tổng', totalUsers, '100%'],
+    ];
+    const ws3 = XLSX.utils.aoa_to_sheet(userSheetData);
+    XLSX.utils.book_append_sheet(wb, ws3, 'Thống Kê Người Dùng');
+
+    // Sheet 4: Xu hướng yêu cầu hoàn thành
+    const completedSheetData = [
+      ['Tháng', 'Số Lượng', 'Tỷ Lệ (%)'],
+      ...completedDetails.map(item => [
+        item.type,
+        item.count,
+        totalCompleted > 0 ? ((item.count / totalCompleted) * 100).toFixed(1) : 0,
+      ]),
+      ['Tổng', totalCompleted, '100%'],
+    ];
+    const ws4 = XLSX.utils.aoa_to_sheet(completedSheetData);
+    XLSX.utils.book_append_sheet(wb, ws4, 'Xu Hướng Hoàn Thành');
+
+    // Sheet 5: Phân bố doanh thu (mỗi năm một bảng)
+    const revenueSheet = XLSX.utils.aoa_to_sheet([]);
+    const feeTypes = [
+      "phí đăng kí thành viên",
+      "phí hoa hồng sửa chữa",
+      "phí đăng kí gói vip",
+    ];
+    const allYears = Object.keys(yearlyProfit).sort(); // Sắp xếp các năm
+
+    let currentRow = 1; // Vị trí hàng bắt đầu
+    allYears.forEach((year, yearIndex) => {
+      // Tiêu đề bảng cho năm
+      const header = [`Doanh Thu Năm ${year}`, ...Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`), 'Tổng'];
+      XLSX.utils.sheet_add_aoa(revenueSheet, [header], { origin: `A${currentRow}` });
+      currentRow++;
+
+      // Dữ liệu cho từng loại phí
+      const yearlyData = yearlyProfit[year] || {};
+      feeTypes.forEach(fee => {
+        const row = [fee];
+        let total = 0;
+        for (let month = 1; month <= 12; month++) {
+          const profit = yearlyData[month] || {};
+          const value = profit[fee] || 0;
+          row.push(value);
+          total += value;
+        }
+        row.push(total);
+        XLSX.utils.sheet_add_aoa(revenueSheet, [row], { origin: `A${currentRow}` });
+        currentRow++;
+      });
+
+      // Hàng tổng cho năm
+      const totalRow = ['Tổng'];
+      let grandTotal = 0;
+      for (let month = 1; month <= 12; month++) {
+        const monthTotal = totalAllByYear[year]?.[month] || 0;
+        totalRow.push(monthTotal);
+        grandTotal += monthTotal;
+      }
+      totalRow.push(grandTotal);
+      XLSX.utils.sheet_add_aoa(revenueSheet, [totalRow], { origin: `A${currentRow}` });
+      currentRow += 2; // Cách 1 hàng trống giữa các bảng
+    });
+
+    XLSX.utils.book_append_sheet(wb, revenueSheet, 'Phân Bố Doanh Thu');
+
+    // Sheet 6: Dịch vụ theo chuyên mục
+    const servicesSheetData = [
+      ['Chuyên Mục', 'Số Dịch Vụ'],
+      ...servicesByIndustry.map(item => [item.serviceIndustry || 'Không có tên', item.totalServices || 0]),
+    ];
+    const ws6 = XLSX.utils.aoa_to_sheet(servicesSheetData);
+    XLSX.utils.book_append_sheet(wb, ws6, 'Dịch Vụ Theo Chuyên Mục');
+
+    // Sheet 7: Dịch vụ VIP phổ biến
+    const vipServiceSheetData = [
+      ['Dịch Vụ VIP Phổ Biến Nhất'],
+      [a || 'Không có dữ liệu'],
+    ];
+    const ws7 = XLSX.utils.aoa_to_sheet(vipServiceSheetData);
+    XLSX.utils.book_append_sheet(wb, ws7, 'Dịch Vụ VIP');
+
+    // Xuất file
+    XLSX.writeFile(wb, `Dashboard_Summary_All_Years.xlsx`);
+  };
 
   return (
     <div className="modern-dashboard">
       <header className="dashboard-header">
         <h1>Bảng Điều Khiển Quản Trị</h1>
-        <span className="date">Ngày: {new Date().toLocaleDateString('vi-VN')}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span className="date">Ngày: {new Date().toLocaleDateString('vi-VN')}</span>
+          <button className="export-btn" onClick={exportToExcel}>
+            Xuất Excel
+          </button>
+        </div>
       </header>
 
       <div className="dashboard-grid">
@@ -327,7 +443,6 @@ const Dashboard = () => {
       </div>
 
       <div className="charts-section">
-        {/* Biểu đồ Doughnut (Phân Bố Yêu Cầu) */}
         <div className="chart-container doughnut-chart" onClick={() => setShowRequestModal(true)}>
           <h2>Tỷ lệ tình trạng đơn hàng</h2>
           <div className="doughnut-wrapper">
@@ -367,7 +482,6 @@ const Dashboard = () => {
           columns={['Loại Yêu Cầu', 'Số Lượng', 'Tỷ Lệ']}
         />
 
-        {/* Biểu đồ Doughnut (Thống Kê Người Dùng) */}
         <div className="chart-container doughnut-chart" onClick={() => setShowUserModal(true)}>
           <h2>Thống Kê Người Dùng</h2>
           <div className="doughnut-wrapper">
@@ -407,7 +521,6 @@ const Dashboard = () => {
           columns={['Loại Người Dùng', 'Số Lượng', 'Tỷ Lệ']}
         />
 
-        {/* Biểu đồ Doughnut (Xu Hướng Yêu Cầu Hoàn Thành) */}
         <div className="chart-container doughnut-chart" onClick={() => setShowCompletedModal(true)}>
           <h2>Xu Hướng Yêu Cầu Hoàn Thành</h2>
           <div className="doughnut-wrapper">
@@ -447,7 +560,6 @@ const Dashboard = () => {
           columns={['Tháng', 'Số Lượng', 'Tỷ Lệ']}
         />
 
-        {/* Biểu đồ Doanh Thu (Doughnut Chart) */}
         <div className="chart-container doughnut-chart">
           <h2>Phân Bố Doanh Thu</h2>
           <div className="filter-options">
@@ -488,7 +600,6 @@ const Dashboard = () => {
                     ctx.fillStyle = '#1e3a8a';
                     const centerX = (chartArea.left + chartArea.right) / 2;
                     const centerY = (chartArea.top + chartArea.bottom) / 2;
-                    // Hiển thị totalAll dưới dạng triệu VNĐ
                     const totalInMillions = (totalRevenue / 1000000).toFixed(2);
                     ctx.fillText(`${totalInMillions} triệu`, centerX, centerY);
                     ctx.restore();
