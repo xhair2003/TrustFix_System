@@ -110,8 +110,4 @@ router.get("/view-vip-services/most-used", AuthMiddleware.verifyAdmin, AdminCont
 router.get("/view-profit", AuthMiddleware.verifyAdmin, AdminController.getAllProfit);
 router.get("/view-yearly-profit", AuthMiddleware.verifyAdmin, AdminController.getYearlyProfit);
 
-router.get("/view-status-month", AuthMiddleware.verifyAdmin, AdminController.getRequestStatusByMonth);
-
-router.get("/view-status-year", AuthMiddleware.verifyAdmin, AdminController.getRequestStatusByYear);
-
 module.exports = router;    
