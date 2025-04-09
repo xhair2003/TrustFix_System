@@ -54,7 +54,12 @@ const initialState = {
     errorConfirmRequestRepairman: null,
 
     requestStatus: null,
-    errorRequestStatus: null
+    errorRequestStatus: null,
+
+    revenueByTime: [],
+    requestStatusByMonth: [], // Mảng chi tiết theo ngày
+    requestStatusByYear: [],  // Mảng chi tiết theo tháng
+    allStats: {}, // Dữ liệu tổng hợp theo năm
 };
 
 const userReducer = (state = initialState, action) => {
@@ -537,6 +542,41 @@ const userReducer = (state = initialState, action) => {
                 successConfirmRequestRepairman: null,
                 errorConfirmRequestRepairman: action.payload,
             };
+
+
+
+
+        // Doanh thu theo thời gian
+        case 'GET_REVENUE_BY_TIME_REQUEST':
+            return { ...state, loading: true, error: null };
+        case 'GET_REVENUE_BY_TIME_SUCCESS':
+            return { ...state, loading: false, revenueByTime: action.payload };
+        case 'GET_REVENUE_BY_TIME_FAIL':
+            return { ...state, loading: false, error: action.payload };
+
+        // Trạng thái đơn hàng theo tháng
+        case 'GET_REQUEST_STATUS_BY_MONTH_REQUEST':
+            return { ...state, loading: true, error: null };
+        case 'GET_REQUEST_STATUS_BY_MONTH_SUCCESS':
+            return { ...state, loading: false, requestStatusByMonth: action.payload };
+        case 'GET_REQUEST_STATUS_BY_MONTH_FAIL':
+            return { ...state, loading: false, error: action.payload };
+
+        // Trạng thái đơn hàng theo năm
+        case 'GET_REQUEST_STATUS_BY_YEAR_REQUEST':
+            return { ...state, loading: true, error: null };
+        case 'GET_REQUEST_STATUS_BY_YEAR_SUCCESS':
+            return { ...state, loading: false, requestStatusByYear: action.payload };
+        case 'GET_REQUEST_STATUS_BY_YEAR_FAIL':
+            return { ...state, loading: false, error: action.payload };
+
+
+        case 'GET_ALL_REPAIRMAN_STATS_REQUEST':
+            return { ...state, loading: true, error: null };
+        case 'GET_ALL_REPAIRMAN_STATS_SUCCESS':
+            return { ...state, loading: false, allStats: action.payload };
+        case 'GET_ALL_REPAIRMAN_STATS_FAIL':
+            return { ...state, loading: false, error: action.payload };
 
 
         case "RESET_ERROR":

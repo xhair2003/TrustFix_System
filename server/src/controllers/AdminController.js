@@ -2261,31 +2261,16 @@ const getYearlyProfit = async (req, res) => {
             matchCondition.createdAt = { $gte: startDate, $lte: endDate };
         }
 
-        // Tính tổng tiền gốc của REC-SEV trước khi lấy 10%
-        const totalRecSevOriginal = await Transaction.aggregate([
-            {
-                $match: {
-                    ...matchCondition,
-                    payCode: { $regex: "^REC-SEV" },
-                },
-            },
-            {
-                $group: {
-                    _id: { $month: "$createdAt" },
-                    totalAmount: { $sum: "$amount" },
-                },
-            },
-        ]);
-
-        // Tính tổng doanh thu theo loại phí và tháng
+        // Tính tổng doanh thu theo loại phí, năm, tháng và ngày
         const totalAmounts = await Transaction.aggregate([
             { $match: matchCondition },
             {
                 $project: {
                     payCode: 1,
                     amount: 1,
-                    month: { $month: "$createdAt" },
                     year: { $year: "$createdAt" },
+                    month: { $month: "$createdAt" },
+                    day: { $dayOfMonth: "$createdAt" }, // Thêm ngày
                     prefix: {
                         $switch: {
                             branches: prefixes.map(prefix => ({
@@ -2309,31 +2294,43 @@ const getYearlyProfit = async (req, res) => {
                     _id: {
                         year: "$year",
                         month: "$month",
+                        day: "$day", // Nhóm theo ngày
                         prefix: "$prefix",
                     },
                     totalAmount: { $sum: "$adjustedAmount" },
                 },
             },
+            {
+                $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 },
+            },
         ]);
 
-        // Tính tổng tất cả giao dịch
+        // Tính tổng tất cả giao dịch theo năm, tháng và ngày
         const totalAllTransactions = await Transaction.aggregate([
             { $match: matchCondition },
             {
                 $group: {
-                    _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+                    _id: {
+                        year: { $year: "$createdAt" },
+                        month: { $month: "$createdAt" },
+                        day: { $dayOfMonth: "$createdAt" }, // Nhóm theo ngày
+                    },
                     totalAmount: { $sum: "$amount" },
                 },
             },
+            {
+                $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 },
+            },
         ]);
 
-        // Tổ chức dữ liệu theo năm và tháng
+        // Tổ chức dữ liệu theo năm, tháng và ngày
         const yearlyProfit = {};
         totalAmounts.forEach(item => {
-            const { year, month, prefix } = item._id;
+            const { year, month, day, prefix } = item._id;
             if (!yearlyProfit[year]) yearlyProfit[year] = {};
             if (!yearlyProfit[year][month]) yearlyProfit[year][month] = {};
-            yearlyProfit[year][month][prefix] = item.totalAmount;
+            if (!yearlyProfit[year][month][day]) yearlyProfit[year][month][day] = {};
+            yearlyProfit[year][month][day][prefix] = item.totalAmount;
         });
 
         // Đổi tên loại phí
@@ -2341,21 +2338,25 @@ const getYearlyProfit = async (req, res) => {
         Object.keys(yearlyProfit).forEach(year => {
             renamedYearlyProfit[year] = {};
             Object.keys(yearlyProfit[year]).forEach(month => {
-                const profit = yearlyProfit[year][month];
-                renamedYearlyProfit[year][month] = {
-                    "phí đăng kí thành viên": profit["VIPFEE"] || 0,
-                    "phí hoa hồng sửa chữa": profit["REC-SEV"] || 0,
-                    "phí đăng kí gói vip": profit["VIP"] || 0,
-                };
+                renamedYearlyProfit[year][month] = {};
+                Object.keys(yearlyProfit[year][month]).forEach(day => {
+                    const profit = yearlyProfit[year][month][day];
+                    renamedYearlyProfit[year][month][day] = {
+                        "phí đăng kí thành viên": profit["VIPFEE"] || 0,
+                        "phí hoa hồng sửa chữa": profit["REC-SEV"] || 0,
+                        "phí đăng kí gói vip": profit["VIP"] || 0,
+                    };
+                });
             });
         });
 
-        // Tổ chức totalAll theo năm và tháng
+        // Tổ chức totalAll theo năm, tháng và ngày
         const totalAllByYear = {};
         totalAllTransactions.forEach(item => {
-            const { year, month } = item._id;
+            const { year, month, day } = item._id;
             if (!totalAllByYear[year]) totalAllByYear[year] = {};
-            totalAllByYear[year][month] = item.totalAmount;
+            if (!totalAllByYear[year][month]) totalAllByYear[year][month] = {};
+            totalAllByYear[year][month][day] = item.totalAmount;
         });
 
         res.status(200).json({
@@ -2484,6 +2485,8 @@ const getRequestStatusByYear = async (req, res) => {
 };
 
 module.exports = {
+    getRequestStatusByYear,
+    getRequestStatusByMonth,
     getYearlyProfit,
     totalServicePrices,
     totalServicesByIndustry,

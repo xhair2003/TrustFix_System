@@ -340,8 +340,7 @@ const Dashboard = () => {
     const ws4 = XLSX.utils.aoa_to_sheet(completedSheetData);
     XLSX.utils.book_append_sheet(wb, ws4, 'Xu Hướng Hoàn Thành');
 
-    // Sheet 5: Phân bố doanh thu (mỗi năm một bảng)
-    const revenueSheet = XLSX.utils.aoa_to_sheet([]);
+    // Sheets: Phân bố doanh thu (mỗi năm một sheet)
     const feeTypes = [
       "phí đăng kí thành viên",
       "phí hoa hồng sửa chữa",
@@ -349,45 +348,101 @@ const Dashboard = () => {
     ];
     const allYears = Object.keys(yearlyProfit).sort(); // Sắp xếp các năm
 
-    let currentRow = 1; // Vị trí hàng bắt đầu
-    allYears.forEach((year, yearIndex) => {
-      // Tiêu đề bảng cho năm
-      const header = [`Doanh Thu Năm ${year}`, ...Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`), 'Tổng'];
-      XLSX.utils.sheet_add_aoa(revenueSheet, [header], { origin: `A${currentRow}` });
-      currentRow++;
-
-      // Dữ liệu cho từng loại phí
+    allYears.forEach((year) => {
+      const revenueSheetData = [];
       const yearlyData = yearlyProfit[year] || {};
-      feeTypes.forEach(fee => {
-        const row = [fee];
-        let total = 0;
-        for (let month = 1; month <= 12; month++) {
-          const profit = yearlyData[month] || {};
-          const value = profit[fee] || 0;
-          row.push(value);
-          total += value;
-        }
-        row.push(total);
-        XLSX.utils.sheet_add_aoa(revenueSheet, [row], { origin: `A${currentRow}` });
-        currentRow++;
-      });
 
-      // Hàng tổng cho năm
-      const totalRow = ['Tổng'];
-      let grandTotal = 0;
+      // Bảng chi tiết theo ngày cho từng tháng
       for (let month = 1; month <= 12; month++) {
-        const monthTotal = totalAllByYear[year]?.[month] || 0;
-        totalRow.push(monthTotal);
-        grandTotal += monthTotal;
+        const monthData = yearlyData[month] || {};
+        const daysInMonth = new Date(year, month, 0).getDate();
+
+        revenueSheetData.push([`Tháng ${month}`]);
+        const daysRow = ['Ngày'];
+        const registrationRow = ['Phí đăng ký thợ'];
+        const commissionRow = ['Phí hoa hồng sửa chữa'];
+        const vipRow = ['Phí đăng ký gói VIP'];
+        const dailyTotalRow = ['Tổng']; // Hàng tổng theo ngày
+        let monthRegistrationTotal = 0; // Tổng phí đăng ký thợ trong tháng
+        let monthCommissionTotal = 0; // Tổng phí hoa hồng sửa chữa trong tháng
+        let monthVipTotal = 0; // Tổng phí đăng ký gói VIP trong tháng
+        for (let day = 1; day <= daysInMonth; day++) {
+          daysRow.push(day);
+          const dayData = monthData[day] || { "phí đăng kí thành viên": 0, "phí hoa hồng sửa chữa": 0, "phí đăng kí gói vip": 0 };
+          const registration = dayData["phí đăng kí thành viên"] || 0;
+          const commission = dayData["phí hoa hồng sửa chữa"] || 0;
+          const vip = dayData["phí đăng kí gói vip"] || 0;
+          registrationRow.push(registration);
+          commissionRow.push(commission);
+          vipRow.push(vip);
+          // Tính tổng theo ngày
+          const dailyTotal = registration + commission + vip;
+          dailyTotalRow.push(dailyTotal);
+          monthRegistrationTotal += registration;
+          monthCommissionTotal += commission;
+          monthVipTotal += vip;
+        }
+        daysRow.push('Tổng');
+        registrationRow.push(monthRegistrationTotal);
+        commissionRow.push(monthCommissionTotal);
+        vipRow.push(monthVipTotal);
+        dailyTotalRow.push(monthRegistrationTotal + monthCommissionTotal + monthVipTotal);
+        revenueSheetData.push(daysRow);
+        revenueSheetData.push(registrationRow);
+        revenueSheetData.push(commissionRow);
+        revenueSheetData.push(vipRow);
+        revenueSheetData.push(dailyTotalRow);
+        revenueSheetData.push([]); // Dòng trống giữa các tháng
       }
-      totalRow.push(grandTotal);
-      XLSX.utils.sheet_add_aoa(revenueSheet, [totalRow], { origin: `A${currentRow}` });
-      currentRow += 2; // Cách 1 hàng trống giữa các bảng
+
+      // Bảng tổng hợp theo tháng
+      revenueSheetData.push(['Tổng Theo Tháng']);
+      const monthsRow = ['Tháng'];
+      const registrationSummaryRow = ['Phí đăng ký thợ'];
+      const commissionSummaryRow = ['Phí hoa hồng sửa chữa'];
+      const vipSummaryRow = ['Phí đăng ký gói VIP'];
+      const monthlyTotalRow = ['Tổng']; // Hàng tổng theo tháng
+      let yearRegistrationTotal = 0; // Tổng phí đăng ký thợ trong năm
+      let yearCommissionTotal = 0; // Tổng phí hoa hồng sửa chữa trong năm
+      let yearVipTotal = 0; // Tổng phí đăng ký gói VIP trong năm
+      for (let month = 1; month <= 12; month++) {
+        const monthData = yearlyData[month] || {};
+        monthsRow.push(month);
+        let monthRegistration = 0;
+        let monthCommission = 0;
+        let monthVip = 0;
+        for (let day = 1; day <= 31; day++) {
+          const dayData = monthData[day] || { "phí đăng kí thành viên": 0, "phí hoa hồng sửa chữa": 0, "phí đăng kí gói vip": 0 };
+          monthRegistration += dayData["phí đăng kí thành viên"] || 0;
+          monthCommission += dayData["phí hoa hồng sửa chữa"] || 0;
+          monthVip += dayData["phí đăng kí gói vip"] || 0;
+        }
+        registrationSummaryRow.push(monthRegistration);
+        commissionSummaryRow.push(monthCommission);
+        vipSummaryRow.push(monthVip);
+        // Tính tổng theo tháng
+        const monthlyTotal = monthRegistration + monthCommission + monthVip;
+        monthlyTotalRow.push(monthlyTotal);
+        yearRegistrationTotal += monthRegistration;
+        yearCommissionTotal += monthCommission;
+        yearVipTotal += monthVip;
+      }
+      monthsRow.push('Tổng');
+      registrationSummaryRow.push(yearRegistrationTotal);
+      commissionSummaryRow.push(yearCommissionTotal);
+      vipSummaryRow.push(yearVipTotal);
+      monthlyTotalRow.push(yearRegistrationTotal + yearCommissionTotal + yearVipTotal);
+      revenueSheetData.push(monthsRow);
+      revenueSheetData.push(registrationSummaryRow);
+      revenueSheetData.push(commissionSummaryRow);
+      revenueSheetData.push(vipSummaryRow);
+      revenueSheetData.push(monthlyTotalRow);
+
+      const revenueSheet = XLSX.utils.aoa_to_sheet(revenueSheetData);
+      XLSX.utils.book_append_sheet(wb, revenueSheet, `Doanh Thu ${year}`);
     });
 
-    XLSX.utils.book_append_sheet(wb, revenueSheet, 'Phân Bố Doanh Thu');
-
-    // Sheet 6: Dịch vụ theo chuyên mục
+    // Sheet: Dịch vụ theo chuyên mục
     const servicesSheetData = [
       ['Chuyên Mục', 'Số Dịch Vụ'],
       ...servicesByIndustry.map(item => [item.serviceIndustry || 'Không có tên', item.totalServices || 0]),
@@ -395,7 +450,7 @@ const Dashboard = () => {
     const ws6 = XLSX.utils.aoa_to_sheet(servicesSheetData);
     XLSX.utils.book_append_sheet(wb, ws6, 'Dịch Vụ Theo Chuyên Mục');
 
-    // Sheet 7: Dịch vụ VIP phổ biến
+    // Sheet: Dịch vụ VIP phổ biến
     const vipServiceSheetData = [
       ['Dịch Vụ VIP Phổ Biến Nhất'],
       [a || 'Không có dữ liệu'],
