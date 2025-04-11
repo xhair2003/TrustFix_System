@@ -847,7 +847,16 @@ const confirmRequest = async (req, res) => {
     const request = await Request.findOne({
       repairman_id: repairman._id,
       status: "Proceed with repair"
-    });
+    })
+      .populate({
+        path: "user_id",
+        populate: {
+          path: "wallet"
+        }
+      })
+      .populate("repairman_id")
+      .populate("duePrices")
+    const priceRequest = await Price.findOne({ duePrice_id: request.duePrices[0]._id })
 
     if (!request) {
       return res.status(400).json({
@@ -872,6 +881,32 @@ const confirmRequest = async (req, res) => {
       res.status(201).json({
         EC: 1,
         EM: 'Xác nhận hoàn thành đơn hàng thành công, vui lòng đợi khách hàng xác nhận để nhận tiền',
+        DT: request.status
+      });
+    } else if (confirm === "Customer not responding") {
+      const walletRepairman = await Wallet.findOne({ user_id: userId });
+      repairman.status = "Active";
+      await repairman.save();
+
+      request.status = "Customer not responding";
+      await request.save();
+
+      request.user_id.wallet.balance = + priceRequest.priceToPay * 0.9// ví khách hàng
+      await request.user_id.wallet.save();
+
+      walletRepairman.balance = priceRequest.priceToPay * 0.1 // ví thợ
+      await walletRepairman.save();
+      // Gửi email xác nhận cho khách hàng
+      await sendEmail(request.user_id.email, "Đơn hàng bị hủy bỏ",
+        `<p>Chào ${request.user_id.firstName} ${request.user_id.lastName},</p>
+              <p>Thợ chúng tôi đã cố gắng liên lạc nhưng không nhận được phản hồi từ bạn</strong>.</p>
+              <p>Chúng tôi đã hoàn số tiền <strong>${priceRequest.priceToPay} VND về ví của bạn trong đó có trừ 10% chi phí tổng đơn hàng</strong>.</p>
+              <p>Số dư còn lại trong ví: <strong>${request.user_id.wallet.balance} VND</strong>.</p>
+              <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>`
+      );
+      res.status(201).json({
+        EC: 1,
+        EM: 'Bạn sẽ được hưởng 10% tiền đơn hàng do lỗi khách hàng',
         DT: request.status
       });
     } else {
