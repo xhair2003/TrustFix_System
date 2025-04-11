@@ -1172,7 +1172,7 @@ export const totalServicesByIndustry = () => async (dispatch, getState) => {
         const response = await axios.get('http://localhost:8080/api/admin/total-services-by-industry', {
             headers: { Authorization: `Bearer ${token}` }
         });
-        console.log('API Response for totalServicesByIndustry:', response.data); // Log để kiểm tra
+        //console.log('API Response for totalServicesByIndustry:', response.data); // Log để kiểm tra
         if (response.data.EC === 1) {
             // Chuẩn hóa dữ liệu thành mảng
             const data = Array.isArray(response.data.DT) ? response.data.DT : [];
@@ -1365,6 +1365,48 @@ export const getAllProfit = (month, year) => async (dispatch, getState) => {
     } catch (error) {
         dispatch({
             type: "GET_ALL_PROFIT_FAIL",
+            payload:
+                error.response && error.response.data.EM
+                    ? error.response.data.EM
+                    : error.message,
+        });
+    }
+};
+
+// lấy doanh thu các năm cho mục xuất file excel
+export const getYearlyProfit = (year) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "GET_YEARLY_PROFIT_REQUEST" });
+
+        const token = getState().auth.token || localStorage.getItem('token');
+
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            params: year ? { year } : {}, // Nếu không có year, lấy tất cả
+        };
+
+        const { data } = await axios.get('http://localhost:8080/api/admin/view-yearly-profit', config);
+
+        if (data.EC === 1) {
+            dispatch({
+                type: "GET_YEARLY_PROFIT_SUCCESS",
+                payload: {
+                    yearlyProfit: data.DT.yearlyProfit,
+                    totalAll: data.DT.totalAll,
+                },
+            });
+        } else {
+            dispatch({
+                type: "GET_YEARLY_PROFIT_FAIL",
+                payload: data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "GET_YEARLY_PROFIT_FAIL",
             payload:
                 error.response && error.response.data.EM
                     ? error.response.data.EM

@@ -2245,7 +2245,249 @@ const getAllProfit = async (req, res) => {
     }
 };
 
+
+const getYearlyProfit = async (req, res) => {
+    try {
+        const { year } = req.query; // Nếu không có year, trả về dữ liệu cho tất cả các năm
+
+        const prefixes = ["REC-SEV", "VIPFEE", "VIP"];
+        let matchCondition = {
+            $or: prefixes.map(prefix => ({ payCode: { $regex: `^${prefix}` } })),
+        };
+
+        if (year) {
+            const startDate = new Date(year, 0, 1); // Ngày 1/1 của năm
+            const endDate = new Date(year, 11, 31, 23, 59, 59, 999); // Ngày 31/12 của năm
+            matchCondition.createdAt = { $gte: startDate, $lte: endDate };
+        }
+
+        // Tính tổng doanh thu theo loại phí, năm, tháng và ngày
+        const totalAmounts = await Transaction.aggregate([
+            { $match: matchCondition },
+            {
+                $project: {
+                    payCode: 1,
+                    amount: 1,
+                    year: { $year: "$createdAt" },
+                    month: { $month: "$createdAt" },
+                    day: { $dayOfMonth: "$createdAt" }, // Thêm ngày
+                    prefix: {
+                        $switch: {
+                            branches: prefixes.map(prefix => ({
+                                case: { $regexMatch: { input: "$payCode", regex: new RegExp(`^${prefix}`) } },
+                                then: prefix,
+                            })),
+                            default: "OTHER",
+                        },
+                    },
+                    adjustedAmount: {
+                        $cond: [
+                            { $regexMatch: { input: "$payCode", regex: /^REC-SEV/ } },
+                            { $multiply: ["$amount", 0.1] }, // 10% cho REC-SEV
+                            "$amount",
+                        ],
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        year: "$year",
+                        month: "$month",
+                        day: "$day", // Nhóm theo ngày
+                        prefix: "$prefix",
+                    },
+                    totalAmount: { $sum: "$adjustedAmount" },
+                },
+            },
+            {
+                $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 },
+            },
+        ]);
+
+        // Tính tổng tất cả giao dịch theo năm, tháng và ngày
+        const totalAllTransactions = await Transaction.aggregate([
+            { $match: matchCondition },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$createdAt" },
+                        month: { $month: "$createdAt" },
+                        day: { $dayOfMonth: "$createdAt" }, // Nhóm theo ngày
+                    },
+                    totalAmount: { $sum: "$amount" },
+                },
+            },
+            {
+                $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 },
+            },
+        ]);
+
+        // Tổ chức dữ liệu theo năm, tháng và ngày
+        const yearlyProfit = {};
+        totalAmounts.forEach(item => {
+            const { year, month, day, prefix } = item._id;
+            if (!yearlyProfit[year]) yearlyProfit[year] = {};
+            if (!yearlyProfit[year][month]) yearlyProfit[year][month] = {};
+            if (!yearlyProfit[year][month][day]) yearlyProfit[year][month][day] = {};
+            yearlyProfit[year][month][day][prefix] = item.totalAmount;
+        });
+
+        // Đổi tên loại phí
+        const renamedYearlyProfit = {};
+        Object.keys(yearlyProfit).forEach(year => {
+            renamedYearlyProfit[year] = {};
+            Object.keys(yearlyProfit[year]).forEach(month => {
+                renamedYearlyProfit[year][month] = {};
+                Object.keys(yearlyProfit[year][month]).forEach(day => {
+                    const profit = yearlyProfit[year][month][day];
+                    renamedYearlyProfit[year][month][day] = {
+                        "phí đăng kí thành viên": profit["VIPFEE"] || 0,
+                        "phí hoa hồng sửa chữa": profit["REC-SEV"] || 0,
+                        "phí đăng kí gói vip": profit["VIP"] || 0,
+                    };
+                });
+            });
+        });
+
+        // Tổ chức totalAll theo năm, tháng và ngày
+        const totalAllByYear = {};
+        totalAllTransactions.forEach(item => {
+            const { year, month, day } = item._id;
+            if (!totalAllByYear[year]) totalAllByYear[year] = {};
+            if (!totalAllByYear[year][month]) totalAllByYear[year][month] = {};
+            totalAllByYear[year][month][day] = item.totalAmount;
+        });
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy doanh thu theo năm thành công!",
+            DT: {
+                yearlyProfit: renamedYearlyProfit,
+                totalAll: totalAllByYear,
+            },
+        });
+    } catch (error) {
+        console.error("Error calculating yearly profit:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+        });
+    }
+};
+
+const getRequestStatusByMonth = async (req, res) => {
+    try {
+        const { year, month } = req.query;
+        if (!year || !month) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vui lòng cung cấp đầy đủ năm và tháng.",
+            });
+        }
+
+        const startDate = new Date(year, month - 1, 1);
+        const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+
+        const results = await Request.aggregate([
+            {
+                $match: {
+                    $or: [
+                        { createdAt: { $gte: startDate, $lte: endDate } },
+                        { updatedAt: { $gte: startDate, $lte: endDate } },
+                    ],
+                    status: { $in: ["Completed", "Cancelled"] },
+                },
+            },
+            {
+                $group: {
+                    _id: "$status",
+                    count: { $sum: 1 },
+                },
+            },
+        ]);
+
+        const response = {
+            Completed: 0,
+            Cancelled: 0,
+        };
+
+        results.forEach((item) => {
+            response[item._id] = item.count;
+        });
+
+        return res.status(200).json({
+            EC: 1,
+            EM: "Thống kê theo tháng thành công!",
+            DT: response,
+        });
+    } catch (error) {
+        console.error("Lỗi khi thống kê theo tháng:", error);
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã xảy ra lỗi. Vui lòng thử lại!",
+        });
+    }
+};
+
+const getRequestStatusByYear = async (req, res) => {
+    try {
+        const { year } = req.query;
+        if (!year) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Vui lòng cung cấp năm.",
+            });
+        }
+
+        const startDate = new Date(year, 0, 1);
+        const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
+
+        const results = await Request.aggregate([
+            {
+                $match: {
+                    $or: [
+                        { createdAt: { $gte: startDate, $lte: endDate } },
+                        { updatedAt: { $gte: startDate, $lte: endDate } },
+                    ],
+                    status: { $in: ["Completed", "Cancelled"] },
+                },
+            },
+            {
+                $group: {
+                    _id: "$status",
+                    count: { $sum: 1 },
+                },
+            },
+        ]);
+
+        const response = {
+            Completed: 0,
+            Cancelled: 0,
+        };
+
+        results.forEach((item) => {
+            response[item._id] = item.count;
+        });
+
+        return res.status(200).json({
+            EC: 1,
+            EM: "Thống kê theo năm thành công!",
+            DT: response,
+        });
+    } catch (error) {
+        console.error("Lỗi khi thống kê theo năm:", error);
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã xảy ra lỗi. Vui lòng thử lại!",
+        });
+    }
+};
+
 module.exports = {
+    getRequestStatusByYear,
+    getRequestStatusByMonth,
+    getYearlyProfit,
     totalServicePrices,
     totalServicesByIndustry,
     totalServiceIndustries,

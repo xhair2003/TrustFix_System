@@ -376,4 +376,21 @@
   margin-bottom: 20px;
 }
 
+/* Thêm vào cuối file Dashboard.css */
+.export-btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.export-btn:hover {
+  background: #1e3a8a;
+}
+
 /* Đảm bảo các style khác (filter-options, details-table, v.v.) vẫn giữ nguyên */

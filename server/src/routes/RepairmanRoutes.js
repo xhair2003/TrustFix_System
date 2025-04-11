@@ -42,4 +42,7 @@ router.get("/view-status-month", AuthMiddleware.verifyRepairman, RepairmanContro
 
 router.get("/view-status-year", AuthMiddleware.verifyRepairman, RepairmanController.getRequestStatusByYear);
 
+// api để xuất dữ liệu tất cả thống kê của dashboard thợ ra file excel
+router.get("/all-stats", AuthMiddleware.verifyRepairman, RepairmanController.getAllRepairmanStats);
+
 module.exports = router;

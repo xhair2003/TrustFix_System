@@ -106,7 +106,10 @@ router.get("/view-detail-monthly-payment/:id", AuthMiddleware.verifyAdmin, Admin
 router.get("/view-all-monthly-payment", AuthMiddleware.verifyAdmin, AdminController.getAllRepairmanMonthlyPayments);
 
 router.get("/view-vip-services/most-used", AuthMiddleware.verifyAdmin, AdminController.getMostUsedVipService);
+router.get("/request-status-by-year", AuthMiddleware.verifyAdmin, AdminController.getRequestStatusByYear);
+router.get("/request-status-by-month", AuthMiddleware.verifyAdmin, AdminController.getRequestStatusByMonth);
 
 router.get("/view-profit", AuthMiddleware.verifyAdmin, AdminController.getAllProfit);
+router.get("/view-yearly-profit", AuthMiddleware.verifyAdmin, AdminController.getYearlyProfit);
 
 module.exports = router;    
