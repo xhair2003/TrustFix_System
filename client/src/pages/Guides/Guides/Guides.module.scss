@@ -1,0 +1,43 @@
+.guides {
+    min-height: 100vh;
+    background-color: #f4f4f4;
+  }
+  
+  .header {
+    background-color: #007bff;
+    color: white;
+    padding: 15px;
+    text-align: center;
+  
+    h1 {
+      font-size: 24px;
+      font-weight: bold;
+    }
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+  
+    input {
+      flex: 1;
+      max-width: 300px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  
+    select {
+      width: 200px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  }

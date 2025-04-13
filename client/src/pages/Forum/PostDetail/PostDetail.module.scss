@@ -1,0 +1,68 @@
+.postDetail {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+    h2 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 10px;
+    }
+  
+    .meta {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 15px;
+    }
+  
+    .content {
+      font-size: 16px;
+      color: #333;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+  
+    .stats {
+      margin-bottom: 20px;
+  
+      button {
+        background-color: #ff4500;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        color: white;
+        cursor: pointer;
+  
+        &:hover {
+          background-color: #d83b01;
+        }
+      }
+    }
+  
+    .commentsSection {
+      h3 {
+        font-size: 20px;
+        margin-bottom: 15px;
+      }
+    }
+  
+    .commentForm {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+  
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+  
+      button {
+        align-self: flex-end;
+      }
+    }
+  }
