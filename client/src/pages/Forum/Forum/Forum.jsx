@@ -33,22 +33,29 @@ function Forum() {
     return (
         <div className={styles.forum}>
             <header className={styles.header}>
-                <h1>Diễn đàn sửa chữa</h1>
+                <h1 className={styles.headerTitle}>Diễn đàn sửa chữa</h1>
             </header>
             <div className={styles.container}>
                 <div className={styles.forumHeader}>
-                    <h2>Danh sách bài đăng</h2>
-                    <button onClick={() => setIsModalOpen(true)}>Đăng bài mới</button>
+                    <h2 className={styles.forumTitle}>Danh sách bài đăng</h2>
+                    <button
+                        className={styles.createButton}
+                        onClick={() => setIsModalOpen(true)}
+                    >
+                        Đăng bài mới
+                    </button>
                 </div>
 
                 <div className={styles.filters}>
                     <input
+                        className={styles.filterInput}
                         type="text"
                         placeholder="Tìm kiếm bài đăng..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                     <select
+                        className={styles.filterSelect}
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
                     >

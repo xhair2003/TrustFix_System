@@ -11,10 +11,10 @@ function GuideDetail() {
     return (
         <div className={styles.guideDetail}>
             <header className={styles.header}>
-                <h1>Thư viện hướng dẫn sửa chữa</h1>
+                <h1 className={styles.headerTitle}>Thư viện hướng dẫn sửa chữa</h1>
             </header>
             <div className={styles.container}>
-                <h2>{guide.title}</h2>
+                <h2 className={styles.guideTitle}>{guide.title}</h2>
                 <p className={styles.meta}>
                     Đăng bởi: {guide.createdBy.name} ({guide.createdBy.role}) | Danh mục:{" "}
                     {guide.category} | {guide.createdAt}

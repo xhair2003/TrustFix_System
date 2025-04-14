@@ -24,129 +24,130 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   animation: slideIn 0.4s ease;
   position: relative;
+}
 
-  h2 {
-    font-size: 24px;
-    color: #1e3c72;
-    font-weight: 600;
-    margin-bottom: 20px;
-    text-align: center;
-    letter-spacing: 0.5px;
+.modalTitle {
+  font-size: 24px;
+  color: #1e3c72;
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formLabel {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  color: #2a5298;
+  margin-bottom: 8px;
+  transition: color 0.2s ease;
+
+  &:hover {
+      color: #1e3c72;
+  }
+}
+
+.formInput,
+.formTextarea,
+.formSelect {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #f7f9fc;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  transition: all 0.3s ease;
+
+  &:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(46, 82, 152, 0.2);
+      background: white;
   }
 
-  .formGroup {
-    margin-bottom: 20px;
+  &:hover {
+      background: white;
+  }
+}
 
-    label {
-      display: block;
-      font-size: 15px;
-      font-weight: 500;
-      color: #2a5298;
-      margin-bottom: 8px;
-      transition: color 0.2s ease;
+.formTextarea {
+  min-height: 120px;
+  resize: vertical;
+}
 
-      &:hover {
-        color: #1e3c72;
-      }
-    }
+.formSelect {
+  cursor: pointer;
+}
 
-    input,
-    textarea,
-    select {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      background: #f7f9fc;
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-      font-size: 14px;
-      transition: all 0.3s ease;
+.modalActions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+}
 
-      &:focus {
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(46, 82, 152, 0.2);
-        background: white;
-      }
+.submitButton,
+.cancelButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
 
-      &:hover {
-        background: white;
-      }
-    }
+.submitButton {
+  background: linear-gradient(45deg, #2a5298, #1e3c72);
+  color: white;
 
-    textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
-
-    select {
-      cursor: pointer;
-    }
+  &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
   }
 
-  .modalActions {
-    display: flex;
-    gap: 15px;
-    justify-content: flex-end;
+  &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+}
 
-    button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 25px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
+.cancelButton {
+  background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+  color: white;
 
-    button[type="submit"] {
-      background: linear-gradient(45deg, #2a5298, #1e3c72);
-      color: white;
+  &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  }
 
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-      }
-
-      &:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      }
-    }
-
-    .cancel {
-      background: linear-gradient(45deg, #ff6b6b, #ff8e53);
-      color: white;
-
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-      }
-
-      &:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      }
-    }
+  &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   }
 }
 
 @keyframes fadeInOverlay {
   from {
-    opacity: 0;
+      opacity: 0;
   }
   to {
-    opacity: 1;
+      opacity: 1;
   }
 }
 
 @keyframes slideIn {
   from {
-    opacity: 0;
-    transform: scale(0.9) translateY(20px);
+      opacity: 0;
+      transform: scale(0.9) translateY(20px);
   }
   to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
+      opacity: 1;
+      transform: scale(1) translateY(0);
   }
 }

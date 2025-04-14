@@ -5,9 +5,13 @@ function ForumList({ posts }) {
     return (
         <div className={styles.forumList}>
             {posts.length === 0 ? (
-                <p>Không tìm thấy bài đăng nào.</p>
+                <p className={styles.noPosts}>Không tìm thấy bài đăng nào.</p>
             ) : (
-                posts.map((post) => <ForumPost key={post.id} post={post} />)
+                <div className={styles.postsContainer}>
+                    {posts.map((post) => (
+                        <ForumPost key={post.id} post={post} className={styles.forumPost} />
+                    ))}
+                </div>
             )}
         </div>
     );

@@ -6,7 +6,7 @@ function Comment({ comment }) {
             <p className={styles.meta}>
                 {comment.user} | {comment.createdAt}
             </p>
-            <p>{comment.content}</p>
+            <p className={styles.commentContent}>{comment.content}</p>
         </div>
     );
 }

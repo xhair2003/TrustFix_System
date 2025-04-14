@@ -31,29 +31,34 @@ function PostDetail() {
 
     return (
         <div className={styles.postDetail}>
-            <h2>{post.title}</h2>
+            <h2 className={styles.postTitle}>{post.title}</h2>
             <p className={styles.meta}>
                 Đăng bởi: {post.user.name} ({post.user.role}) | Danh mục: {post.category} |{" "}
                 {post.createdAt}
             </p>
             <p className={styles.content}>{post.content}</p>
             <div className={styles.stats}>
-                <button onClick={() => setLikes(likes + 1)}>{likes} lượt thích</button>
+                <button className={styles.likeButton} onClick={() => setLikes(likes + 1)}>
+                    {likes} lượt thích
+                </button>
             </div>
 
             <div className={styles.commentsSection}>
-                <h3>Bình luận ({comments.length})</h3>
+                <h3 className={styles.commentsTitle}>Bình luận ({comments.length})</h3>
                 {comments.map((comment) => (
                     <Comment key={comment.id} comment={comment} />
                 ))}
                 <form onSubmit={handleAddComment} className={styles.commentForm}>
                     <textarea
+                        className={styles.commentInput}
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                         placeholder="Viết bình luận..."
                         required
                     />
-                    <button type="submit">Gửi</button>
+                    <button className={styles.submitButton} type="submit">
+                        Gửi
+                    </button>
                 </form>
             </div>
         </div>

@@ -14,7 +14,7 @@
   top: 0;
   z-index: 10;
 
-  h1 {
+  .headerTitle {
     font-size: 28px;
     font-weight: 700;
     letter-spacing: 1px;
@@ -36,29 +36,29 @@
   &:hover {
     box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
   }
-}
 
-h2 {
-  font-size: 28px;
-  font-weight: 600;
-  color: #1e3c72;
-  margin-bottom: 15px;
-  position: relative;
+  .guideTitle {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1e3c72;
+    margin-bottom: 15px;
+    position: relative;
 
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 60px;
-    height: 3px;
-    background: #2a5298;
-    border-radius: 2px;
-    transition: width 0.3s ease;
-  }
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 60px;
+      height: 3px;
+      background: #2a5298;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
 
-  &:hover::after {
-    width: 120px;
+    &:hover::after {
+      width: 120px;
+    }
   }
 }
 
@@ -86,7 +86,7 @@ h2 {
   margin-bottom: 25px;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform  mothers, box-shadow 0.3s ease;
 
   &:hover {
     transform: scale(1.02);

@@ -17,17 +17,19 @@ function Guides() {
     return (
         <div className={styles.guides}>
             <header className={styles.header}>
-                <h1>Thư viện hướng dẫn sửa chữa</h1>
+                <h1 className={styles.headerTitle}>Thư viện hướng dẫn sửa chữa</h1>
             </header>
             <div className={styles.container}>
                 <div className={styles.filters}>
                     <input
+                        className={styles.filterInput}
                         type="text"
                         placeholder="Tìm kiếm hướng dẫn..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                     <select
+                        className={styles.filterSelect}
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
                     >
