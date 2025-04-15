@@ -17,6 +17,11 @@ const Address = require('./Address');
 const Image = require('./Image');
 const VeriMail = require('./VeriMail');
 const Complaint = require('./Complaint');
+const Guide = require('./Guide');
+const Like = require('./Like');
+const Notification = require('./Notification');
+const ForumPost = require('./ForumPost');
+const ForumComment = require('./ForumComment');
 
 
 // Collection of all models
@@ -37,7 +42,11 @@ const models = {
     Image,
     VeriMail,
     Complaint,
-   
+    Guide,
+    Like,
+    Notification,
+    ForumPost,
+    ForumComment,
 };
 
 // Connect to MongoDB
