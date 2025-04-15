@@ -118,9 +118,10 @@ const Header = () => {
 
     const menuItems = [
         { name: 'Giới Thiệu', path: '/' },
-        { name: 'Tìm thợ', path: '/find-repairman' },
+        { name: 'Tìm Thợ', path: '/find-repairman' },
         { name: 'Hệ Thống', path: '/menu3' },
-        { name: 'Liên Hệ', path: '/menu4' }
+        { name: 'Diễn Đàn', path: '/forum' },
+        { name: 'Hướng Dẫn', path: '/guides' }
     ];
 
     const shortenAddress = (address) => {
