@@ -23,6 +23,7 @@ export const ROUTERS = {
         MAKE_PAYMENT: '/make-payment/:requestId/:repairmanId',
         WALLET: '/wallet',
         ORDER_DETAIL: '/order-detail/:requestId',
+        CHAT_BOT: '/chat-bot',
 
     },
 

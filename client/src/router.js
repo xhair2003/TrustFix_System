@@ -36,6 +36,7 @@ import OrderDetail from "./pages/users/OrderDetail/OderDetail.js";
 import ManagePracticeCertificates from "./pages/admin/ManagePracticeSertificates/ManagePracticeSertificates.jsx";
 import RepairmanOrderDetail from "./pages/users/RepairmanOrderDetail/RepairmanOrderDetail.js";
 import RepairmanDashboard from "./pages/users/RepairmanDashboard/RepairmanDashboard.jsx";
+import ChatBot from "./pages/users/ChatBot/ChatBot.jsx";
 
 const UserROUTERS = () => {
     const routers = [
@@ -49,6 +50,12 @@ const UserROUTERS = () => {
             component: <FindRepairman />,
             layout: MasterLayoutMain, // Routes using MasterLayout
         },
+        {
+            path: ROUTERS.CUSTOMER.CHAT_BOT,
+            component: <ChatBot />,
+            layout: MasterLayoutMain, // Routes using MasterLayout
+        },
+
         {
             path: ROUTERS.CUSTOMER.PROFILE,
             component: <PersonalInformation />,
