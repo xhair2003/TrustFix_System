@@ -1,4 +1,4 @@
-const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip } = require("../models");
+const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip, ForumPost, ForumComment } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
 const nodemailer = require('nodemailer'); // Import nodemailer để gửi email
 
@@ -673,7 +673,7 @@ const replyToComplaint = async (req, res) => {
 //     }
 // };
 
-// // View history payment with transactionType = payment
+// View history payment with transactionType = payment
 const viewHistoryPayment = async (req, res) => {
     try {
         const transactionType = "payment";
@@ -2483,6 +2483,68 @@ const getRequestStatusByYear = async (req, res) => {
         });
     }
 };
+const getPosts = async (req, res) => {
+    try {
+        const posts = await ForumPost.find()
+            .populate({
+                path: "user_id",
+                select: "firstName lastName",
+                populate: {
+                    path: "roles",
+                    select: "type"
+                }
+            })
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy danh sách bài đăng thành công!",
+            DT: {
+                posts
+            }
+        });
+    } catch (error) {
+        res.status(400).json({
+            EC: 0,
+            EM: "Lỗi khi lấy danh sách bài đăng!",
+            DT: error.message
+        });
+    }
+};
+
+// Moderate posts/comments
+const moderate = async (req, res) => {
+    try {
+        const { post_id } = req.params;
+        const { action } = req.body; // type: 'post' or 'comment', action: 'approve' or 'delete'
+
+        const posts = await ForumPost.findById(post_id)
+        if (action === 'approve') {
+            posts.status = 'active';
+            await posts.save();
+            res.status(200).json({
+                EC: 1,
+                EM: `Bài đăng đã được duyệt!`,
+
+            });
+        } else if (action === 'reject') {
+            posts.status = 'deleted';
+            await posts.save();
+            return res.status(200).json({
+                EC: 1,
+                EM: `Bài đăng không được duyệt!`,
+
+            });
+        }
+
+
+    } catch (error) {
+        res.status(400).json({
+            EC: 0,
+            EM: "Lỗi khi kiểm duyệt!",
+            DT: error.message
+        });
+    }
+};
 
 module.exports = {
     getRequestStatusByYear,
@@ -2536,5 +2598,7 @@ module.exports = {
     getAllRepairmanMonthlyPayments,
     getMostUsedVipService,
     getAllProfit,
+    getPosts,
+    moderate,
 };
 

@@ -30,4 +30,9 @@ ForumPostSchema.virtual('serviceIndustry', {
     foreignField: '_id',
     justOne: true
 });
+ForumPostSchema.virtual('forumComments', {
+    ref: 'ForumComment',
+    localField: '_id',
+    foreignField: 'post_id'
+});
 module.exports = mongoose.model('ForumPost', ForumPostSchema);
