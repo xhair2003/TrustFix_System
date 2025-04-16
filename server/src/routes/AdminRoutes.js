@@ -112,4 +112,8 @@ router.get("/request-status-by-month", AuthMiddleware.verifyAdmin, AdminControll
 router.get("/view-profit", AuthMiddleware.verifyAdmin, AdminController.getAllProfit);
 router.get("/view-yearly-profit", AuthMiddleware.verifyAdmin, AdminController.getYearlyProfit);
 
+// Moderate posts/comments
+router.get('/get-posts', AuthMiddleware.verifyAdmin, AdminController.getPosts);
+router.post('/moderate/:post_id', AuthMiddleware.verifyAdmin, AdminController.moderate);
+
 module.exports = router;    

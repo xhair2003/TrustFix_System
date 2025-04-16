@@ -10,6 +10,10 @@ const {
   Price,
   ServiceIndustry,
   RepairmanUpgradeRequest,
+  ForumPost,
+  ForumComment,
+  Like,
+  Notification,
 } = require("../models");
 const cloudinary = require("../../config/cloudinary");
 const fetch = require("node-fetch");
@@ -473,9 +477,8 @@ const findNearbyRepairmen = async (req, res) => {
       if (repairman.address) {
         const gomapApiUrl = `https://maps.gomaps.pro/maps/api/distancematrix/json?destinations=${encodeURIComponent(
           repairman.address
-        )}&origins=${encodeURIComponent(address)}&key=${
-          process.env.GOMAPS_API_KEY
-        }`;
+        )}&origins=${encodeURIComponent(address)}&key=${process.env.GOMAPS_API_KEY
+          }`;
 
         try {
           const gomapResponse = await fetch(gomapApiUrl);
@@ -501,10 +504,8 @@ const findNearbyRepairmen = async (req, res) => {
             }
           } else {
             console.warn(
-              `GoMap API error for repairman ${repairman._id}: ${
-                gomapData.status
-              } - ${
-                gomapData.error_message || gomapData.rows[0].elements[0].status
+              `GoMap API error for repairman ${repairman._id}: ${gomapData.status
+              } - ${gomapData.error_message || gomapData.rows[0].elements[0].status
               }`
             );
           }
@@ -757,10 +758,8 @@ const findRepairman = async (req, res) => {
             }
           } else {
             console.warn(
-              `GoMap API error for repairman ${repairman._id}: ${
-                gomapData.status
-              } - ${
-                gomapData.error_message || gomapData.rows[0].elements[0].status
+              `GoMap API error for repairman ${repairman._id}: ${gomapData.status
+              } - ${gomapData.error_message || gomapData.rows[0].elements[0].status
               }`
             );
           }
@@ -899,14 +898,14 @@ const viewRepairHistory = async (req, res) => {
       const repairmanData =
         request.repairman_id && request.repairman_id.user_id
           ? {
-              firstName: request.repairman_id.user_id.firstName,
-              lastName: request.repairman_id.user_id.lastName,
-              phone: request.repairman_id.user_id.phone,
-              email: request.repairman_id.user_id.email,
-              imgAvt: request.repairman_id.user_id.imgAvt,
-              address: request.repairman_id.user_id.address,
-              description: request.repairman_id.user_id.description,
-            }
+            firstName: request.repairman_id.user_id.firstName,
+            lastName: request.repairman_id.user_id.lastName,
+            phone: request.repairman_id.user_id.phone,
+            email: request.repairman_id.user_id.email,
+            imgAvt: request.repairman_id.user_id.imgAvt,
+            address: request.repairman_id.user_id.address,
+            description: request.repairman_id.user_id.description,
+          }
           : null;
 
       return {
@@ -1339,13 +1338,11 @@ const confirmRequest = async (req, res) => {
         await sendEmail(
           request.repairman_id.user_id.email,
           "Đơn hàng đã hoàn thành",
-          `<p>Chào ${request.repairman_id.user_id.firstName} ${
-            request.repairman_id.user_id.lastName
+          `<p>Chào ${request.repairman_id.user_id.firstName} ${request.repairman_id.user_id.lastName
           },</p>
             <p>Đơn hàng ${request._id} đã được xác nhận hoàn thành</strong>.</p>
-            <p>Số tiền ${
-              price.priceToPay * 0.85
-            } đã được chuyển về ví của bạn</p>`
+            <p>Số tiền ${price.priceToPay * 0.85
+          } đã được chuyển về ví của bạn</p>`
         );
       } else {
         console.error(
@@ -1424,6 +1421,197 @@ const getRequestStatus = async (req, res) => {
   }
 };
 
+// Create a new post
+const createPost = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { title, content, serviceIndustry_id, tags } = req.body;
+    if (!title || !content || !serviceIndustry_id) {
+      res.status(400).json({
+        EC: 0,
+        EM: "Vui lòng nhập đầy đủ thông tin"
+      })
+    }
+    const post = new ForumPost({
+      user_id: userId,
+      title: title,
+      content: content,
+      serviceIndustry_id: serviceIndustry_id,
+      tags: tags,
+      //status: "active",
+    });
+    await post.save();
+    res.status(201).json({
+      EC: 1,
+      EM: "Tạo bài đăng mới thành công!",
+      DT: post
+    });
+  } catch (error) {
+    res.status(400).json({
+      EC: 0,
+      EM: "Lỗi khi tạo bài đăng mới!",
+      DT: error.message
+    });
+  }
+};
+
+// Get list of posts
+const getPosts = async (req, res) => {
+  try {
+    const posts = await ForumPost.find({ status: "active" })
+      .populate({
+        path: "user_id",
+        select: "firstName lastName",
+        populate: {
+          path: "roles",
+          select: "type"
+        }
+      })
+    const postsWithCounts = await Promise.all(
+      posts.map(async (post) => {
+        const [commentCount, likeCount] = await Promise.all([
+          ForumComment.countDocuments({ post_id: post._id }),
+          Like.countDocuments({ post_id: post._id })
+        ]);
+
+        return {
+          ...post.toObject(),
+          commentCount,
+          likeCount
+        };
+      })
+    );
+    res.status(200).json({
+      EC: 1,
+      EM: "Lấy danh sách bài đăng thành công!",
+      DT: {
+        postsWithCounts
+      }
+    });
+  } catch (error) {
+    res.status(400).json({
+      EC: 0,
+      EM: "Lỗi khi lấy danh sách bài đăng!",
+      DT: error.message
+    });
+  }
+};
+
+// Get post details
+const getPostDetails = async (req, res) => {
+  try {
+    const post = await ForumPost.findOne({ _id: req.params.post_id, status: "active" })
+      .populate({
+        path: "user_id",
+        select: "firstName lastName",
+        populate: {
+          path: "roles",
+          select: "type"
+        }
+      })
+      .populate({
+        path: "forumComments",
+      })
+    const commentCount = await ForumComment.countDocuments({ post_id: post._id });
+    const likeCount = await Like.countDocuments({ post_id: post._id });
+    if (!post) return res.status(404).json({
+      EC: 0,
+      EM: "Không tìm thấy bài đăng!",
+      DT: null
+    });
+    res.status(200).json({
+      EC: 1,
+      EM: "Lấy chi tiết bài đăng thành công!",
+      DT: {
+        post,
+        commentCount,
+        likeCount
+      }
+    });
+  } catch (error) {
+    res.status(400).json({
+      EC: 0,
+      EM: "Lỗi khi lấy chi tiết bài đăng!",
+      DT: error.message
+    });
+  }
+};
+
+// Add a comment to a post
+const addComment = async (req, res) => {
+  try {
+    const comment = new ForumComment({
+      content: req.body.content,
+      post_id: req.params.post_id,
+      user_id: req.user.id
+    });
+    await comment.save();
+    res.status(201).json({
+      EC: 1,
+      EM: "Thêm bình luận thành công!",
+      DT: comment
+    });
+  } catch (error) {
+    res.status(400).json({
+      EC: 0,
+      EM: "Lỗi khi thêm bình luận!",
+      DT: error.message
+    });
+  }
+};
+
+// Like a post or comment
+const like = async (req, res) => {
+  try {
+    const like = new Like({
+      post_id: req.params.post_id,
+      user_id: req.user.id
+    });
+
+    await like.save();
+
+    res.status(201).json({
+      EC: 1,
+      EM: "Thích bài đăng thành công!",
+      DT: like
+    });
+
+  } catch (error) {
+    // Nếu là lỗi duplicate key (user đã like post này rồi)
+    if (error.code === 11000) {
+      return res.status(409).json({
+        EC: 0,
+        EM: "Bạn đã thích bài đăng này rồi!",
+        DT: null
+      });
+    }
+
+    res.status(400).json({
+      EC: 0,
+      EM: "Lỗi khi thích bài đăng/bình luận!",
+      DT: error.message
+    });
+  }
+};
+
+// Get user notifications
+const getNotifications = async (req, res) => {
+  try {
+    const notifications = await Notification.find({ user_id: req.user._id });
+    res.status(200).json({
+      EC: 1,
+      EM: "Lấy danh sách thông báo thành công!",
+      DT: notifications
+    });
+  } catch (error) {
+    res.status(400).json({
+      EC: 0,
+      EM: "Lỗi khi lấy danh sách thông báo!",
+      DT: error.message
+    });
+  }
+};
+
 module.exports = {
   getRequestStatus,
   getBalance,
@@ -1446,4 +1634,10 @@ module.exports = {
   assignedRepairman,
   getRequestCompleted,
   confirmRequest,
+  createPost,
+  getPosts,
+  getPostDetails,
+  addComment,
+  like,
+  getNotifications,
 };

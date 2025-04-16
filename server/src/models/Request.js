@@ -42,6 +42,7 @@ const RequestSchema = new mongoose.Schema(
         "Make payment",
         "Repairman confirmed completion", //thợ xác nhận đã hoàn thành
         "Proceed with repair",
+        "Customer not responding", //khachs hang khong nghe may
       ],
     },
     repairman_id: {
