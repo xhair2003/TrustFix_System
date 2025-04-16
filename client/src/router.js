@@ -40,6 +40,7 @@ import Forum from "./pages/Forum/Forum/Forum.jsx";
 import PostDetail from "./pages/Forum/PostDetail/PostDetail.jsx";
 import Guides from "./pages/Guides/Guides/Guides.jsx";
 import GuideDetail from "./pages/Guides/GuideDetail/GuideDetail.jsx";
+import ChatBot from "./pages/users/ChatBot/ChatBot.jsx";
 
 const UserROUTERS = () => {
     const routers = [
@@ -53,6 +54,12 @@ const UserROUTERS = () => {
             component: <FindRepairman />,
             layout: MasterLayoutMain, // Routes using MasterLayout
         },
+        {
+            path: ROUTERS.CUSTOMER.CHAT_BOT,
+            component: <ChatBot />,
+            layout: MasterLayoutMain, // Routes using MasterLayout
+        },
+
         {
             path: ROUTERS.CUSTOMER.PROFILE,
             component: <PersonalInformation />,

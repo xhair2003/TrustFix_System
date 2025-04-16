@@ -3,7 +3,6 @@
     background-color: #f0f0f0;
     padding: 20px;
     color: #333;
-    width: 100%;
     flex-wrap: wrap;
     position: relative;
     justify-content: center;
@@ -13,7 +12,6 @@
     display: flex;
     background-color: inherit;
     position: relative;
-    left: 100px;
 }
 
 .left {

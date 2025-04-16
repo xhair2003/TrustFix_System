@@ -119,7 +119,7 @@ const Header = () => {
     const menuItems = [
         { name: 'Giới Thiệu', path: '/' },
         { name: 'Tìm Thợ', path: '/find-repairman' },
-        { name: 'Hệ Thống', path: '/menu3' },
+        { name: 'Chat Bot', path: '/chat-bot' },
         { name: 'Diễn Đàn', path: '/forum' },
         { name: 'Hướng Dẫn', path: '/guides' }
     ];
