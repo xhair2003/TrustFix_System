@@ -9,7 +9,7 @@ function ForumList({ posts }) {
             ) : (
                 <div className={styles.postsContainer}>
                     {posts.map((post) => (
-                        <ForumPost key={post.id} post={post} className={styles.forumPost} />
+                        <ForumPost key={post._id} post={post} className={styles.forumPost} />
                     ))}
                 </div>
             )}

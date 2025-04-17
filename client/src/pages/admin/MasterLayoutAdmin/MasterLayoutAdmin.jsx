@@ -145,6 +145,12 @@ const MasterLayoutAdmin = ({ children }) => {
                         {isCollapsed ? <FaFileAlt /> : <> <FaFileAlt /> Quản lý khiếu nại</>}
                     </div>
                     <div
+                        className={`menu-item ${selectedItem === 'manage-new-forum-post' ? 'active' : ''}`}
+                        onClick={() => handleItemClick({ path: '/admin/manage-new-forum-post', name: 'manage-new-forum-post' })}
+                    >
+                        {isCollapsed ? <FaFileAlt /> : <> <FaFileAlt /> Bài đăng diễn đàn mới</>}
+                    </div>
+                    <div
                         className={`menu-item ${selectedItem === 'logout' ? 'active' : ''}`}
                         onClick={handleLogout}
                     >

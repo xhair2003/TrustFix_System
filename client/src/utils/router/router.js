@@ -54,6 +54,7 @@ export const ROUTERS = {
         MANAGE_CATEGORIES: 'admin/manage-categories',
         MANAGE_SUBCATEGORIES: 'admin/manage-subcategories',
         MANAGE_PRACTICE_SERTIFICATES: 'admin/manage-practice-certificates',
+        MANAGE_NEW_FORUM_POST: 'admin/manage-new-forum-post',
     },
 
     FORUM: {

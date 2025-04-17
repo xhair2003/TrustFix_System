@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { categories } from "../../../data";
 import styles from "./PostModal.module.scss";
 
-function PostModal({ onClose, onSubmit }) {
+function PostModal({ onClose, onSubmit, serviceIndustries }) {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
-    const [category, setCategory] = useState(categories[0]);
+    const [serviceIndustryId, setServiceIndustryId] = useState(
+        serviceIndustries[0]?._id || ""
+    );
     const [tags, setTags] = useState("");
 
     const handleSubmit = (e) => {
@@ -13,13 +14,12 @@ function PostModal({ onClose, onSubmit }) {
         onSubmit({
             title,
             content,
-            category,
-            tags: tags.split(",").map((tag) => tag.trim()),
-            user: { id: 999, name: "Người dùng hiện tại", role: "customer" },
+            serviceIndustry_id: serviceIndustryId,
+            tags: tags ? tags.split(",").map((tag) => tag.trim()) : [],
         });
         setTitle("");
         setContent("");
-        setCategory(categories[0]);
+        setServiceIndustryId(serviceIndustries[0]?._id || "");
         setTags("");
     };
 
@@ -50,13 +50,13 @@ function PostModal({ onClose, onSubmit }) {
                     <div className={styles.formGroup}>
                         <label className={styles.formLabel}>Danh mục</label>
                         <select
-                            value={category}
-                            onChange={(e) => setCategory(e.target.value)}
+                            value={serviceIndustryId}
+                            onChange={(e) => setServiceIndustryId(e.target.value)}
                             className={styles.formSelect}
                         >
-                            {categories.map((cat) => (
-                                <option key={cat} value={cat}>
-                                    {cat}
+                            {serviceIndustries.map((industry) => (
+                                <option key={industry._id} value={industry._id}>
+                                    {industry.type}
                                 </option>
                             ))}
                         </select>

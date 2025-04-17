@@ -1,33 +1,73 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import ForumList from "../../../component/Forum/ForumList/ForumList";
 import PostModal from "../../../component/Forum/PostModal/PostModal";
-import { mockPosts, categories } from "../../../data";
+import { fetchPosts, createPost, getServiceIndustryTypes, resetError, resetSuccess } from "../../../store/actions/userActions";
 import styles from "./Forum.module.scss";
+import Swal from "sweetalert2";
+import Loading from "../../../component/Loading/Loading";
 
 function Forum() {
-    const [posts, setPosts] = useState(mockPosts);
+    const dispatch = useDispatch();
+    const { posts, loading, error, serviceTypes, success } = useSelector((state) => state.user);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState("");
+    const [selectedServiceIndustry, setSelectedServiceIndustry] = useState("");
 
+    // Gọi API để lấy danh sách loại thợ khi component mount
+    useEffect(() => {
+        dispatch(getServiceIndustryTypes()); // Dispatch action để lấy dữ liệu serviceTypes
+    }, [dispatch]);
+
+    // Fetch posts on component mount
+    useEffect(() => {
+        dispatch(fetchPosts());
+    }, [dispatch]);
+
+    useEffect(() => {
+        if (success) {
+            Swal.fire({
+                icon: "success",
+                title: "Thành công",
+                text: success,
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                showCloseButton: false,
+            }).then(() => {
+                dispatch(resetSuccess()); // Reset customer request state
+                setIsModalOpen(false); // của tạo bài mới 
+                dispatch(fetchPosts()); // của tạo bài mới
+            });
+        }
+    }, [success, dispatch]);
+    // Handle errorViewRequest with Swal
+    useEffect(() => {
+        if (error) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi",
+                text: error,
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                showCloseButton: false,
+            }).then(() => {
+                dispatch(resetError()); // Reset view request state
+            });
+        }
+    }, [error, dispatch]);
+
+    // Handle post creation
     const handleCreatePost = (newPost) => {
-        setPosts([
-            {
-                id: posts.length + 1,
-                ...newPost,
-                createdAt: new Date().toISOString().split("T")[0],
-                likes: 0,
-                comments: [],
-            },
-            ...posts,
-        ]);
-        setIsModalOpen(false);
+        dispatch(createPost(newPost));
     };
 
+    // Filter posts based on search term and service industry
     const filteredPosts = posts.filter(
         (post) =>
             post.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            (selectedCategory ? post.category === selectedCategory : true)
+            (selectedServiceIndustry ? post.serviceIndustry_id === selectedServiceIndustry : true)
     );
 
     return (
@@ -41,6 +81,7 @@ function Forum() {
                     <button
                         className={styles.createButton}
                         onClick={() => setIsModalOpen(true)}
+                        disabled={loading}
                     >
                         Đăng bài mới
                     </button>
@@ -56,23 +97,26 @@ function Forum() {
                     />
                     <select
                         className={styles.filterSelect}
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        value={selectedServiceIndustry}
+                        onChange={(e) => setSelectedServiceIndustry(e.target.value)}
                     >
                         <option value="">Tất cả danh mục</option>
-                        {categories.map((cat) => (
-                            <option key={cat} value={cat}>
-                                {cat}
+                        {serviceTypes.map((industry) => (
+                            <option key={industry._id} value={industry._id}>
+                                {industry.type}
                             </option>
                         ))}
                     </select>
                 </div>
+
+                {loading && <Loading />}
 
                 <ForumList posts={filteredPosts} />
                 {isModalOpen && (
                     <PostModal
                         onClose={() => setIsModalOpen(false)}
                         onSubmit={handleCreatePost}
+                        serviceIndustries={serviceTypes}
                     />
                 )}
             </div>

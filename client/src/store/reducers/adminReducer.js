@@ -81,6 +81,8 @@ const initialState = {
 
     totalsProfit: null, // Lưu object chứa các loại phí
     totalAll: 0, // Tổng tất cả giao dịch
+
+    posts: [],
 };
 
 // Reducer function
@@ -666,6 +668,36 @@ const adminReducer = (state = initialState, action) => {
                 totalAllByYear: {},
                 error: action.payload,
             };
+
+
+
+        // Get Posts (Admin)
+        case "GET_POSTS_REQUEST":
+            return { ...state, loading: true, error: null };
+        case "GET_POSTS_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                posts: action.payload,
+                error: null,
+            };
+        case "GET_POSTS_FAILURE":
+            return { ...state, loading: false, error: action.payload };
+
+        // Moderate Post
+        case "MODERATE_POST_REQUEST":
+            return { ...state, loading: true, error: null, success: null };
+        case "MODERATE_POST_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                error: null,
+                success: action.payload
+            };
+        case "MODERATE_POST_FAILURE":
+            return { ...state, loading: false, error: action.payload, success: null };
+
+
 
 
 

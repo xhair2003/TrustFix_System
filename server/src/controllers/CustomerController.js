@@ -1443,7 +1443,7 @@ const createPost = async (req, res) => {
     await post.save();
     res.status(201).json({
       EC: 1,
-      EM: "Tạo bài đăng mới thành công!",
+      EM: "Bài đăng đã được gửi để chờ duyệt!",
       DT: post
     });
   } catch (error) {
@@ -1465,6 +1465,17 @@ const getPosts = async (req, res) => {
         populate: {
           path: "roles",
           select: "type"
+        }
+      })
+      .populate({
+        path: "serviceIndustry_id",
+        select: "type",
+      })
+      .populate({
+        path: "forumComments",
+        populate: {
+          path: "user_id",
+          select: "firstName lastName"
         }
       })
     const postsWithCounts = await Promise.all(

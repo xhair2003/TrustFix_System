@@ -67,7 +67,8 @@
     }
 
     &:hover {
-      color: #2a5298;
+      color: red; /* Text turns red on hover */
+      text-decoration: underline; /* Underline on hover */
     }
   }
 

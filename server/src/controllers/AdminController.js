@@ -2485,13 +2485,24 @@ const getRequestStatusByYear = async (req, res) => {
 };
 const getPosts = async (req, res) => {
     try {
-        const posts = await ForumPost.find()
+        const posts = await ForumPost.find({ status: "pending" })
             .populate({
                 path: "user_id",
                 select: "firstName lastName",
                 populate: {
                     path: "roles",
                     select: "type"
+                }
+            })
+            .populate({
+                path: "serviceIndustry_id",
+                select: "type",
+            })
+            .populate({
+                path: "forumComments",
+                populate: {
+                    path: "user_id",
+                    select: "firstName lastName"
                 }
             })
 
@@ -2512,36 +2523,127 @@ const getPosts = async (req, res) => {
 };
 
 // Moderate posts/comments
+// const moderate = async (req, res) => {
+//     try {
+//         const { post_id } = req.params;
+//         const { action } = req.body; // type: 'post' or 'comment', action: 'approve' or 'delete'
+
+//         const posts = await ForumPost.findById(post_id)
+//         if (action === 'approve') {
+//             posts.status = 'active';
+//             await posts.save();
+//             res.status(200).json({
+//                 EC: 1,
+//                 EM: `Bài đăng đã được duyệt!`,
+
+//             });
+//         } else if (action === 'reject') {
+//             posts.status = 'deleted';
+//             await posts.save();
+//             return res.status(200).json({
+//                 EC: 1,
+//                 EM: `Bài đăng không được duyệt!`,
+
+//             });
+//         }
+
+
+//     } catch (error) {
+//         res.status(400).json({
+//             EC: 0,
+//             EM: "Lỗi khi kiểm duyệt!",
+//             DT: error.message
+//         });
+//     }
+// };
+
 const moderate = async (req, res) => {
     try {
         const { post_id } = req.params;
-        const { action } = req.body; // type: 'post' or 'comment', action: 'approve' or 'delete'
+        const { action, rejectionReason } = req.body; // Added rejectionReason
 
-        const posts = await ForumPost.findById(post_id)
-        if (action === 'approve') {
-            posts.status = 'active';
-            await posts.save();
-            res.status(200).json({
-                EC: 1,
-                EM: `Bài đăng đã được duyệt!`,
+        // Find the post and populate user_id
+        const post = await ForumPost.findById(post_id).populate(
+            "user_id",
+            "email firstName lastName"
+        );
 
-            });
-        } else if (action === 'reject') {
-            posts.status = 'deleted';
-            await posts.save();
-            return res.status(200).json({
-                EC: 1,
-                EM: `Bài đăng không được duyệt!`,
-
+        if (!post) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy bài đăng!",
             });
         }
 
+        // Check if the post has already been processed
+        if (post.status === "active" || post.status === "deleted") {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Bài đăng đã được xử lý trước đó!",
+            });
+        }
 
+        if (action === "approve") {
+            post.status = "active";
+            await post.save();
+
+            // Send approval email
+            const emailContent = `
+          <h3>Bài đăng của bạn đã được phê duyệt!</h3>
+          <p>Xin chào ${post.user_id.firstName} ${post.user_id.lastName},</p>
+          <p>Bài đăng "${post.title}" của bạn đã được phê duyệt và hiện đã xuất hiện trên diễn đàn. Cảm ơn bạn đã đóng góp!</p>
+        `;
+            await sendEmail(
+                post.user_id.email,
+                "Bài đăng diễn đàn được phê duyệt",
+                emailContent
+            );
+
+            return res.status(200).json({
+                EC: 1,
+                EM: "Bài đăng đã được duyệt và email đã được gửi!",
+            });
+        } else if (action === "reject") {
+            if (!rejectionReason) {
+                return res.status(400).json({
+                    EC: 0,
+                    EM: "Vui lòng cung cấp lý do từ chối!",
+                });
+            }
+
+            post.status = "deleted";
+            await post.save();
+
+            // Send rejection email
+            const emailContent = `
+          <h3>Bài đăng của bạn đã bị từ chối</h3>
+          <p>Xin chào ${post.user_id.firstName} ${post.user_id.lastName},</p>
+          <p>Bài đăng "${post.title}" của bạn đã bị từ chối với lý do sau:</p>
+          <p><strong>${rejectionReason}</strong></p>
+          <p>Vui lòng chỉnh sửa và gửi lại bài đăng nếu cần.</p>
+        `;
+            await sendEmail(
+                post.user_id.email,
+                "Bài đăng diễn đàn bị từ chối",
+                emailContent
+            );
+
+            return res.status(200).json({
+                EC: 1,
+                EM: "Bài đăng đã bị từ chối và email đã được gửi!",
+            });
+        } else {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Hành động không hợp lệ! Vui lòng chọn 'approve' hoặc 'reject'.",
+            });
+        }
     } catch (error) {
-        res.status(400).json({
+        console.error("Error in moderate:", error);
+        res.status(500).json({
             EC: 0,
-            EM: "Lỗi khi kiểm duyệt!",
-            DT: error.message
+            EM: "Đã có lỗi xảy ra khi kiểm duyệt. Vui lòng thử lại!",
+            DT: error.message,
         });
     }
 };

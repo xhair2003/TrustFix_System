@@ -34,6 +34,7 @@ import DetailRequest from "./pages/users/DetailRequest/DetailRequest.js";
 import FindRepairman from "./pages/users/FindRepairman/FindRepairman.jsx";
 import OrderDetail from "./pages/users/OrderDetail/OderDetail.js";
 import ManagePracticeCertificates from "./pages/admin/ManagePracticeSertificates/ManagePracticeSertificates.jsx";
+import ManageNewForumPost from "./pages/admin/ManageNewForumPost/ManageNewForumPost.jsx";
 import RepairmanOrderDetail from "./pages/users/RepairmanOrderDetail/RepairmanOrderDetail.js";
 import RepairmanDashboard from "./pages/users/RepairmanDashboard/RepairmanDashboard.jsx";
 import Forum from "./pages/Forum/Forum/Forum.jsx";
@@ -175,7 +176,11 @@ const UserROUTERS = () => {
             component: <ManagePracticeCertificates />,
             layout: MasterLayoutAdmin,
         },
-
+        {
+            path: ROUTERS.ADMIN.MANAGE_NEW_FORUM_POST,
+            component: <ManageNewForumPost />,
+            layout: MasterLayoutAdmin,
+        },
     ];
 
     const authRoutes = [
