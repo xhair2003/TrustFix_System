@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const AuthMiddleware = require("../middlewares/authMiddleware");
 const AdminController = require("../controllers/AdminController");
+const upload = require("../middlewares/upload");
 
 
 // --- Admin routes 
@@ -111,5 +112,19 @@ router.get("/request-status-by-month", AuthMiddleware.verifyAdmin, AdminControll
 
 router.get("/view-profit", AuthMiddleware.verifyAdmin, AdminController.getAllProfit);
 router.get("/view-yearly-profit", AuthMiddleware.verifyAdmin, AdminController.getYearlyProfit);
+
+
+//Guide routes
+router.get("/guide", AuthMiddleware.verifyAdmin, AdminController.getGuideslist);
+
+router.get("/guide/:id", AuthMiddleware.verifyAdmin, AdminController.getGuildebyId);
+
+router.get("/guide/user",AuthMiddleware.verifyAdminOrRepairman, AdminController.getGuideByUser);
+
+router.post("/add-guide",AuthMiddleware.verifyAdminOrRepairman, upload.array('content',10),AdminController.addGuide);
+
+router.post("/update-guide/:id",AuthMiddleware.verifyAdminOrRepairman, upload.array('content',10),AdminController.updateGuide);
+
+router.delete("/delete-guide/:id",AuthMiddleware.verifyAdminOrRepairman, AdminController.deleteGuide);
 
 module.exports = router;    
