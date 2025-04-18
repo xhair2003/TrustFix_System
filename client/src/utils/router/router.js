@@ -23,6 +23,7 @@ export const ROUTERS = {
         MAKE_PAYMENT: '/make-payment/:requestId/:repairmanId',
         WALLET: '/wallet',
         ORDER_DETAIL: '/order-detail/:requestId',
+        CHAT_BOT: '/chat-bot',
 
     },
 
@@ -53,5 +54,16 @@ export const ROUTERS = {
         MANAGE_CATEGORIES: 'admin/manage-categories',
         MANAGE_SUBCATEGORIES: 'admin/manage-subcategories',
         MANAGE_PRACTICE_SERTIFICATES: 'admin/manage-practice-certificates',
+        MANAGE_NEW_FORUM_POST: 'admin/manage-new-forum-post',
+    },
+
+    FORUM: {
+        FORUM: '/forum',
+        POST_DETAIL: "/forum/post/:id"
+    },
+
+    GUIDES: {
+        GUIDES: '/guides',
+        GUIDE_DETAIL: "/guides/guide/:id"
     }
 }

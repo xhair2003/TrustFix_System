@@ -1187,3 +1187,125 @@ export const getAllRepairmanStats = () => async (dispatch, getState) => {
         });
     }
 };
+
+// Base URL for the API
+const API_URL = 'http://localhost:8080/api/customer/';
+
+// Helper function to get the token from local storage
+const getAuthHeader = () => {
+    const token = localStorage.getItem('token'); // Adjust based on your token storage
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+
+// Create a new post
+export const createPost = (postData) => async (dispatch) => {
+    try {
+        dispatch({ type: "CREATE_POST_REQUEST" });
+
+        const response = await axios.post(`${API_URL}create-posts`, postData, {
+            headers: getAuthHeader(),
+        });
+
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "CREATE_POST_SUCCESS",
+                payload: response.data,
+            });
+        } else {
+            dispatch({
+                type: "CREATE_POST_FAILURE",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "CREATE_POST_FAILURE",
+            payload: error.response?.data?.EM || 'Error creating post',
+        });
+    }
+};
+
+// Fetch all posts
+export const fetchPosts = () => async (dispatch) => {
+    try {
+        dispatch({ type: "FETCH_POSTS_REQUEST" });
+
+        const response = await axios.get(`${API_URL}get-posts`, {
+            headers: getAuthHeader(),
+        });
+
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "FETCH_POSTS_SUCCESS",
+                payload: response.data.DT.postsWithCounts, // Array of posts with commentCount and likeCount
+            });
+        } else {
+            dispatch({
+                type: "FETCH_POSTS_FAILURE",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "FETCH_POSTS_FAILURE",
+            payload: error.response?.data?.EM || 'Error fetching posts',
+        });
+    }
+};
+
+// Add a comment to a post
+export const addComment = (postId, commentData) => async (dispatch) => {
+    try {
+        dispatch({ type: "ADD_COMMENT_REQUEST" });
+
+        const response = await axios.post(`${API_URL}add-comments/${postId}`, commentData, {
+            headers: getAuthHeader(),
+        });
+
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "ADD_COMMENT_SUCCESS",
+                payload: { postId, comment: response.data.DT }, // Include postId to update specific post
+            });
+        } else {
+            dispatch({
+                type: "ADD_COMMENT_FAILURE",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "ADD_COMMENT_FAILURE",
+            payload: error.response?.data?.EM || 'Error adding comment',
+        });
+    }
+};
+
+// Like a post
+export const likePost = (postId) => async (dispatch) => {
+    try {
+        dispatch({ type: "LIKE_POST_REQUEST" });
+
+        const response = await axios.post(`${API_URL}likes/${postId}`, {}, {
+            headers: getAuthHeader(),
+        });
+
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "LIKE_POST_SUCCESS",
+                payload: { postId, like: response.data.DT }, // Include postId to update like count
+            });
+        } else {
+            dispatch({
+                type: "LIKE_POST_FAILURE",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "LIKE_POST_FAILURE",
+            payload: error.response?.data?.EM || 'Error liking post',
+        });
+    }
+};

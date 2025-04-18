@@ -113,6 +113,10 @@ router.get("/request-status-by-month", AuthMiddleware.verifyAdmin, AdminControll
 router.get("/view-profit", AuthMiddleware.verifyAdmin, AdminController.getAllProfit);
 router.get("/view-yearly-profit", AuthMiddleware.verifyAdmin, AdminController.getYearlyProfit);
 
+// Moderate posts/comments
+router.get('/get-posts', AuthMiddleware.verifyAdmin, AdminController.getPosts);
+router.post('/moderate/:post_id', AuthMiddleware.verifyAdmin, AdminController.moderate);
+
 
 //Guide routes
 router.get("/guide", AuthMiddleware.verifyAdmin, AdminController.getGuideslist);
@@ -123,7 +127,7 @@ router.get("/guide/user",AuthMiddleware.verifyAdminOrRepairman, AdminController.
 
 router.post("/add-guide",AuthMiddleware.verifyAdminOrRepairman, upload.array('content',10),AdminController.addGuide);
 
-router.post("/update-guide/:id",AuthMiddleware.verifyAdminOrRepairman, upload.array('content',10),AdminController.updateGuide);
+router.post("/update-guide/:id",AuthMiddleware.verifyAdmin, upload.array('content',10),AdminController.updateGuide);
 
 router.delete("/delete-guide/:id",AuthMiddleware.verifyAdminOrRepairman, AdminController.deleteGuide);
 

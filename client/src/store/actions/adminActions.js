@@ -1416,6 +1416,67 @@ export const getYearlyProfit = (year) => async (dispatch, getState) => {
 };
 
 
+const API_URL = "http://localhost:8080/api/admin/"; // Adjust to your backend URL
+
+const getAuthHeader = () => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+// Fetch all posts (admin)
+export const getPosts = () => async (dispatch) => {
+    try {
+        dispatch({ type: "GET_POSTS_REQUEST" });
+        const response = await axios.get(`${API_URL}get-posts`, {
+            headers: getAuthHeader(),
+        });
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "GET_POSTS_SUCCESS",
+                payload: response.data.DT.posts,
+            });
+        } else {
+            dispatch({
+                type: "GET_POSTS_FAILURE",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "GET_POSTS_FAILURE",
+            payload: error.response?.data?.EM || "Lỗi khi lấy danh sách bài đăng!",
+        });
+    }
+};
+
+// Moderate a post (approve or reject)
+export const moderatePost = (postId, action, rejectionReason) => async (dispatch) => {
+    try {
+        dispatch({ type: "MODERATE_POST_REQUEST" });
+        const response = await axios.post(
+            `${API_URL}moderate/${postId}`,
+            { action, rejectionReason },
+            { headers: getAuthHeader() }
+        );
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "MODERATE_POST_SUCCESS",
+                payload: response.data.EM,
+            });
+        } else {
+            dispatch({
+                type: "MODERATE_POST_FAILURE",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "MODERATE_POST_FAILURE",
+            payload: error.response?.data?.EM || "Lỗi khi kiểm duyệt bài đăng!",
+        });
+    }
+};
+
+
 // Action để reset lỗi
 export const resetError = () => {
     return {
