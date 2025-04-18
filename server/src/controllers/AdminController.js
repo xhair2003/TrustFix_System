@@ -1,7 +1,8 @@
-const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip, ForumPost, ForumComment } = require("../models");
+const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip, ForumPost, ForumComment ,Guide} = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
 const nodemailer = require('nodemailer'); // Import nodemailer để gửi email
-
+const upload = require('../middlewares/upload')
+ const cron = require('node-cron'); // Import cron để lên lịch gửi email hàng tháng
 const sendEmail = async (to, subject, htmlContent) => {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -2647,7 +2648,245 @@ const moderate = async (req, res) => {
         });
     }
 };
+const getGuideslist = async (req, res) => {
+    try {
+      const guides = await Guide.find() ;
 
+        if (!guides || guides.length === 0) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không có hướng dẫn nào được tìm thấy!",
+                DT: [],
+            });
+
+        }
+        return res.status(200).json({
+            EC: 1,
+            EM: "Lấy danh sách hướng dẫn thành công!",
+            DT: guides,
+        });
+    }
+    catch (error) {
+        console.error("Lỗi khi lấy danh sách hướng dẫn:", error);
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã xảy ra lỗi. Vui lòng thử lại!",
+        });
+    }
+}
+const getGuildebyId = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const guide = await Guide.findById(id);
+
+        if (!guide) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy hướng dẫn với ID này!",
+            });
+        }
+
+        return res.status(200).json({
+            EC: 1,
+            EM: "Lấy thông tin hướng dẫn thành công!",
+            DT: guide,
+        });
+    } catch (error) {
+        console.error("Lỗi khi lấy thông tin hướng dẫn:", error);
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã xảy ra lỗi. Vui lòng thử lại!",
+        });
+    }
+}
+
+const addGuide = async (req, res) => {
+    try {
+        // Lấy user_id từ token (đã được middleware xác thực)
+        const user_id = req.user.id;
+
+        // Lấy dữ liệu từ body request
+        const { title, type, description, category, tags } = req.body;
+
+        // Kiểm tra các trường bắt buộc
+        if (!title || !type) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Thiếu thông tin bắt buộc! Vui lòng cung cấp title và type.",
+            });
+        }
+
+        // Kiểm tra giá trị hợp lệ cho type
+        if (!['video', 'article', 'images'].includes(type)) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Loại hướng dẫn không hợp lệ! Chỉ chấp nhận 'video', 'article' hoặc 'images'.",
+            });
+        }
+
+        // Xử lý file upload từ Cloudinary
+        const content = req.files.map(file => file.path); // Lấy URL từ Cloudinary
+
+        // Tạo mới guide
+        const newGuide = new Guide({
+            user_id,
+            title,
+            type,
+            content, // Lưu mảng URL từ Cloudinary
+            description,
+            category,
+            tags,
+        });
+
+        // Lưu guide vào cơ sở dữ liệu
+        await newGuide.save();
+
+        // Trả về kết quả thành công
+        return res.status(201).json({
+            EC: 1,
+            EM: "Thêm hướng dẫn thành công!",
+            DT: newGuide,
+        });
+    } catch (error) {
+        console.error("Error adding guide:", error);
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã xảy ra lỗi. Vui lòng thử lại sau!",
+        });
+    }
+};
+const getGuideByUser = async (req, res) => {
+    const userId = req.user.id; 
+    try {
+        // Tìm tất cả các guides được tạo bởi userId
+        const guides = await Guide.find({ user_id: userId });
+
+        // Kiểm tra nếu không có guides nào
+        if (!guides || guides.length === 0) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy hướng dẫn nào cho người dùng này!",
+                DT: [],
+            });
+        }
+
+        // Trả về danh sách guides
+        return res.status(200).json({
+            EC: 1,
+            EM: "Lấy danh sách hướng dẫn thành công!",
+            DT: guides,
+        });
+    } catch (error) {
+        console.error("Lỗi khi lấy danh sách hướng dẫn theo user_id:", error);
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã xảy ra lỗi. Vui lòng thử lại sau!",
+        });
+    }
+};
+
+const updateGuide = async (req, res) => {
+    const { id } = req.params; 
+    const {  title, type, description, category, tags } = req.body; 
+    const userId = req.user.id; // Lấy user_id từ token
+    const userRole = req.user.role; // Lấy role từ token (giả sử middleware đã thêm role vào req.user)
+
+    try {
+        // Kiểm tra xem guide có tồn tại không
+        const guide = await Guide.findById(id);
+        if (!guide) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Hướng dẫn không tồn tại",
+            });
+        }
+
+        // Kiểm tra xem guide có thuộc về user hiện tại hoặc user là admin không
+        if (guide.user_id.toString() !== userId && userRole !== "admin") {
+            return res.status(403).json({
+                EC: 0,
+                EM: "Bạn không có quyền chỉnh sửa hướng dẫn này!",
+            });
+        }
+
+        // Kiểm tra giá trị hợp lệ cho type
+        if (type && !['video', 'article', 'images'].includes(type)) {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Loại hướng dẫn không hợp lệ! Chỉ chấp nhận 'video', 'article' hoặc 'images'.",
+            });
+        }
+
+        // Xử lý file upload từ Cloudinary nếu có file mới
+        let content = guide.content; // Giữ nguyên nội dung cũ nếu không có file mới
+        if (req.files && req.files.length > 0) {
+            content = req.files.map(file => file.path); // Lấy URL từ Cloudinary
+        }
+
+        // Cập nhật thông tin guide
+        guide.title = title || guide.title;
+        guide.type = type || guide.type;
+        guide.description = description || guide.description;
+        guide.category = category || guide.category;
+        guide.tags = tags || guide.tags;
+        guide.content = content;
+
+        // Lưu guide đã cập nhật vào cơ sở dữ liệu
+        await guide.save();
+
+        // Trả về kết quả thành công
+        return res.status(200).json({
+            EC: 1,
+            EM: "Cập nhật hướng dẫn thành công!",
+            DT: guide,
+        });
+    } catch (error) {
+        console.error("Error updating guide:", error);
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã xảy ra lỗi. Vui lòng thử lại sau!",
+        });
+    }
+};
+const deleteGuide = async (req, res) => {
+    const { id } = req.params; 
+    const userId = req.user.id; 
+    const userRole = req.user.role; 
+
+    try {
+        // Kiểm tra xem guide có tồn tại không
+        const guide = await Guide.findById(id);
+        if (!guide) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Hướng dẫn không tồn tại!",
+            });
+        }
+
+        // Kiểm tra xem guide có thuộc về user hiện tại hoặc user là admin không
+        if (guide.user_id.toString() !== userId && userRole !== "admin") {
+            return res.status(403).json({
+                EC: 0,
+                EM: "Bạn không có quyền xóa hướng dẫn này!",
+            });
+        }
+
+        // Xóa hướng dẫn
+        await Guide.findByIdAndDelete(id);
+
+        // Trả về kết quả thành công
+        return res.status(200).json({
+            EC: 1,
+            EM: "Xóa hướng dẫn thành công!",
+        });
+    } catch (error) {
+        console.error("Error deleting guide:", error);
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã xảy ra lỗi. Vui lòng thử lại sau!",
+        });
+    }
+};
 module.exports = {
     getRequestStatusByYear,
     getRequestStatusByMonth,
@@ -2702,5 +2941,11 @@ module.exports = {
     getAllProfit,
     getPosts,
     moderate,
+    getGuideslist,
+     getGuildebyId,
+     getGuideByUser,
+     addGuide,
+     updateGuide,
+     deleteGuide
 };
 
