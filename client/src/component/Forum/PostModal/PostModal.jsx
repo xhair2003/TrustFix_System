@@ -8,6 +8,30 @@ function PostModal({ onClose, onSubmit, serviceIndustries }) {
         serviceIndustries[0]?._id || ""
     );
     const [tags, setTags] = useState("");
+    const [images, setImages] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
+
+    // Handle image selection and preview
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        setImages(files);
+
+        // Generate previews
+        const previews = files.map((file) => URL.createObjectURL(file));
+        setImagePreviews(previews);
+    };
+
+    // Clean up previews to prevent memory leaks
+    const handleClose = () => {
+        imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
+        setImages([]);
+        setImagePreviews([]);
+        setTitle("");
+        setContent("");
+        setServiceIndustryId(serviceIndustries[0]?._id || "");
+        setTags("");
+        onClose();
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -16,11 +40,8 @@ function PostModal({ onClose, onSubmit, serviceIndustries }) {
             content,
             serviceIndustry_id: serviceIndustryId,
             tags: tags ? tags.split(",").map((tag) => tag.trim()) : [],
+            images, // Pass the raw File objects
         });
-        setTitle("");
-        setContent("");
-        setServiceIndustryId(serviceIndustries[0]?._id || "");
-        setTags("");
     };
 
     return (
@@ -71,11 +92,33 @@ function PostModal({ onClose, onSubmit, serviceIndustries }) {
                             className={styles.formInput}
                         />
                     </div>
+                    <div className={styles.formGroup}>
+                        <label className={styles.formLabel}>Hình ảnh (tùy chọn)</label>
+                        <input
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className={styles.formInput}
+                        />
+                        {imagePreviews.length > 0 && (
+                            <div className={styles.imagePreview}>
+                                {imagePreviews.map((preview, index) => (
+                                    <img
+                                        key={index}
+                                        src={preview}
+                                        alt={`Preview ${index}`}
+                                        className={styles.previewImage}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
                     <div className={styles.modalActions}>
                         <button type="submit" className={styles.submitButton}>
                             Đăng bài
                         </button>
-                        <button type="button" onClick={onClose} className={styles.cancelButton}>
+                        <button type="button" onClick={handleClose} className={styles.cancelButton}>
                             Hủy
                         </button>
                     </div>

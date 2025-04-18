@@ -8,10 +8,11 @@ const ChatBot = () => {
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [typewriterText, setTypewriterText] = useState({});
+    const [hasUserSentMessage, setHasUserSentMessage] = useState(false);
     const messagesEndRef = useRef(null);
 
     // Initialize Gemini API
-    const genAI = new GoogleGenerativeAI('AIzaSyAbhlcIqk9EtQbuoOZQdhaPrQg5swExBK8'); // Replace with your valid API key
+    const genAI = new GoogleGenerativeAI('AIzaSyAbhlcIqk9EtQbuoOZQdhaPrQg5swExBK8'); // Replace with valid API key
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     // System Instructions for Gemini
@@ -32,7 +33,6 @@ const ChatBot = () => {
     // Fetch bot reply from Gemini API
     const getBotReply = async (message) => {
         try {
-            // Limit chat history to last 5 messages to avoid token limit
             const chatHistory = messages
                 .slice(-5)
                 .map((msg) => `${msg.sender === 'user' ? 'Người dùng' : 'TrustFix Assistant'}: ${msg.text}`)
@@ -49,30 +49,24 @@ const ChatBot = () => {
 
     // Welcome message on mount
     useEffect(() => {
-        if (messages.length === 0) {
-            const welcomeMessage = {
-                text: 'Xin chào! Tôi là TrustFix Assistant. Rất vui được hỗ trợ bạn tìm thợ sửa chữa đáng tin cậy hôm nay! Bạn khỏe không? Có gì cần sửa chữa không? 😊',
-                sender: 'bot',
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            };
-            setMessages([welcomeMessage]);
-            setTypewriterText({ 0: '' });
-        }
+        console.log('Setting welcome message');
+        const welcomeMessage = {
+            text: 'Xin chào! Tôi là TrustFix Assistant. Rất vui được hỗ trợ bạn tìm thợ sửa chữa đáng tin cậy hôm nay! Bạn khỏe không? Có gì cần sửa chữa không? 😊',
+            sender: 'bot',
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages([welcomeMessage]);
+        setTypewriterText({ 0: '' }); // Initialize typewriter for welcome message
+        console.log('Welcome message set:', welcomeMessage);
     }, []);
-
-    // Scroll to bottom on new messages or typewriter updates
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, typewriterText]);
 
     // Typewriter effect for bot messages
     useEffect(() => {
         messages.forEach((msg, index) => {
-            if (msg.sender === 'bot' && typewriterText[index] === undefined) {
+            if (msg.sender === 'bot' && typewriterText[index] === '') {
                 console.log(`Starting typewriter for message ${index}: ${msg.text.slice(0, 20)}...`);
                 let currentText = '';
                 const fullText = msg.text;
-                setTypewriterText((prev) => ({ ...prev, [index]: '' }));
 
                 const interval = setInterval(() => {
                     if (currentText.length < fullText.length) {
@@ -89,6 +83,14 @@ const ChatBot = () => {
         });
     }, [messages, typewriterText]);
 
+    // Scroll to bottom only after user sends a message
+    useEffect(() => {
+        console.log('Messages updated:', messages, 'Has user sent message:', hasUserSentMessage);
+        if (hasUserSentMessage) {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages, typewriterText, hasUserSentMessage]);
+
     const handleSendMessage = async () => {
         if (!input.trim()) return;
 
@@ -97,9 +99,10 @@ const ChatBot = () => {
             sender: 'user',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
-        setMessages([...messages, userMessage]);
+        setMessages((prev) => [...prev, userMessage]);
         setInput('');
         setIsTyping(true);
+        setHasUserSentMessage(true); // Enable scrolling after user sends message
 
         const botReplyText = await getBotReply(input);
         setIsTyping(false);
@@ -109,7 +112,11 @@ const ChatBot = () => {
             sender: 'bot',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
-        setMessages((prev) => [...prev, botMessage]);
+        setMessages((prev) => {
+            const newMessages = [...prev, botMessage];
+            setTypewriterText((prevText) => ({ ...prevText, [newMessages.length - 1]: '' }));
+            return newMessages;
+        });
     };
 
     const handleKeyDown = (e) => {
@@ -130,7 +137,7 @@ const ChatBot = () => {
                             <div className="message-content">
                                 {msg.sender === 'bot' ? (
                                     <ReactMarkdown>
-                                        {typewriterText[index] !== undefined ? typewriterText[index] : msg.text}
+                                        {typewriterText[index] || msg.text}
                                     </ReactMarkdown>
                                 ) : (
                                     <ReactMarkdown>{msg.text}</ReactMarkdown>

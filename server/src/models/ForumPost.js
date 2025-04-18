@@ -10,6 +10,7 @@ const ForumPostSchema = new mongoose.Schema({
         ref: 'ServiceIndustry',
         required: true
     },
+    images: [String],
     tags: { type: mongoose.Schema.Types.Mixed }, // JSON or array
     status: { type: String, enum: ['active', 'pending', 'deleted'], default: 'pending' },
 }, {
