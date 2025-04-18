@@ -3,7 +3,7 @@ const router = express.Router();
 const AuthMiddleware = require("../middlewares/authMiddleware");
 const AdminController = require("../controllers/AdminController");
 const upload = require("../middlewares/upload");
-const upload = require("../middlewares/upload");
+
 
 
 // --- Admin routes 
