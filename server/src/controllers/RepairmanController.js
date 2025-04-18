@@ -632,21 +632,14 @@ const processMonthlyFee = async (req, res) => {
 };
 const registerVipPackage = async (req, res) => {
   try {
-    const userId = req.user.id; 
-    const { vip_id, months = 1 } = req.body; // Mặc định số tháng là 1 nếu không được cung cấp
+    const userId = req.user.id;
+    const { vip_id } = req.body; // Chỉ cần ID của gói VIP
 
     // Kiểm tra đầu vào
     if (!vip_id) {
       return res.status(400).json({
         EC: 0,
         EM: "Vui lòng cung cấp ID của gói VIP!",
-      });
-    }
-
-    if (!Number.isInteger(months) || months < 1) {
-      return res.status(400).json({
-        EC: 0,
-        EM: "Số tháng đăng ký phải bằng hoặc lớn hơn 1!",
       });
     }
 
@@ -677,8 +670,8 @@ const registerVipPackage = async (req, res) => {
       });
     }
 
-    // Tính tổng chi phí
-    const totalCost = vipPackage.price * months;
+    // Tính tổng chi phí (giá của gói VIP)
+    const totalCost = vipPackage.price;
 
     // Kiểm tra số dư ví
     if (wallet.balance < totalCost) {
@@ -692,14 +685,6 @@ const registerVipPackage = async (req, res) => {
     wallet.balance -= totalCost;
     await wallet.save();
 
-    // Cập nhật thông tin gói VIP và ngày hết hạn
-    repairmanUpgradeRequest.vip_id = vip_id;
-    const currentExpiryDate = repairmanUpgradeRequest.vip_time_expire || new Date();
-    const newExpiryDate = new Date(currentExpiryDate);
-    newExpiryDate.setMonth(newExpiryDate.getMonth() + months);
-    repairmanUpgradeRequest.vip_time_expire = newExpiryDate;
-    await repairmanUpgradeRequest.save();
-
     // Tạo mã giao dịch ngẫu nhiên
     const payCode = `VIP-${Math.random().toString(36).substr(2, 8).toUpperCase()}-${Date.now()}`;
 
@@ -708,12 +693,16 @@ const registerVipPackage = async (req, res) => {
       wallet_id: wallet._id,
       amount: totalCost,
       transactionType: "payment",
-      content: `Thanh toán gói VIP: ${vipPackage.name} cho ${months} tháng`,
+      content: `Thanh toán gói VIP: ${vipPackage.name}`,
       status: 1, // Thành công
       balanceAfterTransact: wallet.balance,
       payCode,
     });
     await transaction.save();
+
+    // Cập nhật thông tin gói VIP
+    repairmanUpgradeRequest.vip_id = vip_id;
+    await repairmanUpgradeRequest.save();
 
     // Trả về phản hồi thành công
     return res.status(200).json({

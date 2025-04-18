@@ -21,10 +21,11 @@ const VipSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    status: {
-        type: Number,
-        default: 1
-    }
+    duration: {
+        type: Number, // Thời hạn tính bằng tháng
+        required: true,
+        default: 1 // Mặc định là 1 tháng
+    },
 }, { timestamps: true });
 
 
