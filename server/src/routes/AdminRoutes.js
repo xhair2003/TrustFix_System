@@ -3,6 +3,8 @@ const router = express.Router();
 const AuthMiddleware = require("../middlewares/authMiddleware");
 const AdminController = require("../controllers/AdminController");
 const upload = require("../middlewares/upload");
+const upload = require("../middlewares/upload");
+
 
 // --- Admin routes 
 // Service Industry routes
@@ -117,17 +119,17 @@ router.get('/get-posts', AuthMiddleware.verifyAdmin, AdminController.getPosts);
 router.post('/moderate/:post_id', AuthMiddleware.verifyAdmin, AdminController.moderate);
 
 
-//Guide
+//Guide routes
 router.get("/guide", AuthMiddleware.verifyAdmin, AdminController.getGuideslist);
- 
- router.get("/guide/:id", AuthMiddleware.verifyAdmin, AdminController.getGuildebyId);
- 
- router.get("/guide/user",AuthMiddleware.verifyAdminOrRepairman, AdminController.getGuideByUser);
- 
- router.post("/add-guide",AuthMiddleware.verifyAdminOrRepairman, upload.array('content',10),AdminController.addGuide);
- 
- router.post("/update-guide/:id",AuthMiddleware.verifyAdminOrRepairman, upload.array('content',10),AdminController.updateGuide);
- 
- router.delete("/delete-guide/:id",AuthMiddleware.verifyAdminOrRepairman, AdminController.deleteGuide);
+
+router.get("/guide/:id", AuthMiddleware.verifyAdmin, AdminController.getGuildebyId);
+
+router.get("/guide/user",AuthMiddleware.verifyAdminOrRepairman, AdminController.getGuideByUser);
+
+router.post("/add-guide",AuthMiddleware.verifyAdminOrRepairman, upload.array('content',10),AdminController.addGuide);
+
+router.post("/update-guide/:id",AuthMiddleware.verifyAdmin, upload.array('content',10),AdminController.updateGuide);
+
+router.delete("/delete-guide/:id",AuthMiddleware.verifyAdminOrRepairman, AdminController.deleteGuide);
 
 module.exports = router;    
