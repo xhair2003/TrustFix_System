@@ -42,6 +42,7 @@ import PostDetail from "./pages/Forum/PostDetail/PostDetail.jsx";
 import Guides from "./pages/Guides/Guides/Guides.jsx";
 import GuideDetail from "./pages/Guides/GuideDetail/GuideDetail.jsx";
 import ChatBot from "./pages/users/ChatBot/ChatBot.jsx";
+import ManageGuides from "./pages/admin/ManageGuides/ManageGuides.jsx";
 
 const UserROUTERS = () => {
     const routers = [
@@ -179,6 +180,11 @@ const UserROUTERS = () => {
         {
             path: ROUTERS.ADMIN.MANAGE_NEW_FORUM_POST,
             component: <ManageNewForumPost />,
+            layout: MasterLayoutAdmin,
+        },
+        {
+            path: ROUTERS.ADMIN.MANAGE_GUIDES,
+            component: <ManageGuides />,
             layout: MasterLayoutAdmin,
         },
     ];

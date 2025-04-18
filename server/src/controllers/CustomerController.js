@@ -1432,12 +1432,26 @@ const createPost = async (req, res) => {
         EM: "Vui lòng nhập đầy đủ thông tin"
       })
     }
+
+    let images = [];
+    if (req.files) {
+      // req.files sẽ là mảng các file
+      for (const file of req.files) {
+        const result = await cloudinary.uploader.upload(file.path, {
+          folder: "request_images",
+          transformation: [{ width: 500, height: 500, crop: "limit" }],
+        });
+        images.push(result.secure_url);
+      }
+    }
+
     const post = new ForumPost({
       user_id: userId,
       title: title,
       content: content,
       serviceIndustry_id: serviceIndustry_id,
       tags: tags,
+      images: images,
       //status: "active",
     });
     await post.save();
@@ -1459,6 +1473,7 @@ const createPost = async (req, res) => {
 const getPosts = async (req, res) => {
   try {
     const posts = await ForumPost.find({ status: "active" })
+      .sort({ createdAt: -1 }) // Sort by newest first
       .populate({
         path: "user_id",
         select: "firstName lastName",
@@ -1548,25 +1563,79 @@ const getPostDetails = async (req, res) => {
   }
 };
 
-// Add a comment to a post
+// // Add a comment to a post
+// const addComment = async (req, res) => {
+//   try {
+//     const comment = new ForumComment({
+//       content: req.body.content,
+//       post_id: req.params.post_id,
+//       user_id: req.user.id
+//     });
+//     await comment.save();
+//     res.status(201).json({
+//       EC: 1,
+//       EM: "Thêm bình luận thành công!",
+//       DT: comment
+//     });
+//   } catch (error) {
+//     res.status(400).json({
+//       EC: 0,
+//       EM: "Lỗi khi thêm bình luận!",
+//       DT: error.message
+//     });
+//   }
+// };
+
+// In-memory store for comment timestamps
+const commentTimestamps = new Map(); // Map<userId, Array<timestamp>>
+
 const addComment = async (req, res) => {
   try {
+    const userId = req.user.id;
+    const MAX_COMMENTS_PER_MINUTE = 2;
+    const TIME_WINDOW_MS = 60 * 1000; // 1 minute in milliseconds
+
+    // Get or initialize timestamps for this user
+    let timestamps = commentTimestamps.get(userId) || [];
+
+    // Get current time
+    const now = Date.now();
+
+    // Filter out timestamps older than 1 minute
+    timestamps = timestamps.filter((ts) => now - ts < TIME_WINDOW_MS);
+
+    // Check if user has exceeded the limit
+    if (timestamps.length >= MAX_COMMENTS_PER_MINUTE) {
+      return res.status(429).json({
+        EC: 0,
+        EM: 'Bạn chỉ được bình luận tối đa 2 lần trong 1 phút. Vui lòng thử lại sau!',
+        DT: {},
+      });
+    }
+
+    // Add new comment timestamp
+    timestamps.push(now);
+    commentTimestamps.set(userId, timestamps);
+
+    // Proceed with comment creation
     const comment = new ForumComment({
       content: req.body.content,
       post_id: req.params.post_id,
-      user_id: req.user.id
+      user_id: userId,
     });
     await comment.save();
+
     res.status(201).json({
       EC: 1,
-      EM: "Thêm bình luận thành công!",
-      DT: comment
+      EM: 'Thêm bình luận thành công!',
+      DT: comment,
     });
   } catch (error) {
+    console.error('Error in addComment:', error);
     res.status(400).json({
       EC: 0,
-      EM: "Lỗi khi thêm bình luận!",
-      DT: error.message
+      EM: 'Lỗi khi thêm bình luận!',
+      DT: error.message,
     });
   }
 };

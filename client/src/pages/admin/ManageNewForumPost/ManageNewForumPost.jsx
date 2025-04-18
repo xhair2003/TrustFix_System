@@ -195,6 +195,21 @@ function ManageNewForumPost() {
                             <p className={styles.detailsModalField}>
                                 <strong>Nội dung:</strong> {selectedPost.content}
                             </p>
+                            {selectedPost.images && selectedPost.images.length > 0 && (
+                                <div className={styles.detailsModalField}>
+                                    <strong>Hình ảnh:</strong>
+                                    <div className={styles.postImages}>
+                                        {selectedPost.images.map((image, index) => (
+                                            <img
+                                                key={index}
+                                                src={image}
+                                                alt={`Post image ${index + 1}`}
+                                                className={styles.postImage}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                             <p className={styles.detailsModalField}>
                                 <strong>Người đăng:</strong> {selectedPost.user_id?.firstName}{" "}
                                 {selectedPost.user_id?.lastName} (

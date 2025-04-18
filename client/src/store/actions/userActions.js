@@ -1203,8 +1203,25 @@ export const createPost = (postData) => async (dispatch) => {
     try {
         dispatch({ type: "CREATE_POST_REQUEST" });
 
-        const response = await axios.post(`${API_URL}create-posts`, postData, {
-            headers: getAuthHeader(),
+        // Create FormData object
+        const formData = new FormData();
+        formData.append("title", postData.title);
+        formData.append("content", postData.content);
+        formData.append("serviceIndustry_id", postData.serviceIndustry_id);
+        formData.append("tags", JSON.stringify(postData.tags || []));
+
+        // Append images if they exist
+        if (postData.images && postData.images.length > 0) {
+            postData.images.forEach((image, index) => {
+                formData.append("images", image);
+            });
+        }
+
+        const response = await axios.post(`${API_URL}create-posts`, formData, {
+            headers: {
+                ...getAuthHeader(),
+                "Content-Type": "multipart/form-data",
+            },
         });
 
         if (response.data.EC === 1) {
@@ -1221,7 +1238,7 @@ export const createPost = (postData) => async (dispatch) => {
     } catch (error) {
         dispatch({
             type: "CREATE_POST_FAILURE",
-            payload: error.response?.data?.EM || 'Error creating post',
+            payload: error.response?.data?.EM || "Error creating post",
         });
     }
 };

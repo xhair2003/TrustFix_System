@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import "./RegisterForm.scss";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Loading from "../../Loading/Loading";
+import { Link } from 'react-router-dom';
 
 const RegisterForm = ({ onRegisterSuccess }) => {
   const dispatch = useDispatch();
@@ -239,6 +240,10 @@ const RegisterForm = ({ onRegisterSuccess }) => {
 
         <p className="signin-link">
           Bạn đã có tài khoản? <a href="/login">Đăng nhập tại đây!</a>
+        </p>
+
+        <p className="home-link">
+          <Link to="/">Quay về trang chủ</Link>
         </p>
       </form>
     </div>
