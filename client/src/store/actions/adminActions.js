@@ -1477,6 +1477,97 @@ export const moderatePost = (postId, action, rejectionReason) => async (dispatch
 };
 
 
+// Lấy danh sách hướng dẫn
+export const getGuides = () => async (dispatch) => {
+    try {
+        dispatch({ type: "GET_GUIDES_REQUEST" });
+        const { data } = await axios.get('http://localhost:8080/api/admin/guide');
+        dispatch({
+            type: "GET_GUIDES_SUCCESS",
+            payload: data.DT,
+        });
+    } catch (error) {
+        dispatch({
+            type: "GET_GUIDES_FAIL",
+            payload: error.response?.data?.EM || 'Lỗi khi lấy danh sách hướng dẫn',
+        });
+    }
+};
+
+// Thêm hướng dẫn mới
+export const addGuide = (guideData) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "ADD_GUIDE_REQUEST" });
+        const token = getState().auth.token || localStorage.getItem('token');
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data',
+            },
+        };
+        const { data } = await axios.post('http://localhost:8080/api/admin/add-guide', guideData, config);
+        dispatch({
+            type: "ADD_GUIDE_SUCCESS",
+            payload: data,
+        });
+    } catch (error) {
+        dispatch({
+            type: "ADD_GUIDE_FAIL",
+            payload: error.response?.data?.EM || 'Lỗi khi thêm hướng dẫn',
+        });
+    }
+};
+
+// Cập nhật hướng dẫn
+export const updateGuide = (id, guideData) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "UPDATE_GUIDE_REQUEST" });
+        const token = getState().auth.token || localStorage.getItem('token');
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data',
+            },
+        };
+        const { data } = await axios.post(`http://localhost:8080/api/admin/update-guide/${id}`, guideData, config);
+        dispatch({
+            type: "UPDATE_GUIDE_SUCCESS",
+            payload: data,
+        });
+    } catch (error) {
+        dispatch({
+            type: "UPDATE_GUIDE_FAIL",
+            payload: error.response?.data?.EM || 'Lỗi khi cập nhật hướng dẫn',
+        });
+    }
+};
+
+// Xóa hướng dẫn
+export const deleteGuide = (id) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "DELETE_GUIDE_REQUEST" });
+        const token = getState().auth.token || localStorage.getItem('token');
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        };
+        const { data } = await axios.delete(`http://localhost:8080/api/admin/delete-guide/${id}`, config);
+        dispatch({
+            type: "DELETE_GUIDE_SUCCESS",
+            payload: { id, data }
+        });
+    } catch (error) {
+        dispatch({
+            type: "DELETE_GUIDE_FAIL",
+            payload: error.response?.data?.EM || 'Lỗi khi xóa hướng dẫn',
+        });
+    }
+};
+
+
+
+
 // Action để reset lỗi
 export const resetError = () => {
     return {

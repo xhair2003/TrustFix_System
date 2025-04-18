@@ -1,8 +1,8 @@
-const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip, ForumPost, ForumComment ,Guide} = require("../models");
+const { ServiceIndustry, Service, Complaint, User, Request, Transaction, Wallet, Role, Rating, RepairmanUpgradeRequest, Vip, ForumPost, ForumComment, Guide } = require("../models");
 const mongoose = require('mongoose'); // Import mongoose để dùng ObjectId
 const nodemailer = require('nodemailer'); // Import nodemailer để gửi email
 const upload = require('../middlewares/upload')
- const cron = require('node-cron'); // Import cron để lên lịch gửi email hàng tháng
+const cron = require('node-cron'); // Import cron để lên lịch gửi email hàng tháng
 const sendEmail = async (to, subject, htmlContent) => {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -2650,7 +2650,7 @@ const moderate = async (req, res) => {
 };
 const getGuideslist = async (req, res) => {
     try {
-      const guides = await Guide.find() ;
+        const guides = await Guide.find();
 
         if (!guides || guides.length === 0) {
             return res.status(404).json({
@@ -2702,9 +2702,6 @@ const getGuildebyId = async (req, res) => {
 
 const addGuide = async (req, res) => {
     try {
-        // Lấy user_id từ token (đã được middleware xác thực)
-        const user_id = req.user.id;
-
         // Lấy dữ liệu từ body request
         const { title, type, description, category, tags } = req.body;
 
@@ -2729,7 +2726,6 @@ const addGuide = async (req, res) => {
 
         // Tạo mới guide
         const newGuide = new Guide({
-            user_id,
             title,
             type,
             content, // Lưu mảng URL từ Cloudinary
@@ -2756,7 +2752,7 @@ const addGuide = async (req, res) => {
     }
 };
 const getGuideByUser = async (req, res) => {
-    const userId = req.user.id; 
+    const userId = req.user.id;
     try {
         // Tìm tất cả các guides được tạo bởi userId
         const guides = await Guide.find({ user_id: userId });
@@ -2785,11 +2781,63 @@ const getGuideByUser = async (req, res) => {
     }
 };
 
+// const updateGuide = async (req, res) => {
+//     const { id } = req.params;
+//     const { title, type, description, category, tags } = req.body;
+
+//     try {
+//         // Kiểm tra xem guide có tồn tại không
+//         const guide = await Guide.findById(id);
+//         if (!guide) {
+//             return res.status(404).json({
+//                 EC: 0,
+//                 EM: "Hướng dẫn không tồn tại",
+//             });
+//         }
+
+//         // Kiểm tra giá trị hợp lệ cho type
+//         if (type && !['video', 'article', 'images'].includes(type)) {
+//             return res.status(400).json({
+//                 EC: 0,
+//                 EM: "Loại hướng dẫn không hợp lệ! Chỉ chấp nhận 'video', 'article' hoặc 'images'.",
+//             });
+//         }
+
+//         // Xử lý file upload từ Cloudinary nếu có file mới
+//         let content = guide.content; // Giữ nguyên nội dung cũ nếu không có file mới
+//         if (req.files && req.files.length > 0) {
+//             content = req.files.map(file => file.path); // Lấy URL từ Cloudinary
+//         }
+
+//         // Cập nhật thông tin guide
+//         guide.title = title || guide.title;
+//         guide.type = type || guide.type;
+//         guide.description = description || guide.description;
+//         guide.category = category || guide.category;
+//         guide.tags = tags || guide.tags;
+//         guide.content = content;
+
+//         // Lưu guide đã cập nhật vào cơ sở dữ liệu
+//         await guide.save();
+
+//         // Trả về kết quả thành công
+//         return res.status(200).json({
+//             EC: 1,
+//             EM: "Cập nhật hướng dẫn thành công!",
+//             DT: guide,
+//         });
+//     } catch (error) {
+//         console.error("Error updating guide:", error);
+//         return res.status(500).json({
+//             EC: 0,
+//             EM: "Đã xảy ra lỗi. Vui lòng thử lại sau!",
+//         });
+//     }
+// };
+
 const updateGuide = async (req, res) => {
-    const { id } = req.params; 
-    const {  title, type, description, category, tags } = req.body; 
-    const userId = req.user.id; // Lấy user_id từ token
-    const userRole = req.user.role; // Lấy role từ token (giả sử middleware đã thêm role vào req.user)
+    const { id } = req.params;
+    const { title, type, description, category, tags, existingContent } = req.body;
 
     try {
         // Kiểm tra xem guide có tồn tại không
@@ -2801,14 +2849,6 @@ const updateGuide = async (req, res) => {
             });
         }
 
-        // Kiểm tra xem guide có thuộc về user hiện tại hoặc user là admin không
-        if (guide.user_id.toString() !== userId && userRole !== "admin") {
-            return res.status(403).json({
-                EC: 0,
-                EM: "Bạn không có quyền chỉnh sửa hướng dẫn này!",
-            });
-        }
-
         // Kiểm tra giá trị hợp lệ cho type
         if (type && !['video', 'article', 'images'].includes(type)) {
             return res.status(400).json({
@@ -2817,21 +2857,30 @@ const updateGuide = async (req, res) => {
             });
         }
 
-        // Xử lý file upload từ Cloudinary nếu có file mới
-        let content = guide.content; // Giữ nguyên nội dung cũ nếu không có file mới
-        if (req.files && req.files.length > 0) {
-            content = req.files.map(file => file.path); // Lấy URL từ Cloudinary
+        // Xử lý danh sách nội dung
+        let content = [];
+        // Thêm URL hiện có (nếu có)
+        if (existingContent) {
+            content = JSON.parse(existingContent); // Parse chuỗi JSON thành mảng
         }
+        // Thêm URL từ file mới (nếu có)
+        if (req.files && req.files.length > 0) {
+            const newUrls = req.files.map(file => file.path);
+            content = [...content, ...newUrls];
+        }
+
+        // Chuyển chuỗi tags thành mảng (nếu tags là chuỗi)
+        const tagsArray = typeof tags === 'string' ? tags.split(',').map(tag => tag.trim()) : (tags || guide.tags);
 
         // Cập nhật thông tin guide
         guide.title = title || guide.title;
         guide.type = type || guide.type;
         guide.description = description || guide.description;
         guide.category = category || guide.category;
-        guide.tags = tags || guide.tags;
+        guide.tags = tagsArray;
         guide.content = content;
 
-        // Lưu guide đã cập nhật vào cơ sở dữ liệu
+        // Lưu guide đã cập nhật
         await guide.save();
 
         // Trả về kết quả thành công
@@ -2849,9 +2898,7 @@ const updateGuide = async (req, res) => {
     }
 };
 const deleteGuide = async (req, res) => {
-    const { id } = req.params; 
-    const userId = req.user.id; 
-    const userRole = req.user.role; 
+    const { id } = req.params;
 
     try {
         // Kiểm tra xem guide có tồn tại không
@@ -2860,14 +2907,6 @@ const deleteGuide = async (req, res) => {
             return res.status(404).json({
                 EC: 0,
                 EM: "Hướng dẫn không tồn tại!",
-            });
-        }
-
-        // Kiểm tra xem guide có thuộc về user hiện tại hoặc user là admin không
-        if (guide.user_id.toString() !== userId && userRole !== "admin") {
-            return res.status(403).json({
-                EC: 0,
-                EM: "Bạn không có quyền xóa hướng dẫn này!",
             });
         }
 
@@ -2942,10 +2981,10 @@ module.exports = {
     getPosts,
     moderate,
     getGuideslist,
-     getGuildebyId,
-     getGuideByUser,
-     addGuide,
-     updateGuide,
-     deleteGuide
+    getGuildebyId,
+    getGuideByUser,
+    addGuide,
+    updateGuide,
+    deleteGuide
 };
 

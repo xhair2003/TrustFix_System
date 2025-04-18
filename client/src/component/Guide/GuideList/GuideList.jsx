@@ -7,7 +7,7 @@ function GuideList({ guides }) {
             {guides.length === 0 ? (
                 <p className={styles.noGuidesMessage}>Không tìm thấy hướng dẫn nào.</p>
             ) : (
-                guides.map((guide) => <GuideItem key={guide.id} guide={guide} />)
+                guides.map((guide) => <GuideItem key={guide._id} guide={guide} />)
             )}
         </div>
     );
