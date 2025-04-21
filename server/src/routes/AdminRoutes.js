@@ -132,4 +132,7 @@ router.post("/update-guide/:id", AuthMiddleware.verifyAdmin, upload.array('conte
 
 router.delete("/delete-guide/:id", AuthMiddleware.verifyAdmin, AdminController.deleteGuide);
 
+//check vip expire
+router.get("/check-expire", AuthMiddleware.verifyAdmin, AdminController.checkVipExpiration);
+
 module.exports = router;    
