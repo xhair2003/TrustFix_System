@@ -67,8 +67,10 @@ function Forum() {
     const filteredPosts = posts.filter(
         (post) =>
             post.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            (selectedServiceIndustry ? post.serviceIndustry_id === selectedServiceIndustry : true)
+            (selectedServiceIndustry ? post.serviceIndustry_id._id === selectedServiceIndustry : true)
     );
+
+    if (loading) return <Loading />;
 
     return (
         <div className={styles.forum}>
@@ -100,7 +102,7 @@ function Forum() {
                         value={selectedServiceIndustry}
                         onChange={(e) => setSelectedServiceIndustry(e.target.value)}
                     >
-                        <option value="">Tất cả danh mục</option>
+                        <option value="">Tất cả chuyên mục</option>
                         {serviceTypes.map((industry) => (
                             <option key={industry._id} value={industry._id}>
                                 {industry.type}
@@ -108,8 +110,6 @@ function Forum() {
                         ))}
                     </select>
                 </div>
-
-                {loading && <Loading />}
 
                 <ForumList posts={filteredPosts} />
                 {isModalOpen && (

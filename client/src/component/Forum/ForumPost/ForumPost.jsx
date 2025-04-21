@@ -26,6 +26,20 @@ function ForumPost({ post }) {
                 {new Date(post.createdAt).toLocaleDateString()}
             </p>
             <p className={styles.postContent}>{post.content.substring(0, 100)}...</p>
+
+            {post.images && post.images.length > 0 && (
+                <div className={styles.postImages}>
+                    {post.images.map((image, index) => (
+                        <img
+                            key={index}
+                            src={image}
+                            alt={`Post image ${index + 1}`}
+                            className={styles.postImage}
+                        />
+                    ))}
+                </div>
+            )}
+
             <div className={styles.stats}>
                 <span className={styles.likeCount}>{post.likeCount} lượt thích</span>
                 <span className={styles.commentCount}>{post.commentCount} bình luận</span>
