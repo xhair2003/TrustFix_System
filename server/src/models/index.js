@@ -23,7 +23,7 @@ const Notification = require('./Notification');
 const ForumPost = require('./ForumPost');
 const ForumComment = require('./ForumComment');
 const Violation = require('./Violation');
-
+const Message = require('./Message');
 // Collection of all models
 const models = {
     User,
@@ -48,6 +48,7 @@ const models = {
     ForumPost,
     ForumComment,
     Violation,
+    Message
 };
 
 // Connect to MongoDB
