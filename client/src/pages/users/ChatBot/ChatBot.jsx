@@ -145,17 +145,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ChatBot.css';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
+import ReactMarkdown from 'react-markdown';
 
 
 const ChatBot = () => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
-    const [isTyping, setIsTyping] = useState(false); // Trạng thái typing indicator
+    const [isTyping, setIsTyping] = useState(false);
+    const [typewriterText, setTypewriterText] = useState({});
+    const [hasUserSentMessage, setHasUserSentMessage] = useState(false);
     const messagesEndRef = useRef(null);
 
-    // Khởi tạo Gemini API
-    const genAI = new GoogleGenerativeAI('AIzaSyAbhlcIqk9EtQbuoOZQdhaPrQg5swExBK8');
+    // Initialize Gemini API
+    const genAI = new GoogleGenerativeAI('AIzaSyAbhlcIqk9EtQbuoOZQdhaPrQg5swExBK8'); // Replace with valid API key
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     // System Instructions dành cho Gemini
@@ -188,31 +190,54 @@ const ChatBot = () => {
     
 
 
-    // Hàm lấy phản hồi từ Gemini API
+    // Fetch bot reply from Gemini API
     const getBotReply = async (message) => {
         try {
-            // Tạo lịch sử tin nhắn từ mảng messages
             const chatHistory = messages
+                .slice(-5)
                 .map((msg) => `${msg.sender === 'user' ? 'Người dùng' : 'TrustFix Assistant'}: ${msg.text}`)
                 .join('\n');
-            
-            // Kết hợp lịch sử tin nhắn, system instructions và tin nhắn mới
             const prompt = `${systemInstructions}\n\nLịch sử trò chuyện:\n${chatHistory}\n\nNgười dùng: ${message}`;
             const result = await model.generateContent(prompt);
             const response = await result.response;
             return response.text();
         } catch (error) {
-            console.error('Lỗi Gemini API:', error);
-            return 'Có lỗi xảy ra khi xử lý yêu cầu của bạn.';
+            console.error('Lỗi Gemini API:', error.message, error.stack);
+            return 'Có lỗi xảy ra khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.';
         }
     };
 
 
-
-    // Scroll xuống cuối khi có tin nhắn mới
+    // Typewriter effect for bot messages
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+        messages.forEach((msg, index) => {
+            if (msg.sender === 'bot' && typewriterText[index] === '') {
+                console.log(`Starting typewriter for message ${index}: ${msg.text.slice(0, 20)}...`);
+                let currentText = '';
+                const fullText = msg.text;
+
+                const interval = setInterval(() => {
+                    if (currentText.length < fullText.length) {
+                        currentText = fullText.slice(0, currentText.length + 1);
+                        setTypewriterText((prev) => ({ ...prev, [index]: currentText }));
+                    } else {
+                        console.log(`Finished typewriter for message ${index}`);
+                        clearInterval(interval);
+                    }
+                }, 20); // 20ms per character
+
+                return () => clearInterval(interval);
+            }
+        });
+    }, [messages, typewriterText]);
+
+    // Scroll to bottom only after user sends a message
+    useEffect(() => {
+        console.log('Messages updated:', messages, 'Has user sent message:', hasUserSentMessage);
+        if (hasUserSentMessage) {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages, typewriterText, hasUserSentMessage]);
 
     const handleSendMessage = async () => {
         if (!input.trim()) return;
@@ -222,22 +247,26 @@ const ChatBot = () => {
             sender: 'user',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
-        setMessages([...messages, userMessage]);
+        setMessages((prev) => [...prev, userMessage]);
         setInput('');
-        setIsTyping(true); // Hiển thị typing indicator
+        setIsTyping(true);
+        setHasUserSentMessage(true); // Enable scrolling after user sends message
 
         const botReplyText = await getBotReply(input);
-        setIsTyping(false); // Ẩn typing indicator sau khi nhận phản hồi
+        setIsTyping(false);
 
         const botMessage = {
             text: botReplyText,
             sender: 'bot',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
-        setMessages((prev) => [...prev, botMessage]);
+        setMessages((prev) => {
+            const newMessages = [...prev, botMessage];
+            setTypewriterText((prevText) => ({ ...prevText, [newMessages.length - 1]: '' }));
+            return newMessages;
+        });
     };
 
-    // Xử lý nhấn Enter để gửi tin nhắn
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             handleSendMessage();
@@ -254,7 +283,13 @@ const ChatBot = () => {
                     {messages.map((msg, index) => (
                         <div key={index} className={`message ${msg.sender}-message`}>
                             <div className="message-content">
-                                <ReactMarkdown>{msg.text}</ReactMarkdown> {/* Sử dụng ReactMarkdown */}
+                                {msg.sender === 'bot' ? (
+                                    <ReactMarkdown>
+                                        {typewriterText[index] || msg.text}
+                                    </ReactMarkdown>
+                                ) : (
+                                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                                )}
                             </div>
                             <div className="message-time">{msg.time}</div>
                         </div>

@@ -8,6 +8,7 @@ import { login, resetError, resetSuccess } from '../../../store/actions/authActi
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../../Loading/Loading';
+import { Link } from 'react-router-dom';
 
 const LoginForm = () => {
   const [password, setPassword] = useState('');
@@ -108,6 +109,10 @@ const LoginForm = () => {
 
         <p className="signup-link">
           Bạn là người mới? <a href="/register">ĐĂNG KÝ</a>
+        </p>
+
+        <p className="home-link">
+          <Link to="/">Quay về trang chủ</Link>
         </p>
       </form>
     </div>

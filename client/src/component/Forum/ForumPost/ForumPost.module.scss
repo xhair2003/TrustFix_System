@@ -1,0 +1,342 @@
+// .postCard {
+//   background: linear-gradient(145deg, #ffffff, #f7f9fc);
+//   padding: 20px;
+//   border-radius: 12px;
+//   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+//   transition: all 0.3s ease;
+//   animation: fadeIn 0.5s ease;
+//   border-left: 4px solid #2a5298;
+//   position: relative;
+//   overflow: hidden;
+
+//   &:hover {
+//     transform: translateY(-5px);
+//     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+//     background: linear-gradient(145deg, #f0f4ff, #ffffff);
+
+//     &::before {
+//       content: "";
+//       position: absolute;
+//       top: 0;
+//       left: 0;
+//       width: 100%;
+//       height: 100%;
+//       border: 2px solid rgba(46, 82, 152, 0.3);
+//       border-radius: 12px;
+//       opacity: 1;
+//       transition: opacity 0.3s ease;
+//       pointer-events: none; /* Đảm bảo không chặn tương tác */
+//     }
+//   }
+
+//   /* Đảm bảo ::before bắt đầu ẩn */
+//   &::before {
+//     opacity: 0;
+//     pointer-events: none;
+//   }
+
+//   .postTitle {
+//     font-size: 20px;
+//     font-weight: 600;
+//     color: #1e3c72;
+//     margin-bottom: 12px;
+//     transition: color 0.2s ease;
+//     position: relative;
+//     z-index: 1; /* Đưa tiêu đề lên trên pseudo-element */
+
+//     a {
+//       text-decoration: none;
+//       color: inherit;
+//       display: block;
+//       position: relative;
+
+//       &::after {
+//         content: "";
+//         position: absolute;
+//         bottom: -2px;
+//         left: 0;
+//         width: 0;
+//         height: 2px;
+//         background: #2a5298;
+//         transition: width 0.3s ease;
+//       }
+
+//       &:hover::after {
+//         width: 100%;
+//       }
+//     }
+
+//     &:hover {
+//       color: red; /* Text turns red on hover */
+//       text-decoration: underline; /* Underline on hover */
+//     }
+//   }
+
+//   .meta {
+//     font-size: 14px;
+//     color: #666;
+//     margin-bottom: 12px;
+//     display: flex;
+//     flex-wrap: wrap;
+//     gap: 10px;
+//     font-style: italic;
+//     background: rgba(46, 82, 152, 0.05);
+//     padding: 8px;
+//     border-radius: 6px;
+//     transition: background 0.3s ease;
+//     position: relative;
+//     z-index: 1; /* Đưa meta lên trên pseudo-element */
+
+//     &:hover {
+//       background: rgba(46, 82, 152, 0.1);
+//     }
+//   }
+
+//   .postContent {
+//     font-size: 15px;
+//     color: #333;
+//     margin-bottom: 15px;
+//     line-height: 1.6;
+//     display: -webkit-box;
+//     -webkit-box-orient: vertical;
+//     -webkit-line-clamp: 3;
+//     line-clamp: 3;
+//     overflow: hidden;
+//     text-overflow: ellipsis;
+//     transition: color 0.2s ease;
+//     position: relative;
+//     z-index: 1; /* Đưa nội dung lên trên pseudo-element */
+
+//     &:hover {
+//       color: #1e3c72;
+//     }
+//   }
+
+//   .stats {
+//     display: flex;
+//     gap: 20px;
+//     font-size: 14px;
+//     color: #555;
+//     font-weight: 500;
+//     padding-top: 10px;
+//     border-top: 1px solid rgba(0, 0, 0, 0.1);
+//     position: relative;
+//     z-index: 1; /* Đưa stats lên trên pseudo-element */
+
+//     .likeCount,
+//     .commentCount {
+//       display: flex;
+//       align-items: center;
+//       gap: 5px;
+//       transition: color 0.2s ease;
+//       cursor: pointer;
+
+//       &:hover {
+//         color: #2a5298;
+//       }
+//     }
+
+//     .likeCount::before {
+//       content: "❤️";
+//       font-size: 12px;
+//     }
+
+//     .commentCount::before {
+//       content: "💬";
+//       font-size: 12px;
+//     }
+//   }
+// }
+
+// @keyframes fadeIn {
+//   from {
+//     opacity: 0;
+//     transform: translateY(10px);
+//   }
+//   to {
+//     opacity: 1;
+//     transform: translateY(0);
+//   }
+// }
+
+.postCard {
+  background: linear-gradient(145deg, #ffffff, #f7f9fc);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  animation: fadeIn 0.5s ease;
+  border-left: 4px solid #2a5298;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      background: linear-gradient(145deg, #f0f4ff, #ffffff);
+
+      &::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          border: 2px solid rgba(46, 82, 152, 0.3);
+          border-radius: 12px;
+          opacity: 1;
+          transition: opacity 0.3s ease;
+          pointer-events: none;
+      }
+  }
+
+  &::before {
+      opacity: 0;
+      pointer-events: none;
+  }
+
+  .postTitle {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1e3c72;
+      margin-bottom: 12px;
+      transition: color 0.2s ease;
+      position: relative;
+      z-index: 1;
+
+      a {
+          text-decoration: none;
+          color: inherit;
+          display: block;
+          position: relative;
+
+          &::after {
+              content: "";
+              position: absolute;
+              bottom: -2px;
+              left: 0;
+              width: 0;
+              height: 2px;
+              background: #2a5298;
+              transition: width 0.3s ease;
+          }
+
+          &:hover::after {
+              width: 100%;
+          }
+      }
+
+      &:hover {
+          color: red;
+          text-decoration: underline;
+      }
+  }
+
+  .meta {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-style: italic;
+      background: rgba(46, 82, 152, 0.05);
+      padding: 8px;
+      border-radius: 6px;
+      transition: background 0.3s ease;
+      position: relative;
+      z-index: 1;
+
+      &:hover {
+          background: rgba(46, 82, 152, 0.1);
+      }
+  }
+
+  .postContent {
+      font-size: 15px;
+      color: #333;
+      margin-bottom: 15px;
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.2s ease;
+      position: relative;
+      z-index: 1;
+
+      &:hover {
+          color: #1e3c72;
+      }
+  }
+
+  .postImages {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+      position: relative;
+      z-index: 1;
+  }
+
+  .postImage {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease;
+
+      &:hover {
+          transform: scale(1.05);
+      }
+  }
+
+  .stats {
+      display: flex;
+      gap: 20px;
+      font-size: 14px;
+      color: #555;
+      font-weight: 500;
+      padding-top: 10px;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      position: relative;
+      z-index: 1;
+
+      .likeCount,
+      .commentCount {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          transition: color 0.2s ease;
+          cursor: pointer;
+
+          &:hover {
+              color: #2a5298;
+          }
+      }
+
+      .likeCount::before {
+          content: "❤️";
+          font-size: 12px;
+      }
+
+      .commentCount::before {
+          content: "💬";
+          font-size: 12px;
+      }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+      transform: translateY(10px);
+  }
+  to {
+      opacity: 1;
+      transform: translateY(0);
+  }
+}

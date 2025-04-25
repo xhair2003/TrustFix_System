@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import logo from "../../../assets/Images/logo.png";
-import { FaLevelUpAlt, FaUser, FaLock, FaHistory, FaExclamationCircle, FaSignOutAlt, FaWallet, FaTools, FaHome } from 'react-icons/fa';
+import { FaLevelUpAlt, FaUser, FaLock, FaHistory, FaExclamationCircle, FaSignOutAlt, FaWallet, FaTools, FaHome, FaComments } from 'react-icons/fa';
 import { viewRequest, getStatusRepairman, toggleStatusRepairman, resetError } from '../../../store/actions/userActions';
 import { logout } from '../../../store/actions/authActions';
 import './Header.css';
@@ -13,7 +13,10 @@ const Header = () => {
     const [activeIndex, setActiveIndex] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-    const [isActive, setIsActive] = useState(false); // Initialize as false until status is fetched
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [isActive, setIsActive] = useState(false);
+    const [selectedChat, setSelectedChat] = useState(null);
+    const [messageInput, setMessageInput] = useState('');
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -21,6 +24,28 @@ const Header = () => {
     const { request, loading, status, errorGetStatus, errorToggleStatus } = useSelector(state => state.user);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    // Mock chat data - in real app, this would come from Redux or API
+    const [chats, setChats] = useState([
+        {
+            id: 1,
+            user: { name: "John Doe", role: "customer" },
+            messages: [
+                { id: 1, sender: "customer", text: "Hello, can you fix my AC?", timestamp: "2025-04-25T10:00:00Z" },
+                { id: 2, sender: "repairman", text: "Hi! Yes, I can help. What's the issue?", timestamp: "2025-04-25T10:05:00Z" }
+            ],
+            lastMessage: "Hi! Yes, I can help. What's the issue?",
+            timestamp: "2025-04-25T10:05:00Z"
+        },
+        {
+            id: 2,
+            user: { name: "Jane Smith", role: "customer" },
+            messages: [
+                { id: 1, sender: "customer", text: "Need plumbing service", timestamp: "2025-04-24T15:30:00Z" }
+            ],
+            lastMessage: "Need plumbing service",
+            timestamp: "2025-04-24T15:30:00Z"
+        }
+    ]);
 
     const isAuthenticated = useSelector(state => state.auth.isAuthenticated) || localStorage.getItem('isAuthenticated');
     const role = useSelector(state => state.auth.role) || localStorage.getItem('role');
@@ -28,15 +53,14 @@ const Header = () => {
     // Fetch repairman status and requests on component mount
     useEffect(() => {
         if (role === "repairman") {
-            dispatch(getStatusRepairman()); // Fetch initial status
-            //dispatch(viewRequest()); // Fetch requests
+            dispatch(getStatusRepairman());
         }
     }, [dispatch, role]);
 
     // Update isActive based on fetched status
     useEffect(() => {
         if (status !== null && status !== undefined) {
-            setIsActive(status !== 'Inactive'); // True nếu status không phải Inactive, False nếu là Inactive
+            setIsActive(status !== 'Inactive');
         }
     }, [status]);
 
@@ -60,7 +84,7 @@ const Header = () => {
                 showConfirmButton: false,
                 showCloseButton: false,
             }).then(() => {
-                dispatch(resetError()); // Reset error state
+                dispatch(resetError());
             });
         }
     }, [errorGetStatus, dispatch]);
@@ -77,7 +101,7 @@ const Header = () => {
                 showConfirmButton: false,
                 showCloseButton: false,
             }).then(() => {
-                dispatch(resetError()); // Reset error state
+                dispatch(resetError());
                 setIsActive(!isActive);
             });
         }
@@ -85,6 +109,7 @@ const Header = () => {
 
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
+        setIsChatOpen(false);
     };
 
     const toggleNotificationDropdown = () => {
@@ -93,6 +118,11 @@ const Header = () => {
             setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
             setUnreadCount(0);
         }
+    };
+
+    const toggleChatDropdown = () => {
+        setIsChatOpen(!isChatOpen);
+        setIsDropdownOpen(false);
     };
 
     const handleLogout = () => {
@@ -109,18 +139,43 @@ const Header = () => {
         }
     };
 
-    // Handle toggle status change
     const handleSwitchChange = () => {
         const newStatus = !isActive;
-        setIsActive(newStatus); // Optimistically update UI
+        setIsActive(newStatus);
         dispatch(toggleStatusRepairman());
+    };
+
+    const handleSendMessage = (e) => {
+        e.preventDefault();
+        if (messageInput.trim() && selectedChat) {
+            const newMessage = {
+                id: selectedChat.messages.length + 1,
+                sender: role,
+                text: messageInput,
+                timestamp: new Date().toISOString()
+            };
+            setChats(prevChats =>
+                prevChats.map(chat =>
+                    chat.id === selectedChat.id
+                        ? {
+                              ...chat,
+                              messages: [...chat.messages, newMessage],
+                              lastMessage: messageInput,
+                              timestamp: newMessage.timestamp
+                          }
+                        : chat
+                )
+            );
+            setMessageInput('');
+        }
     };
 
     const menuItems = [
         { name: 'Giới Thiệu', path: '/' },
-        { name: 'Tìm thợ', path: '/find-repairman' },
+        { name: 'Tìm Thợ', path: '/find-repairman' },
         { name: 'Chat Bot', path: '/chat-bot' },
-        { name: 'Liên Hệ', path: '/menu4' }
+        { name: 'Diễn Đàn', path: '/forum' },
+        { name: 'Hướng Dẫn', path: '/guides' }
     ];
 
     const shortenAddress = (address) => {
@@ -136,6 +191,13 @@ const Header = () => {
         const month = (d.getMonth() + 1).toString().padStart(2, '0');
         const year = d.getFullYear();
         return `${hours}:${minutes} ${day}/${month}/${year}`;
+    };
+
+    const formatMessageTime = (timestamp) => {
+        const d = new Date(timestamp);
+        const hours = d.getHours().toString().padStart(2, '0');
+        const minutes = d.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
     };
 
     return (
@@ -158,7 +220,6 @@ const Header = () => {
 
                 {isAuthenticated === true || isAuthenticated === 'true' ? (
                     <div className="header-buttons">
-                        {/* Switch for repairman */}
                         {role === "repairman" && (
                             <div className="switch-wrapper">
                                 <label className="switch">
@@ -166,7 +227,7 @@ const Header = () => {
                                         type="checkbox"
                                         checked={isActive}
                                         onChange={handleSwitchChange}
-                                        disabled={loading} // Disable during loading
+                                        disabled={loading}
                                     />
                                     <span className="slider"></span>
                                 </label>
@@ -176,41 +237,71 @@ const Header = () => {
                             </div>
                         )}
 
-                        {/* <div className="notification-wrapper">
-                            <FaBell className="icon" onClick={toggleNotificationDropdown} />
-                            {unreadCount > 0 && (
-                                <span className="notification-badge">{unreadCount}</span>
-                            )}
-                            {isNotificationOpen && (
-                                <div className="notification-dropdown">
-                                    {notifications.length > 0 ? (
-                                        notifications.map((notif) => (
-                                            <div key={notif._id} className="notification-item">
-                                                <p><strong>Có đơn hàng mới:</strong> {notif.description}</p>
-                                                <p><strong>Khu vực:</strong> {shortenAddress(notif.address)}</p>
-                                                <p><strong>Ngày:</strong> {formatDateTime(notif.createdAt)}</p>
-                                                <a
-                                                    onClick={() => {
-                                                        setIsNotificationOpen(false);
-                                                        navigate(`/repairman/detail-request/${notif._id}`, {
-                                                            state: { requestData: notif },
-                                                        });
-                                                    }}
-                                                    style={{ cursor: 'pointer' }}
+                        <div className="divider"></div>
+                        <FaComments className="chat-icon" onClick={toggleChatDropdown} />
+                        <FaUser className="user-icon" onClick={toggleDropdown} />
+                        {isChatOpen && (
+                            <div className="user-chat-popup">
+                                <div className="user-chat-container">
+                                    <div className="user-chat-list">
+                                        <h3 className="user-chat-title">Tin nhắn</h3>
+                                        {chats.length > 0 ? (
+                                            chats.map(chat => (
+                                                <div
+                                                    key={chat.id}
+                                                    className={`user-chat-item ${selectedChat?.id === chat.id ? 'user-chat-selected' : ''}`}
+                                                    onClick={() => setSelectedChat(chat)}
                                                 >
-                                                    Xem chi tiết ngay!
-                                                </a>
+                                                    <div className="user-chat-info">
+                                                        <span className="user-chat-name">{chat.user.name}</span>
+                                                        <span className="user-chat-preview">{chat.lastMessage}</span>
+                                                    </div>
+                                                    <span className="user-chat-time">{formatMessageTime(chat.timestamp)}</span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="user-chat-empty">Chưa có tin nhắn</p>
+                                        )}
+                                    </div>
+                                    {selectedChat && (
+                                        <div className="user-chat-messages">
+                                            <div className="user-chat-header">
+                                                <h3>{selectedChat.user.name}</h3>
                                             </div>
-                                        ))
-                                    ) : (
-                                        <p>Không có thông báo mới.</p>
+                                            <div className="user-chat-message-area">
+                                                {selectedChat.messages.map(message => (
+                                                    <div
+                                                        key={message.id}
+                                                        className={`user-chat-message ${
+                                                            message.sender === role ? 'user-chat-sent' : 'user-chat-received'
+                                                        }`}
+                                                    >
+                                                        <div className="user-chat-message-content">
+                                                            <p>{message.text}</p>
+                                                            <span className="user-chat-message-time">
+                                                                {formatMessageTime(message.timestamp)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <form className="user-chat-input-area" onSubmit={handleSendMessage}>
+                                                <input
+                                                    type="text"
+                                                    value={messageInput}
+                                                    onChange={(e) => setMessageInput(e.target.value)}
+                                                    placeholder="Nhập tin nhắn..."
+                                                    className="user-chat-input"
+                                                />
+                                                <button type="submit" className="user-chat-send-btn">
+                                                    Gửi
+                                                </button>
+                                            </form>
+                                        </div>
                                     )}
                                 </div>
-                            )}
-                        </div> */}
-
-                        <div className="divider"></div>
-                        <FaUser className="user-icon" onClick={toggleDropdown} />
+                            </div>
+                        )}
                         {isDropdownOpen && (
                             <div className="dropdown-menu">
                                 {role === "repairman" && (

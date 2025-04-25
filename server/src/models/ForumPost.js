@@ -10,6 +10,7 @@ const ForumPostSchema = new mongoose.Schema({
         ref: 'ServiceIndustry',
         required: true
     },
+    images: [String],
     tags: { type: mongoose.Schema.Types.Mixed }, // JSON or array
     status: { type: String, enum: ['active', 'pending', 'deleted'], default: 'pending' },
 }, {
@@ -29,5 +30,10 @@ ForumPostSchema.virtual('serviceIndustry', {
     localField: 'serviceIndustry_id',
     foreignField: '_id',
     justOne: true
+});
+ForumPostSchema.virtual('forumComments', {
+    ref: 'ForumComment',
+    localField: '_id',
+    foreignField: 'post_id'
 });
 module.exports = mongoose.model('ForumPost', ForumPostSchema);

@@ -81,6 +81,9 @@ const initialState = {
 
     totalsProfit: null, // Lưu object chứa các loại phí
     totalAll: 0, // Tổng tất cả giao dịch
+
+    posts: [],
+    guides: [],
 };
 
 // Reducer function
@@ -666,6 +669,86 @@ const adminReducer = (state = initialState, action) => {
                 totalAllByYear: {},
                 error: action.payload,
             };
+
+
+
+        // Get Posts (Admin)
+        case "GET_POSTS_REQUEST":
+            return { ...state, loading: true, error: null };
+        case "GET_POSTS_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                posts: action.payload,
+                error: null,
+            };
+        case "GET_POSTS_FAILURE":
+            return { ...state, loading: false, error: action.payload };
+
+        // Moderate Post
+        case "MODERATE_POST_REQUEST":
+            return { ...state, loading: true, error: null, success: null };
+        case "MODERATE_POST_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                error: null,
+                success: action.payload
+            };
+        case "MODERATE_POST_FAILURE":
+            return { ...state, loading: false, error: action.payload, success: null };
+
+
+
+        case 'GET_GUIDES_REQUEST':
+            return { ...state, loading: true, error: null };
+        case 'GET_GUIDES_SUCCESS':
+            return { ...state, loading: false, guides: action.payload, error: null };
+        case 'GET_GUIDES_FAIL':
+            return { ...state, loading: false, error: action.payload };
+
+        case 'ADD_GUIDE_REQUEST':
+            return { ...state, loading: true, error: null, success: null };
+        case 'ADD_GUIDE_SUCCESS':
+            return {
+                ...state,
+                loading: false,
+                guides: [...state.guides, action.payload.DT],
+                error: null,
+                success: action.payload.EM
+            };
+        case 'ADD_GUIDE_FAIL':
+            return { ...state, loading: false, error: action.payload, success: null };
+
+        case 'UPDATE_GUIDE_REQUEST':
+            return { ...state, loading: true, error: null, success: null };
+        case 'UPDATE_GUIDE_SUCCESS':
+            return {
+                ...state,
+                loading: false,
+                guides: state.guides.map((guide) =>
+                    guide._id === action.payload.DT._id ? action.payload.DT : guide
+                ),
+                error: null,
+                success: action.payload.EM
+            };
+        case 'UPDATE_GUIDE_FAIL':
+            return { ...state, loading: false, error: action.payload, success: null };
+
+        case 'DELETE_GUIDE_REQUEST':
+            return { ...state, loading: true, error: null, success: null };
+        case 'DELETE_GUIDE_SUCCESS':
+            return {
+                ...state,
+                loading: false,
+                guides: state.guides.filter((guide) => guide._id !== action.payload.id),
+                error: null,
+                success: action.payload.data.EM
+            };
+        case 'DELETE_GUIDE_FAIL':
+            return { ...state, loading: false, error: action.payload, success: null };
+
+
 
 
 

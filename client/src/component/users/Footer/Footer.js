@@ -32,7 +32,7 @@ const Footer = () => {
                         </ul>
                     </div>
                     <div className="footer-section">
-                        <h2>Doanh nghiệp</h2>
+                        <h2 style={{ display: "flex" }}>Doanh nghiệp</h2>
                         <ul>
                             <li>Thông tin</li>
                             <li>Blog</li>

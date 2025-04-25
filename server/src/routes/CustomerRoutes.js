@@ -62,5 +62,14 @@ router.get('/viewRepairmanCompleted/:requestId', authMiddleware.verifyToken, Cus
 router.put('/confirmRequest', authMiddleware.verifyToken, CustomerController.confirmRequest);
 
 router.get('/request/status', authMiddleware.verifyToken, CustomerController.getRequestStatus);
+
+// Post routes
+router.post('/create-posts', authMiddleware.verifyToken, upload.array('images'), CustomerController.createPost);
+router.get('/get-posts', CustomerController.getPosts);
+router.get('/get-posts/:post_id', CustomerController.getPostDetails);
+router.post('/add-comments/:post_id', authMiddleware.verifyToken, CustomerController.addComment);
+router.post('/likes/:post_id', authMiddleware.verifyToken, CustomerController.like);
+router.get('/notifications', authMiddleware.verifyToken, CustomerController.getNotifications);
+
 module.exports = router;
 
