@@ -747,8 +747,7 @@ const addSecondCertificate = async (req, res) => {
     }
 
     // Find the repairman upgrade request by user ID
-    const repairmanRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId })
-      .populate('user_id');
+    const repairmanRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId });
 
     if (!repairmanRequest) {
       return res.status(404).json({
@@ -758,30 +757,38 @@ const addSecondCertificate = async (req, res) => {
     }
 
     // Check if the status is "Active" or "Inactive"
-    // if (repairmanRequest.status !== "Active" && repairmanRequest.status !== "Inactive") {
-    //   return res.status(400).json({
-    //     EC: 0,
-    //     EM: "Chỉ có thể yêu cầu bổ sung chứng chỉ khi không nhận đơn hàng nào !",
-    //   });
-    // }
+    if (repairmanRequest.status !== "Active" && repairmanRequest.status !== "Inactive") {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Chỉ có thể yêu cầu bổ sung chứng chỉ khi không nhận đơn hàng nào!",
+      });
+    }
 
     // Ensure supplementaryPracticeCertificate is an array
     if (!Array.isArray(repairmanRequest.supplementaryPracticeCertificate)) {
       repairmanRequest.supplementaryPracticeCertificate = [];
     }
 
+    if (repairmanRequest.supplementaryPracticeCertificate.length > 0) {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Bạn chỉ có thể thêm chứng chỉ bổ sung một lần!",
+      });
+    }
+
     // Extract file paths and update the supplementaryPracticeCertificate
     const filePaths = files.map(file => file.path);
     repairmanRequest.supplementaryPracticeCertificate.push(...filePaths);
-    repairmanRequest.user_id.status = "In review";
+
+    // Update the status in RepairmanUpgradeRequest
+    repairmanRequest.status = "In review";
 
     // Save the updated request
     await repairmanRequest.save();
-    repairmanRequest.user_id.save();
 
     res.status(200).json({
       EC: 1,
-      EM: "Yêu cầu bổ sung chứng chỉ thành công !",
+      EM: "Yêu cầu bổ sung chứng chỉ thành công!",
       DT: repairmanRequest,
     });
   } catch (error) {
@@ -840,7 +847,16 @@ const confirmRequest = async (req, res) => {
     const request = await Request.findOne({
       repairman_id: repairman._id,
       status: "Proceed with repair"
-    });
+    })
+      .populate({
+        path: "user_id",
+        populate: {
+          path: "wallet"
+        }
+      })
+      .populate("repairman_id")
+      .populate("duePrices")
+    const priceRequest = await Price.findOne({ duePrice_id: request.duePrices[0]._id })
 
     if (!request) {
       return res.status(400).json({
@@ -867,6 +883,32 @@ const confirmRequest = async (req, res) => {
         EM: 'Xác nhận hoàn thành đơn hàng thành công, vui lòng đợi khách hàng xác nhận để nhận tiền',
         DT: request.status
       });
+    } else if (confirm === "Customer not responding") {
+      const walletRepairman = await Wallet.findOne({ user_id: userId });
+      repairman.status = "Active";
+      await repairman.save();
+
+      request.status = "Customer not responding";
+      await request.save();
+
+      request.user_id.wallet.balance = + priceRequest.priceToPay * 0.9// ví khách hàng
+      await request.user_id.wallet.save();
+
+      walletRepairman.balance = priceRequest.priceToPay * 0.1 // ví thợ
+      await walletRepairman.save();
+      // Gửi email xác nhận cho khách hàng
+      await sendEmail(request.user_id.email, "Đơn hàng bị hủy bỏ",
+        `<p>Chào ${request.user_id.firstName} ${request.user_id.lastName},</p>
+              <p>Thợ chúng tôi đã cố gắng liên lạc nhưng không nhận được phản hồi từ bạn</strong>.</p>
+              <p>Chúng tôi đã hoàn số tiền <strong>${priceRequest.priceToPay} VND về ví của bạn trong đó có trừ 10% chi phí tổng đơn hàng</strong>.</p>
+              <p>Số dư còn lại trong ví: <strong>${request.user_id.wallet.balance} VND</strong>.</p>
+              <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>`
+      );
+      res.status(201).json({
+        EC: 1,
+        EM: 'Bạn sẽ được hưởng 10% tiền đơn hàng do lỗi khách hàng',
+        DT: request.status
+      });
     } else {
       return res.status(400).json({
         EC: 0,
@@ -882,7 +924,409 @@ const confirmRequest = async (req, res) => {
     });
   }
 };
+
+const getRepairmanRevenueByTime = async (req, res) => {
+  try {
+    const { time = "month" } = req.query;
+    const userId = req.user.id;
+
+    if (time !== "month" && time !== "year") {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Giá trị 'time' không hợp lệ. Chỉ cho phép 'month' hoặc 'year'."
+      });
+    }
+
+    const repairman = await RepairmanUpgradeRequest.findOne({ user_id: userId });
+    if (!repairman) {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Không tìm thấy thông tin thợ sửa chữa"
+      });
+    }
+
+    const wallet = await Wallet.findOne({ user_id: userId });
+    if (!wallet) {
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy ví của người dùng."
+      });
+    }
+
+    const matchStage = {
+      wallet_id: wallet._id,
+      status: 1,
+      transactionType: "payment"
+    };
+
+    let groupStage, projectStage, sortStage;
+    if (time === "year") {
+      groupStage = {
+        _id: {
+          year: { $year: "$createdAt" },
+          month: { $month: "$createdAt" }
+        },
+        totalRevenue: { $sum: "$amount" }
+      };
+      projectStage = {
+        _id: 0,
+        year: "$_id.year",
+        month: "$_id.month",
+        totalRevenue: 1
+      };
+      sortStage = { "_id.year": 1, "_id.month": 1 };
+    } else {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1;
+
+      groupStage = {
+        _id: {
+          year: { $year: "$createdAt" },
+          month: { $month: "$createdAt" },
+          day: { $dayOfMonth: "$createdAt" }
+        },
+        totalRevenue: { $sum: "$amount" }
+      };
+      projectStage = {
+        _id: 0,
+        year: "$_id.year",
+        month: "$_id.month",
+        day: "$_id.day",
+        totalRevenue: 1
+      };
+      sortStage = { "_id.year": 1, "_id.month": 1, "_id.day": 1 };
+    }
+
+    const rawResult = await Transaction.aggregate([
+      { $match: matchStage },
+      { $group: groupStage },
+      { $sort: sortStage },
+      { $project: projectStage }
+    ]);
+
+    const filledResult = [];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+
+    // format lại data hiển thị
+    if (time === "year") {
+      const yearMap = new Map(); // dùng Map để để performance nhanh hơn
+      for (const r of rawResult) {
+        const key = `${r.year}`;
+        if (!yearMap.has(key)) yearMap.set(key, {});
+        yearMap.get(key)[r.month] = r.totalRevenue;
+      }
+
+      yearMap.forEach((months, year) => {
+        for (let i = 1; i <= 12; i++) {
+          filledResult.push({
+            year: parseInt(year),
+            month: i,
+            totalRevenue: months[i] || 0
+          });
+        }
+      });
+    } else {
+      const targetMonth = parseInt(req.query.month) || currentMonth;
+      const targetYear = parseInt(req.query.year) || currentYear;
+      const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+
+      const dayMap = new Map();
+      for (const r of rawResult) {
+        if (r.year === targetYear && r.month === targetMonth) {
+          dayMap.set(r.day, r.totalRevenue);
+        }
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        filledResult.push({
+          year: targetYear,
+          month: targetMonth,
+          day,
+          totalRevenue: dayMap.get(day) || 0
+        });
+      }
+    }
+
+    return res.status(200).json({
+      EC: 1,
+      EM: `Thống kê doanh thu theo ${time === "year" ? "năm" : "tháng"} thành công!`,
+      DT: filledResult
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy doanh thu:", error);
+    return res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!"
+    });
+  }
+};
+
+const getRequestStatusByMonth = async (req, res) => {
+  try {
+    const { year, month } = req.query;
+    if (!year || !month) {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Vui lòng cung cấp đầy đủ năm và tháng.",
+      });
+    }
+
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    const results = await Request.aggregate([
+      {
+        $match: {
+          $or: [
+            { createdAt: { $gte: startDate, $lte: endDate } },
+            { updatedAt: { $gte: startDate, $lte: endDate } },
+          ],
+          status: { $in: ["Completed", "Cancelled"] },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            day: { $dayOfMonth: "$updatedAt" },
+            status: "$status",
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { "_id.day": 1 },
+      },
+    ]);
+
+    // Tạo mảng kết quả chi tiết cho từng ngày
+    const detailedResult = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayData = { day, Completed: 0, Cancelled: 0 };
+      results.forEach((item) => {
+        if (item._id.day === day) {
+          dayData[item._id.status] = item.count;
+        }
+      });
+      detailedResult.push(dayData);
+    }
+
+    return res.status(200).json({
+      EC: 1,
+      EM: "Thống kê theo tháng thành công!",
+      DT: detailedResult,
+    });
+  } catch (error) {
+    console.error("Lỗi khi thống kê theo tháng:", error);
+    return res.status(500).json({
+      EC: 0,
+      EM: "Đã xảy ra lỗi. Vui lòng thử lại!",
+    });
+  }
+};
+
+const getRequestStatusByYear = async (req, res) => {
+  try {
+    const { year } = req.query;
+    if (!year) {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Vui lòng cung cấp năm.",
+      });
+    }
+
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
+
+    const results = await Request.aggregate([
+      {
+        $match: {
+          $or: [
+            { createdAt: { $gte: startDate, $lte: endDate } },
+            { updatedAt: { $gte: startDate, $lte: endDate } },
+          ],
+          status: { $in: ["Completed", "Cancelled"] },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            month: { $month: "$updatedAt" },
+            status: "$status",
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { "_id.month": 1 },
+      },
+    ]);
+
+    // Tạo mảng kết quả chi tiết cho từng tháng
+    const detailedResult = [];
+    for (let month = 1; month <= 12; month++) {
+      const monthData = { month, Completed: 0, Cancelled: 0 };
+      results.forEach((item) => {
+        if (item._id.month === month) {
+          monthData[item._id.status] = item.count;
+        }
+      });
+      detailedResult.push(monthData);
+    }
+
+    return res.status(200).json({
+      EC: 1,
+      EM: "Thống kê theo năm thành công!",
+      DT: detailedResult,
+    });
+  } catch (error) {
+    console.error("Lỗi khi thống kê theo năm:", error);
+    return res.status(500).json({
+      EC: 0,
+      EM: "Đã xảy ra lỗi. Vui lòng thử lại!",
+    });
+  }
+};
+
+const getAllRepairmanStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const repairman = await RepairmanUpgradeRequest.findOne({ user_id: userId });
+    if (!repairman) {
+      return res.status(400).json({
+        EC: 0,
+        EM: "Không tìm thấy thông tin thợ sửa chữa",
+      });
+    }
+
+    const wallet = await Wallet.findOne({ user_id: userId });
+    if (!wallet) {
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy ví của người dùng.",
+      });
+    }
+
+    const prefixes = ["REC-SEV", "VIPFEE", "VIP"];
+    const matchCondition = {
+      wallet_id: wallet._id,
+      status: 1,
+      $or: prefixes.map(prefix => ({ payCode: { $regex: `^${prefix}` } })),
+    };
+
+    // Lấy doanh thu chi tiết theo ngày
+    const revenueByDay = await Transaction.aggregate([
+      { $match: matchCondition },
+      {
+        $project: {
+          payCode: 1,
+          amount: 1,
+          year: { $year: "$createdAt" },
+          month: { $month: "$createdAt" },
+          day: { $dayOfMonth: "$createdAt" },
+          prefix: {
+            $switch: {
+              branches: prefixes.map(prefix => ({
+                case: { $regexMatch: { input: "$payCode", regex: new RegExp(`^${prefix}`) } },
+                then: prefix,
+              })),
+              default: "OTHER",
+            },
+          },
+          adjustedAmount: {
+            $cond: [
+              { $regexMatch: { input: "$payCode", regex: /^REC-SEV/ } },
+              { $multiply: ["$amount", 0.1] }, // 10% cho REC-SEV
+              "$amount",
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: "$year",
+            month: "$month",
+            day: "$day",
+            prefix: "$prefix",
+          },
+          totalAmount: { $sum: "$adjustedAmount" },
+        },
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 },
+      },
+    ]);
+
+    // Lấy toàn bộ trạng thái đơn hàng
+    const requests = await Request.aggregate([
+      { $match: { status: { $in: ["Completed", "Cancelled"] } } },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$updatedAt" },
+            month: { $month: "$updatedAt" },
+            day: { $dayOfMonth: "$updatedAt" },
+            status: "$status",
+          },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } },
+    ]);
+
+    // Tổ chức dữ liệu theo năm
+    const statsByYear = {};
+    revenueByDay.forEach((item) => {
+      const { year, month, day, prefix } = item._id;
+      const amount = item.totalAmount;
+      if (!statsByYear[year]) statsByYear[year] = {};
+      if (!statsByYear[year][month]) statsByYear[year][month] = { revenue: [], requests: [] };
+      let dayData = statsByYear[year][month].revenue.find((d) => d.day === day);
+      if (!dayData) {
+        dayData = { day, registrationFee: 0, commissionFee: 0, vipFee: 0 };
+        statsByYear[year][month].revenue.push(dayData);
+      }
+      if (prefix === "VIPFEE") dayData.registrationFee = amount;
+      else if (prefix === "REC-SEV") dayData.commissionFee = amount;
+      else if (prefix === "VIP") dayData.vipFee = amount;
+    });
+
+    requests.forEach((item) => {
+      const { year, month, day, status } = item._id;
+      const count = item.count;
+      if (!statsByYear[year]) statsByYear[year] = {};
+      if (!statsByYear[year][month]) statsByYear[year][month] = { revenue: [], requests: [] };
+      const monthData = statsByYear[year][month].requests;
+      let dayData = monthData.find((d) => d.day === day);
+      if (!dayData) {
+        dayData = { day, Completed: 0, Cancelled: 0 };
+        monthData.push(dayData);
+      }
+      if (status === "Completed") dayData.Completed = count;
+      else if (status === "Cancelled") dayData.Cancelled = count;
+    });
+
+    return res.status(200).json({
+      EC: 1,
+      EM: "Lấy toàn bộ thống kê thành công!",
+      DT: statsByYear,
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy toàn bộ thống kê:", error);
+    return res.status(500).json({
+      EC: 0,
+      EM: "Đã xảy ra lỗi. Vui lòng thử lại!",
+    });
+  }
+};
+
 module.exports = {
+  getAllRepairmanStats,
   requestRepairmanUpgrade,
   getAllVips,
   getTypeServiceIndustry,
@@ -894,5 +1338,8 @@ module.exports = {
   registerVipPackage,
   addSecondCertificate,
   viewCustomerRequest,
-  confirmRequest
+  confirmRequest,
+  getRepairmanRevenueByTime,
+  getRequestStatusByMonth,
+  getRequestStatusByYear,
 };

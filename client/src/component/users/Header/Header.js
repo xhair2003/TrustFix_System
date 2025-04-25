@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import logo from "../../../assets/Images/logo.png";
-import { FaLevelUpAlt, FaWrench, FaBell, FaUser, FaLock, FaHistory, FaExclamationCircle, FaSignOutAlt, FaWallet } from 'react-icons/fa';
+import { FaLevelUpAlt, FaUser, FaLock, FaHistory, FaExclamationCircle, FaSignOutAlt, FaWallet, FaTools, FaHome } from 'react-icons/fa';
 import { viewRequest, getStatusRepairman, toggleStatusRepairman, resetError } from '../../../store/actions/userActions';
 import { logout } from '../../../store/actions/authActions';
 import './Header.css';
@@ -216,10 +216,10 @@ const Header = () => {
                                 {role === "repairman" && (
                                     <>
                                         <div className="dropdown-item" onClick={() => navigate("/repairman/view-requests")}>
-                                            <FaWrench className="dropdown-icon" /> Đơn hàng sửa chữa
+                                            <FaTools className="dropdown-icon" /> Đơn hàng sửa chữa
                                         </div>
                                         <div className="dropdown-item" onClick={() => navigate("/repairman/dashboard")}>
-                                            <FaWrench className="dropdown-icon" /> Dashboard cho thợ
+                                            <FaHome className="dropdown-icon" /> Tổng quan
                                         </div>
                                     </>
                                 )}

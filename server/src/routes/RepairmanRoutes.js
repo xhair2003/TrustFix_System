@@ -35,4 +35,14 @@ router.post("/buy-vip-package", AuthMiddleware.verifyRepairman, RepairmanControl
 router.post("/add-second-certificate", AuthMiddleware.verifyRepairman, upload.array("img2ndCertificate", 5), RepairmanController.addSecondCertificate);
 
 router.put('/confirmRequest', AuthMiddleware.verifyRepairman, RepairmanController.confirmRequest);
+router.get('/revenue-by-time', AuthMiddleware.verifyRepairman, RepairmanController.getRepairmanRevenueByTime);
+
+
+router.get("/view-status-month", AuthMiddleware.verifyRepairman, RepairmanController.getRequestStatusByMonth);
+
+router.get("/view-status-year", AuthMiddleware.verifyRepairman, RepairmanController.getRequestStatusByYear);
+
+// api để xuất dữ liệu tất cả thống kê của dashboard thợ ra file excel
+router.get("/all-stats", AuthMiddleware.verifyRepairman, RepairmanController.getAllRepairmanStats);
+
 module.exports = router;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './MasterLayoutUser.css';
-import { FaLevelUpAlt, FaWrench, FaUser, FaLock, FaHistory, FaExclamationCircle, FaStar, FaSignOutAlt, FaArrowLeft, FaWallet } from 'react-icons/fa';
+import { FaLevelUpAlt, FaTools, FaUser, FaLock, FaHistory, FaExclamationCircle, FaHome, FaSignOutAlt, FaArrowLeft, FaWallet } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import logo from "../../../assets/Images/logo.png";
 import onlyLogo from "../../../assets/Images/onlyLogo.jpg";
@@ -90,10 +90,10 @@ const MasterLayoutUser = ({ children }) => {
                     {role === 'repairman' && (
                         <>
                             <div className={`menu-item ${selectedItem === 'repairman/view-requests' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/repairman/view-requests", name: 'repairman/view-requests' })}>
-                                {isCollapsed ? <FaWrench /> : <> <FaWrench /> Đơn hàng sửa chữa</>}
+                                {isCollapsed ? <FaTools /> : <> <FaTools /> Đơn hàng sửa chữa</>}
                             </div>
                             <div className={`menu-item ${selectedItem === 'repairman/dashboard' ? 'active' : ''}`} onClick={() => handleItemClick({ path: "/repairman/dashboard", name: 'repairman/dashboard' })}>
-                                {isCollapsed ? <FaWrench /> : <> <FaWrench /> Dashboard cho thợ</>}
+                                {isCollapsed ? <FaHome /> : <> <FaHome /> Tổng quan</>}
                             </div>
                         </>
                     )}

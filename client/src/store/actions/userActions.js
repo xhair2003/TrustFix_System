@@ -1049,3 +1049,141 @@ export const confirmRequest = (confirmData) => async (dispatch, getState) => {
     }
 };
 
+// Lấy doanh thu theo thời gian
+export const getRevenueByTime = (time, year, month) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: 'GET_REVENUE_BY_TIME_REQUEST' });
+
+        const token = getState().auth.token || localStorage.getItem('token');
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            params: { time, year, month },
+        };
+
+        const { data } = await axios.get('http://localhost:8080/api/repairman/revenue-by-time', config);
+
+        if (data.EC === 1) {
+            dispatch({
+                type: 'GET_REVENUE_BY_TIME_SUCCESS',
+                payload: data.DT,
+            });
+        } else {
+            dispatch({
+                type: 'GET_REVENUE_BY_TIME_FAIL',
+                payload: data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: 'GET_REVENUE_BY_TIME_FAIL',
+            payload: error.response && error.response.data.EM ? error.response.data.EM : error.message,
+        });
+    }
+};
+
+// Lấy trạng thái đơn hàng theo tháng
+export const getRequestStatusByMonth = (year, month) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: 'GET_REQUEST_STATUS_BY_MONTH_REQUEST' });
+
+        const token = getState().auth.token || localStorage.getItem('token');
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            params: { year, month },
+        };
+
+        const { data } = await axios.get('http://localhost:8080/api/repairman/view-status-month', config);
+
+        if (data.EC === 1) {
+            dispatch({
+                type: 'GET_REQUEST_STATUS_BY_MONTH_SUCCESS',
+                payload: data.DT,
+            });
+        } else {
+            dispatch({
+                type: 'GET_REQUEST_STATUS_BY_MONTH_FAIL',
+                payload: data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: 'GET_REQUEST_STATUS_BY_MONTH_FAIL',
+            payload: error.response && error.response.data.EM ? error.response.data.EM : error.message,
+        });
+    }
+};
+
+// Lấy trạng thái đơn hàng theo năm
+export const getRequestStatusByYear = (year) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: 'GET_REQUEST_STATUS_BY_YEAR_REQUEST' });
+
+        const token = getState().auth.token || localStorage.getItem('token');
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            params: { year },
+        };
+
+        const { data } = await axios.get('http://localhost:8080/api/repairman/view-status-year', config);
+
+        if (data.EC === 1) {
+            dispatch({
+                type: 'GET_REQUEST_STATUS_BY_YEAR_SUCCESS',
+                payload: data.DT,
+            });
+        } else {
+            dispatch({
+                type: 'GET_REQUEST_STATUS_BY_YEAR_FAIL',
+                payload: data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: 'GET_REQUEST_STATUS_BY_YEAR_FAIL',
+            payload: error.response && error.response.data.EM ? error.response.data.EM : error.message,
+        });
+    }
+};
+
+// api để xuất dữ liệu tất cả thống kê của dashboard thợ ra file excel
+export const getAllRepairmanStats = () => async (dispatch, getState) => {
+    try {
+        dispatch({ type: 'GET_ALL_REPAIRMAN_STATS_REQUEST' });
+
+        const token = getState().auth.token || localStorage.getItem('token');
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        };
+
+        const { data } = await axios.get('http://localhost:8080/api/repairman/all-stats', config);
+
+        if (data.EC === 1) {
+            dispatch({
+                type: 'GET_ALL_REPAIRMAN_STATS_SUCCESS',
+                payload: data.DT,
+            });
+        } else {
+            dispatch({
+                type: 'GET_ALL_REPAIRMAN_STATS_FAIL',
+                payload: data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: 'GET_ALL_REPAIRMAN_STATS_FAIL',
+            payload: error.response && error.response.data.EM ? error.response.data.EM : error.message,
+        });
+    }
+};

@@ -1871,22 +1871,18 @@ const totalServicePrices = async (req, res) => {
 const viewPendingSupplementaryCertificates = async (req, res) => {
     try {
         // Find all RepairmanUpgradeRequests with status "In review"
-        const pendingCertificates = await User.find({ status: "In review" })
-            .populate({
-                path: "repairmanUpgradeRequests", // Trường liên kết với RepairmanUpgradeRequest
-                populate: [
-                    { path: "serviceIndustry_id", select: "type" }, // Lấy chi tiết service industry
-                    { path: "vip_id", select: "name price" },        // Lấy chi tiết VIP
-                ],
-            });
+        const pendingCertificates = await RepairmanUpgradeRequest.find({ status: "In review" })
+            .populate("user_id", "firstName lastName email phone address imgAvt") // Populate user details
+            .populate("serviceIndustry_id", "type") // Populate service industry details
+            .populate("vip_id", "name price"); // Populate VIP details
 
-        // if (!pendingCertificates || pendingCertificates.length === 0) {
-        //     return res.status(404).json({
-        //         EC: 0,
-        //         EM: "Không có yêu cầu nào đang ở trạng thái 'In review'!",
-        //     });
-        // }
-        console.log(pendingCertificates);
+        if (!pendingCertificates || pendingCertificates.length === 0) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không có yêu cầu nào đang ở trạng thái 'In review'!",
+            });
+        }
+
         res.status(200).json({
             EC: 1,
             EM: "Lấy danh sách yêu cầu bổ sung chứng chỉ thành công!",
@@ -1906,7 +1902,7 @@ const verifyPracticeCertificate = async (req, res) => {
 
     try {
         // Find the repairman upgrade request by certificate ID
-        const repairmanRequest = await RepairmanUpgradeRequest.findById(requestId).populate("user_id", "email firstName lastName status");
+        const repairmanRequest = await RepairmanUpgradeRequest.findById(requestId).populate("user_id", "email firstName lastName");
 
         if (!repairmanRequest) {
             return res.status(404).json({
@@ -1915,17 +1911,25 @@ const verifyPracticeCertificate = async (req, res) => {
             });
         }
 
+        // Check if the request has already been processed
+        if (repairmanRequest.status === "Second certificate approved" || repairmanRequest.status === "Second certificate rejected") {
+            return res.status(400).json({
+                EC: 0,
+                EM: "Yêu cầu bổ sung chứng chỉ đã được xử lý trước đó!",
+            });
+        }
+
         // Check the action (approve or reject)
         if (action === "approve") {
-            repairmanRequest.user_id.status = "Second certificate approved";
-            await repairmanRequest.user_id.save();
+            repairmanRequest.status = "Second certificate approved"; // Update status in RepairmanUpgradeRequest
+            await repairmanRequest.save();
 
             // Send approval email
             const emailContent = `
-          <h3>Chứng chỉ bổ sung của bạn đã được phê duyệt!</h3>
-          <p>Xin chào ${repairmanRequest.user_id.firstName} ${repairmanRequest.user_id.lastName},</p>
-          <p>Chứng chỉ bổ sung của bạn đã được phê duyệt thành công. Cảm ơn bạn đã cung cấp thông tin!</p>
-        `;
+                <h3>Chứng chỉ bổ sung của bạn đã được phê duyệt!</h3>
+                <p>Xin chào ${repairmanRequest.user_id.firstName} ${repairmanRequest.user_id.lastName},</p>
+                <p>Chứng chỉ bổ sung của bạn đã được phê duyệt thành công. Cảm ơn bạn đã cung cấp thông tin!</p>
+            `;
             await sendEmail(repairmanRequest.user_id.email, "Chứng chỉ bổ sung được phê duyệt", emailContent);
 
             return res.status(200).json({
@@ -1942,24 +1946,23 @@ const verifyPracticeCertificate = async (req, res) => {
 
             // Clear all images from supplementaryPracticeCertificate
             repairmanRequest.supplementaryPracticeCertificate = [];
-            repairmanRequest.user_id.status = "Second certificate rejected";
+            repairmanRequest.status = "Second certificate rejected"; // Update status in RepairmanUpgradeRequest
             await repairmanRequest.save();
-            await repairmanRequest.user_id.save();
             console.log("Ảnh chứng chỉ bổ sung đã được xóa!");
 
             // Send rejection email
             const emailContent = `
-          <h3>Chứng chỉ bổ sung của bạn đã bị từ chối</h3>
-          <p>Xin chào ${repairmanRequest.user_id.firstName} ${repairmanRequest.user_id.lastName},</p>
-          <p>Chứng chỉ bổ sung của bạn đã bị từ chối với lý do sau:</p>
-          <p><strong>${rejectionReason}</strong></p>
-          <p>Vui lòng kiểm tra lại và gửi lại thông tin chính xác.</p>
-        `;
+                <h3>Chứng chỉ bổ sung của bạn đã bị từ chối</h3>
+                <p>Xin chào ${repairmanRequest.user_id.firstName} ${repairmanRequest.user_id.lastName},</p>
+                <p>Chứng chỉ bổ sung của bạn đã bị từ chối với lý do sau:</p>
+                <p><strong>${rejectionReason}</strong></p>
+                <p>Vui lòng kiểm tra lại và gửi lại thông tin chính xác.</p>
+            `;
             await sendEmail(repairmanRequest.user_id.email, "Chứng chỉ bổ sung bị từ chối", emailContent);
 
             return res.status(200).json({
                 EC: 1,
-                EM: "Chứng chỉ bổ sung đã bị từ chối,  email đã được gửi!",
+                EM: "Chứng chỉ bổ sung đã bị từ chối, email đã được gửi!",
             });
         } else {
             return res.status(400).json({
@@ -2242,6 +2245,137 @@ const getAllProfit = async (req, res) => {
     }
 };
 
+
+const getYearlyProfit = async (req, res) => {
+    try {
+        const { year } = req.query; // Nếu không có year, trả về dữ liệu cho tất cả các năm
+
+        const prefixes = ["REC-SEV", "VIPFEE", "VIP"];
+        let matchCondition = {
+            $or: prefixes.map(prefix => ({ payCode: { $regex: `^${prefix}` } })),
+        };
+
+        if (year) {
+            const startDate = new Date(year, 0, 1); // Ngày 1/1 của năm
+            const endDate = new Date(year, 11, 31, 23, 59, 59, 999); // Ngày 31/12 của năm
+            matchCondition.createdAt = { $gte: startDate, $lte: endDate };
+        }
+
+        // Tính tổng doanh thu theo loại phí, năm, tháng và ngày
+        const totalAmounts = await Transaction.aggregate([
+            { $match: matchCondition },
+            {
+                $project: {
+                    payCode: 1,
+                    amount: 1,
+                    year: { $year: "$createdAt" },
+                    month: { $month: "$createdAt" },
+                    day: { $dayOfMonth: "$createdAt" }, // Thêm ngày
+                    prefix: {
+                        $switch: {
+                            branches: prefixes.map(prefix => ({
+                                case: { $regexMatch: { input: "$payCode", regex: new RegExp(`^${prefix}`) } },
+                                then: prefix,
+                            })),
+                            default: "OTHER",
+                        },
+                    },
+                    adjustedAmount: {
+                        $cond: [
+                            { $regexMatch: { input: "$payCode", regex: /^REC-SEV/ } },
+                            { $multiply: ["$amount", 0.1] }, // 10% cho REC-SEV
+                            "$amount",
+                        ],
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        year: "$year",
+                        month: "$month",
+                        day: "$day", // Nhóm theo ngày
+                        prefix: "$prefix",
+                    },
+                    totalAmount: { $sum: "$adjustedAmount" },
+                },
+            },
+            {
+                $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 },
+            },
+        ]);
+
+        // Tính tổng tất cả giao dịch theo năm, tháng và ngày
+        const totalAllTransactions = await Transaction.aggregate([
+            { $match: matchCondition },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$createdAt" },
+                        month: { $month: "$createdAt" },
+                        day: { $dayOfMonth: "$createdAt" }, // Nhóm theo ngày
+                    },
+                    totalAmount: { $sum: "$amount" },
+                },
+            },
+            {
+                $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 },
+            },
+        ]);
+
+        // Tổ chức dữ liệu theo năm, tháng và ngày
+        const yearlyProfit = {};
+        totalAmounts.forEach(item => {
+            const { year, month, day, prefix } = item._id;
+            if (!yearlyProfit[year]) yearlyProfit[year] = {};
+            if (!yearlyProfit[year][month]) yearlyProfit[year][month] = {};
+            if (!yearlyProfit[year][month][day]) yearlyProfit[year][month][day] = {};
+            yearlyProfit[year][month][day][prefix] = item.totalAmount;
+        });
+
+        // Đổi tên loại phí
+        const renamedYearlyProfit = {};
+        Object.keys(yearlyProfit).forEach(year => {
+            renamedYearlyProfit[year] = {};
+            Object.keys(yearlyProfit[year]).forEach(month => {
+                renamedYearlyProfit[year][month] = {};
+                Object.keys(yearlyProfit[year][month]).forEach(day => {
+                    const profit = yearlyProfit[year][month][day];
+                    renamedYearlyProfit[year][month][day] = {
+                        "phí đăng kí thành viên": profit["VIPFEE"] || 0,
+                        "phí hoa hồng sửa chữa": profit["REC-SEV"] || 0,
+                        "phí đăng kí gói vip": profit["VIP"] || 0,
+                    };
+                });
+            });
+        });
+
+        // Tổ chức totalAll theo năm, tháng và ngày
+        const totalAllByYear = {};
+        totalAllTransactions.forEach(item => {
+            const { year, month, day } = item._id;
+            if (!totalAllByYear[year]) totalAllByYear[year] = {};
+            if (!totalAllByYear[year][month]) totalAllByYear[year][month] = {};
+            totalAllByYear[year][month][day] = item.totalAmount;
+        });
+
+        res.status(200).json({
+            EC: 1,
+            EM: "Lấy doanh thu theo năm thành công!",
+            DT: {
+                yearlyProfit: renamedYearlyProfit,
+                totalAll: totalAllByYear,
+            },
+        });
+    } catch (error) {
+        console.error("Error calculating yearly profit:", error);
+        res.status(500).json({
+            EC: 0,
+            EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
+        });
+    }
+};
+
 const getRequestStatusByMonth = async (req, res) => {
     try {
         const { year, month } = req.query;
@@ -2350,8 +2484,10 @@ const getRequestStatusByYear = async (req, res) => {
     }
 };
 
-
 module.exports = {
+    getRequestStatusByYear,
+    getRequestStatusByMonth,
+    getYearlyProfit,
     totalServicePrices,
     totalServicesByIndustry,
     totalServiceIndustries,
@@ -2400,7 +2536,5 @@ module.exports = {
     getAllRepairmanMonthlyPayments,
     getMostUsedVipService,
     getAllProfit,
-    getRequestStatusByMonth,
-    getRequestStatusByYear,
 };
 

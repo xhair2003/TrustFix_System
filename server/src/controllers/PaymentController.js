@@ -89,6 +89,8 @@ const payment = async (req, res) => {
 
 const callbackPayOS = async (req, res) => {
   console.log("callback values:", req.body);
+  console.log("callback called");
+  
   const { data } = req.body;
   if (!data) {
     return res.status(400).json({ message: "Missing required fields" });
@@ -160,7 +162,7 @@ const paymentMOMO = async (req, res) => {
     const requestId = wallet._id;
     const orderInfo = "Thanh toán với MoMo";
     const redirectUrl = "http://localhost:3000/wallet"; // Replace with your website URL
-    const ipnUrl = "https://9920-2001-ee0-4c92-6240-f0a9-3076-5354-102.ngrok-free.app/api/callbackMOMO";
+    const ipnUrl ="https://ffb8-2001-ee0-4c9d-3e90-41ee-f8cd-9fa1-b5c5.ngrok-free.app/api/callbackMOMO";
     const expireTime = Math.floor(Date.now() / 1000) + 5 * 60;
 
     // Generate payCode with "MOMO-" prefix followed by a random 9-digit number

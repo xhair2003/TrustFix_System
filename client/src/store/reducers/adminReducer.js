@@ -646,6 +646,29 @@ const adminReducer = (state = initialState, action) => {
             };
 
 
+        case "GET_YEARLY_PROFIT_REQUEST":
+            return {
+                ...state,
+                loading: true,
+            };
+        case "GET_YEARLY_PROFIT_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                yearlyProfit: action.payload.yearlyProfit,
+                totalAllByYear: action.payload.totalAll,
+            };
+        case "GET_YEARLY_PROFIT_FAIL":
+            return {
+                ...state,
+                loading: false,
+                yearlyProfit: {},
+                totalAllByYear: {},
+                error: action.payload,
+            };
+
+
+
         case "RESET_ERROR":
             return {
                 ...state,
