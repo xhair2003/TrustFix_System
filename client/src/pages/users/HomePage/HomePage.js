@@ -1,7 +1,6 @@
 import React from 'react';
 import './HomePage.css';
 import introductionImage from '../../../assets/Images/introduction.jpg';
-import ChatBot from '../../../component/ChatBot/ChatBot';
 
 const HomePage = () => {
     return (
@@ -21,7 +20,6 @@ const HomePage = () => {
                 <div className="content-section">
                     {/* Nội dung khác sẽ được thêm vào đây */}
                 </div>
-                <ChatBot/>
             </div>
         </div>
     );

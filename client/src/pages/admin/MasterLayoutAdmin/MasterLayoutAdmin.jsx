@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './MasterLayoutAdmin.css';
 import adminImage from '../../../assets/Images/user.jpg'; // Placeholder for admin image
-import { FaHome, FaUsers, FaHistory, FaExclamationCircle, FaWallet, FaStar, FaCertificate, FaFileAlt, FaArrowLeft, FaFolder } from 'react-icons/fa'; // Thêm FaFolder
+import { FaBook, FaHome, FaUsers, FaHistory, FaExclamationCircle, FaWallet, FaStar, FaCertificate, FaFileAlt, FaArrowLeft, FaFolder } from 'react-icons/fa'; // Thêm FaFolder
 import { useNavigate } from 'react-router-dom';
 import logo from '../../../assets/Images/logo.png';
 import onlyLogo from '../../../assets/Images/onlyLogo.jpg';
@@ -143,6 +143,18 @@ const MasterLayoutAdmin = ({ children }) => {
                         onClick={() => handleItemClick({ path: '/admin/manage-complaints', name: 'report' })}
                     >
                         {isCollapsed ? <FaFileAlt /> : <> <FaFileAlt /> Quản lý khiếu nại</>}
+                    </div>
+                    <div
+                        className={`menu-item ${selectedItem === 'manage-new-forum-post' ? 'active' : ''}`}
+                        onClick={() => handleItemClick({ path: '/admin/manage-new-forum-post', name: 'manage-new-forum-post' })}
+                    >
+                        {isCollapsed ? <FaFileAlt /> : <> <FaFileAlt /> Bài đăng diễn đàn mới</>}
+                    </div>
+                    <div
+                        className={`menu-item ${selectedItem === 'manage-guides' ? 'active' : ''}`}
+                        onClick={() => handleItemClick({ path: '/admin/manage-guides', name: 'manage-guides' })}
+                    >
+                        {isCollapsed ? <FaBook /> : <> <FaBook /> Quản lý hướng dẫn</>}
                     </div>
                     <div
                         className={`menu-item ${selectedItem === 'logout' ? 'active' : ''}`}

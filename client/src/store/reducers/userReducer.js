@@ -60,6 +60,8 @@ const initialState = {
     requestStatusByMonth: [], // Mảng chi tiết theo ngày
     requestStatusByYear: [],  // Mảng chi tiết theo tháng
     allStats: {}, // Dữ liệu tổng hợp theo năm
+
+    posts: [],
 };
 
 const userReducer = (state = initialState, action) => {
@@ -577,6 +579,80 @@ const userReducer = (state = initialState, action) => {
             return { ...state, loading: false, allStats: action.payload };
         case 'GET_ALL_REPAIRMAN_STATS_FAIL':
             return { ...state, loading: false, error: action.payload };
+
+
+
+
+        case "CREATE_POST_REQUEST":
+            return { ...state, loading: true, error: null, success: null };
+        case "CREATE_POST_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                posts: [action.payload.DT, ...state.posts], // Add new post to the top
+                error: null,
+                success: action.payload.EM
+            };
+        case "CREATE_POST_FAILURE":
+            return { ...state, loading: false, error: action.payload, success: null };
+
+        // Fetch Posts
+        case "FETCH_POSTS_REQUEST":
+            return { ...state, loading: true, error: null };
+        case "FETCH_POSTS_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                posts: action.payload, // Replace posts with fetched posts
+                error: null,
+            };
+        case "FETCH_POSTS_FAILURE":
+            return { ...state, loading: false, error: action.payload };
+
+        // Add Comment
+        case "ADD_COMMENT_REQUEST":
+            return { ...state, loading: true, error: null };
+        case "ADD_COMMENT_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                posts: state.posts.map((post) =>
+                    post._id === action.payload.postId
+                        ? {
+                            ...post,
+                            commentCount: post.commentCount + 1, // Increment comment count
+                            forumComments: post.forumComments
+                                ? [...post.forumComments, action.payload.comment]
+                                : [action.payload.comment], // Add comment to post
+                        }
+                        : post
+                ),
+                error: null,
+            };
+        case "ADD_COMMENT_FAILURE":
+            return { ...state, loading: false, error: action.payload };
+
+        // Like Post
+        case "LIKE_POST_REQUEST":
+            return { ...state, loading: true, error: null };
+        case "LIKE_POST_SUCCESS":
+            return {
+                ...state,
+                loading: false,
+                posts: state.posts.map((post) =>
+                    post._id === action.payload.postId
+                        ? {
+                            ...post,
+                            likeCount: post.likeCount + 1, // Increment like count
+                        }
+                        : post
+                ),
+                error: null,
+            };
+        case "LIKE_POST_FAILURE":
+            return { ...state, loading: false, error: action.payload };
+
+
 
 
         case "RESET_ERROR":

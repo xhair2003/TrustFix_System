@@ -632,10 +632,10 @@ const processMonthlyFee = async (req, res) => {
 };
 const registerVipPackage = async (req, res) => {
   try {
-    const userId = req.user.id; // Get user ID from the authenticated token
-    const { vip_id, months = 1 } = req.body; // Default to 1 month if not provided
+    const userId = req.user.id;
+    const { vip_id } = req.body; // Chỉ cần ID của gói VIP
 
-    // Validate input
+    // Kiểm tra đầu vào
     if (!vip_id) {
       return res.status(400).json({
         EC: 0,
@@ -643,14 +643,7 @@ const registerVipPackage = async (req, res) => {
       });
     }
 
-    if (isNaN(months) || months < 1) {
-      return res.status(400).json({
-        EC: 0,
-        EM: "Số tháng đăng ký phải là một số lớn hơn hoặc bằng 1!",
-      });
-    }
-
-    // Find the repairman upgrade request for the user
+    // Tìm thông tin nâng cấp thợ sửa chữa của người dùng
     const repairmanUpgradeRequest = await RepairmanUpgradeRequest.findOne({ user_id: userId });
     if (!repairmanUpgradeRequest) {
       return res.status(404).json({
@@ -659,7 +652,7 @@ const registerVipPackage = async (req, res) => {
       });
     }
 
-    // Find the VIP package by ID
+    // Tìm gói VIP theo ID
     const vipPackage = await Vip.findById(vip_id);
     if (!vipPackage) {
       return res.status(404).json({
@@ -668,7 +661,7 @@ const registerVipPackage = async (req, res) => {
       });
     }
 
-    // Find the wallet for the user
+    // Tìm ví của người dùng
     const wallet = await Wallet.findOne({ user_id: userId });
     if (!wallet) {
       return res.status(404).json({
@@ -677,10 +670,10 @@ const registerVipPackage = async (req, res) => {
       });
     }
 
-    // Calculate the total cost
-    const totalCost = vipPackage.price * months;
+    // Tính tổng chi phí (giá của gói VIP)
+    const totalCost = vipPackage.price;
 
-    // Check wallet balance
+    // Kiểm tra số dư ví
     if (wallet.balance < totalCost) {
       return res.status(400).json({
         EC: 0,
@@ -688,34 +681,31 @@ const registerVipPackage = async (req, res) => {
       });
     }
 
-    // Deduct the total cost from the wallet balance
+    // Trừ tiền từ số dư ví
     wallet.balance -= totalCost;
     await wallet.save();
 
-    // Update the repairman upgrade request with the VIP package and expiration date
-    repairmanUpgradeRequest.vip_id = vip_id;
-    const newExpiryDate = new Date(repairmanUpgradeRequest.expiredAt || new Date());
-    newExpiryDate.setMonth(newExpiryDate.getMonth() + months);
-    repairmanUpgradeRequest.expiredAt = newExpiryDate;
-    await repairmanUpgradeRequest.save();
-
-    // Generate a random payCode
+    // Tạo mã giao dịch ngẫu nhiên
     const payCode = `VIP-${Math.random().toString(36).substr(2, 8).toUpperCase()}-${Date.now()}`;
 
-    // Save the transaction details
+    // Lưu thông tin giao dịch
     const transaction = new Transaction({
       wallet_id: wallet._id,
       amount: totalCost,
       transactionType: "payment",
-      content: `Thanh toán gói VIP: ${vipPackage.name} cho ${months} tháng`,
-      status: 1, // Success
+      content: `Thanh toán gói VIP: ${vipPackage.name}`,
+      status: 1, // Thành công
       balanceAfterTransact: wallet.balance,
-      payCode, // Add the generated payCode
+      payCode,
     });
     await transaction.save();
 
-    // Respond with success
-    res.status(200).json({
+    // Cập nhật thông tin gói VIP
+    repairmanUpgradeRequest.vip_id = vip_id;
+    await repairmanUpgradeRequest.save();
+
+    // Trả về phản hồi thành công
+    return res.status(200).json({
       EC: 1,
       EM: "Đăng ký gói VIP thành công!",
       DT: {
@@ -726,7 +716,7 @@ const registerVipPackage = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in registerVipPackage:", error);
-    res.status(500).json({
+    return res.status(500).json({
       EC: 0,
       EM: "Đã có lỗi xảy ra. Vui lòng thử lại sau!",
     });

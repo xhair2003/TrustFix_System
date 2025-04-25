@@ -34,8 +34,15 @@ import DetailRequest from "./pages/users/DetailRequest/DetailRequest.js";
 import FindRepairman from "./pages/users/FindRepairman/FindRepairman.jsx";
 import OrderDetail from "./pages/users/OrderDetail/OderDetail.js";
 import ManagePracticeCertificates from "./pages/admin/ManagePracticeSertificates/ManagePracticeSertificates.jsx";
+import ManageNewForumPost from "./pages/admin/ManageNewForumPost/ManageNewForumPost.jsx";
 import RepairmanOrderDetail from "./pages/users/RepairmanOrderDetail/RepairmanOrderDetail.js";
 import RepairmanDashboard from "./pages/users/RepairmanDashboard/RepairmanDashboard.jsx";
+import Forum from "./pages/Forum/Forum/Forum.jsx";
+import PostDetail from "./pages/Forum/PostDetail/PostDetail.jsx";
+import Guides from "./pages/Guides/Guides/Guides.jsx";
+import GuideDetail from "./pages/Guides/GuideDetail/GuideDetail.jsx";
+import ChatBot from "./pages/users/ChatBot/ChatBot.jsx";
+import ManageGuides from "./pages/admin/ManageGuides/ManageGuides.jsx";
 
 const UserROUTERS = () => {
     const routers = [
@@ -49,6 +56,12 @@ const UserROUTERS = () => {
             component: <FindRepairman />,
             layout: MasterLayoutMain, // Routes using MasterLayout
         },
+        {
+            path: ROUTERS.CUSTOMER.CHAT_BOT,
+            component: <ChatBot />,
+            layout: MasterLayoutMain, // Routes using MasterLayout
+        },
+
         {
             path: ROUTERS.CUSTOMER.PROFILE,
             component: <PersonalInformation />,
@@ -106,7 +119,7 @@ const UserROUTERS = () => {
         },
         {
             path: ROUTERS.REPAIRMAN.REPAIMAN_DASHBOARD,
-            component: <RepairmanDashboard/>,
+            component: <RepairmanDashboard />,
             layout: MasterLayoutUser,
         },
         {
@@ -164,7 +177,16 @@ const UserROUTERS = () => {
             component: <ManagePracticeCertificates />,
             layout: MasterLayoutAdmin,
         },
-
+        {
+            path: ROUTERS.ADMIN.MANAGE_NEW_FORUM_POST,
+            component: <ManageNewForumPost />,
+            layout: MasterLayoutAdmin,
+        },
+        {
+            path: ROUTERS.ADMIN.MANAGE_GUIDES,
+            component: <ManageGuides />,
+            layout: MasterLayoutAdmin,
+        },
     ];
 
     const authRoutes = [
@@ -216,6 +238,32 @@ const UserROUTERS = () => {
         // Add more auth routes here....
     ];
 
+    const forumRoutes = [
+        {
+            path: ROUTERS.FORUM.FORUM,
+            component: <Forum />,
+            layout: MasterLayoutMain,
+        },
+        {
+            path: ROUTERS.FORUM.POST_DETAIL,
+            component: <PostDetail />,
+            layout: MasterLayoutMain,
+        },
+    ];
+
+    const guideRoutes = [
+        {
+            path: ROUTERS.GUIDES.GUIDES,
+            component: <Guides />,
+            layout: MasterLayoutMain,
+        },
+        {
+            path: ROUTERS.GUIDES.GUIDE_DETAIL,
+            component: <GuideDetail />,
+            layout: MasterLayoutMain,
+        },
+    ];
+
     return (
         <Routes>
             {/* General Routes (with MasterLayout) */}
@@ -233,6 +281,22 @@ const UserROUTERS = () => {
                     key={index}
                     path={item.path}
                     element={item.component} // No layout for auth routes
+                />
+            ))}
+
+            {forumRoutes.map((item, index) => (
+                <Route
+                    key={index}
+                    path={item.path}
+                    element={<item.layout>{item.component}</item.layout>}
+                />
+            ))}
+
+            {guideRoutes.map((item, index) => (
+                <Route
+                    key={index}
+                    path={item.path}
+                    element={<item.layout>{item.component}</item.layout>}
                 />
             ))}
         </Routes>
