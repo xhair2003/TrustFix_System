@@ -205,6 +205,7 @@ app.set('io', io);
 // Require cron jobs, passing io
 require('./processors/checkCommentsForViolations')(app.get('io'));
 require('./processors/monthlyFeeProcessor')(app.get('io'));
+require('./processors/checkVipExperation')
 
 // Request logging middleware
 app.use((req, res, next) => {
