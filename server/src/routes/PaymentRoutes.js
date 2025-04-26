@@ -10,6 +10,8 @@ router.post("/callback", PaymentController.callbackPayOS);
 router.post("/paymentMOMO", AuthMiddleware.verifyToken, PaymentController.paymentMOMO);
 router.post("/callbackMOMO", PaymentController.callbackMOMO);
 
+router.post("/withdraw", AuthMiddleware.verifyToken,PaymentController.withdrawMomo);
+
 
 
 module.exports = router;

@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const axios = require('axios');
 const crypto = require('crypto');
-const { startSession } = require('../models/user');
+const {encryptDisbursementData} = require('../utils/encryptPublickey');
 
 
 const payos = new PayOS(
@@ -172,6 +172,8 @@ const paymentMOMO = async (req, res) => {
     const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=&ipnUrl=${ipnUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=${requestType}`;
     const signature = crypto.createHmac('sha256', secretKey).update(rawSignature).digest('hex');
 
+    
+
     const body = {
       partnerCode: partnerCode,
       partnerName: "Momo",
@@ -261,9 +263,132 @@ const callbackMOMO = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+// Hàm thực hiện disbursement
+const withdrawMomo = async (req, res) => {
+  const userId = req.user.id;
+  console.log("User ID:", userId); // Log User ID
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  let transactionCommitted = false;
+
+  try {
+    const { amount, walletMoMoId } = req.body;
+    console.log("Request Body:", req.body); // Log request body
+
+    // Kiểm tra các tham số đầu vào
+    if (!amount || !walletMoMoId) {
+      console.log("Validation Error: Missing required fields"); // Log validation error
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+    if (amount < 1000 || amount > 200000000) {
+      console.log("Validation Error: Invalid amount range"); // Log validation error
+      return res.status(400).json({ message: "Amount must be between 1,000 VND and 200,000,000 VND" });
+    }
+
+    // Lấy ví của người dùng
+    const wallet = await Wallet.findOne({ user_id: userId }).session(session);
+    console.log("Wallet:", wallet); // Log wallet details
+    if (!wallet) {
+      console.log("Error: Wallet not found"); // Log wallet not found
+      return res.status(404).json({ message: "Wallet not found" });
+    }
+    if (wallet.balance < amount) {
+      console.log("Error: Insufficient balance"); // Log insufficient balance
+      return res.status(400).json({ message: "Số dư không đủ để thực hiện giao dịch" });
+    }
+
+    // Thông tin cần thiết để gửi yêu cầu đến MoMo
+    const accessKey = 'F8BBA842ECF85';
+    const secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
+    const partnerCode = 'MOMO';
+    const apiUrl = "https://test-payment.momo.vn/v2/gateway/api/disbursement/pay";
+    const orderInfo = "Rút tiền về ví MoMo";
+    const ipnUrl = "https://example.com/api/callbackMOMO"; // Thay bằng URL callback thực tế
+    const requestType = "disburseToWallet";
+    const lang = "vi";
+    const extraData = "";
+
+    // Tạo orderId và requestId
+    const randomDigits = Math.floor(Math.random() * 1000000000).toString().padStart(9, '0');
+    const orderId = `MOMO${randomDigits}`;
+    const requestId = `${wallet._id.toString().slice(0, 20)}-${Date.now().toString().slice(-8)}`;
+    console.log("Generated Order ID:", orderId); // Log generated order ID
+    console.log("Generated Request ID:", requestId); // Log generated request ID
+
+    // Mã hóa disbursementMethod với walletMoMoId từ request
+    const encryptedData = encryptDisbursementData(partnerCode, walletMoMoId, amount, orderId);
+    console.log("Encrypted Data (disbursementMethod):", encryptedData); // Log encrypted data
+
+    // Tạo chữ ký (signature)
+    const rawSignature = `accessKey=${accessKey}&amount=${amount}&disbursementMethod=${encryptedData}&extraData=${extraData}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&requestId=${requestId}&requestType=${requestType}`;
+    const signature = crypto.createHmac('sha256', secretKey).update(rawSignature).digest('hex');
+    console.log("Raw Signature:", rawSignature); // Log raw signature
+    console.log("Generated Signature:", signature); // Log generated signature
+
+    // Tạo body gửi đến MoMo
+    const body = {
+      partnerCode: partnerCode,
+      orderId: orderId,
+      amount: amount,
+      requestId: requestId,
+      requestType: requestType,
+      disbursementMethod: encryptedData,
+      ipnUrl: ipnUrl,
+      extraData: extraData,
+      orderInfo: orderInfo,
+      lang: lang,
+      signature: signature,
+    };
+
+    console.log("Request Body Sent to MoMo:", JSON.stringify(body, null, 2)); // Log request body sent to MoMo
+
+    // Gửi yêu cầu đến MoMo API
+    const response = await axios.post(apiUrl, body, { timeout: 30000 });
+    console.log("Response from MoMo:", response.data); // Log response from MoMo
+
+    // Lưu giao dịch vào cơ sở dữ liệu
+    const saveTransaction = new Transaction({
+      wallet_id: wallet._id,
+      payCode: orderId,
+      amount: amount,
+      status: 0, // Trạng thái giao dịch ban đầu là chưa xử lý
+      transactionType: 'withdraw',
+      content: orderInfo,
+      balanceAfterTransact: wallet.balance - amount,
+    });
+    await saveTransaction.save({ session });
+    console.log("Transaction Saved:", saveTransaction); // Log saved transaction
+
+    // Cam kết giao dịch
+    await session.commitTransaction();
+    transactionCommitted = true;
+    console.log("Transaction Committed"); // Log transaction committed
+
+    return res.status(200).json({ message: "Yêu cầu rút tiền đã được gửi thành công!", response: response.data });
+  } catch (error) {
+    if (!transactionCommitted) {
+      await session.abortTransaction();
+      console.log("Transaction Aborted"); // Log transaction aborted
+    }
+    console.log("Error:", error.message); // Log error message
+    if (error.response) {
+      console.log("Error Response Data:", error.response.data); // Log error response data
+      console.log("Error Response Status:", error.response.status); // Log error response status
+      console.log("Error Response Headers:", error.response.headers); // Log error response headers
+    }
+    return res.status(500).json({ message: error.message });
+  } finally {
+    session.endSession();
+    console.log("Session Ended"); // Log session ended
+  }
+};
+
 module.exports = {
   payment,
   callbackPayOS,
   paymentMOMO,
-  callbackMOMO
+  callbackMOMO,
+  withdrawMomo
 };
