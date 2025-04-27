@@ -9,5 +9,13 @@ const CRON_TIME = {
   EVERY_YEAR: "0 0 1 1 *"             // Chạy vào ngày 1 tháng 1 hàng năm
 };
 
-module.exports = { MONTHLY_FEE, CRON_TIME };
+const PROHIBITED_PATTERNS = [
+  /\b(\d{10}|\d{3}-\d{3}-\d{4}|\d{3}\.\d{3}\.\d{4})\b/,
+  /(https?:\/\/[^\s]+)/i,
+  /\b(số nhà|đường|phố|quận|huyện|thành phố|tp\.|tỉnh)\b/i,
+  /\b(điện|fb|web|số điện thoại|số|điện thoại|sửa chữa|liên hệ|đặt lịch|thuê|ngoài hệ thống|chợ tốt|facebook|website)\b/i,
+];
+
+
+module.exports = { MONTHLY_FEE, CRON_TIME, PROHIBITED_PATTERNS };
 
