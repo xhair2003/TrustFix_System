@@ -8,12 +8,13 @@ import { logout } from '../../../store/actions/authActions';
 import './Header.css';
 import Loading from '../../../component/Loading/Loading';
 import Swal from "sweetalert2";
+import Chat from '../Chat/Chat';
 
 const Header = () => {
     const [activeIndex, setActiveIndex] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-    const [isActive, setIsActive] = useState(false); // Initialize as false until status is fetched
+    const [isActive, setIsActive] = useState(false);
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -28,15 +29,14 @@ const Header = () => {
     // Fetch repairman status and requests on component mount
     useEffect(() => {
         if (role === "repairman") {
-            dispatch(getStatusRepairman()); // Fetch initial status
-            //dispatch(viewRequest()); // Fetch requests
+            dispatch(getStatusRepairman());
         }
     }, [dispatch, role]);
 
     // Update isActive based on fetched status
     useEffect(() => {
         if (status !== null && status !== undefined) {
-            setIsActive(status !== 'Inactive'); // True nếu status không phải Inactive, False nếu là Inactive
+            setIsActive(status !== 'Inactive');
         }
     }, [status]);
 
@@ -60,7 +60,7 @@ const Header = () => {
                 showConfirmButton: false,
                 showCloseButton: false,
             }).then(() => {
-                dispatch(resetError()); // Reset error state
+                dispatch(resetError());
             });
         }
     }, [errorGetStatus, dispatch]);
@@ -77,7 +77,7 @@ const Header = () => {
                 showConfirmButton: false,
                 showCloseButton: false,
             }).then(() => {
-                dispatch(resetError()); // Reset error state
+                dispatch(resetError());
                 setIsActive(!isActive);
             });
         }
@@ -109,10 +109,9 @@ const Header = () => {
         }
     };
 
-    // Handle toggle status change
     const handleSwitchChange = () => {
         const newStatus = !isActive;
-        setIsActive(newStatus); // Optimistically update UI
+        setIsActive(newStatus);
         dispatch(toggleStatusRepairman());
     };
 
@@ -159,7 +158,6 @@ const Header = () => {
 
                 {isAuthenticated === true || isAuthenticated === 'true' ? (
                     <div className="header-buttons">
-                        {/* Switch for repairman */}
                         {role === "repairman" && (
                             <div className="switch-wrapper">
                                 <label className="switch">
@@ -167,7 +165,7 @@ const Header = () => {
                                         type="checkbox"
                                         checked={isActive}
                                         onChange={handleSwitchChange}
-                                        disabled={loading} // Disable during loading
+                                        disabled={loading}
                                     />
                                     <span className="slider"></span>
                                 </label>
@@ -177,40 +175,8 @@ const Header = () => {
                             </div>
                         )}
 
-                        {/* <div className="notification-wrapper">
-                            <FaBell className="icon" onClick={toggleNotificationDropdown} />
-                            {unreadCount > 0 && (
-                                <span className="notification-badge">{unreadCount}</span>
-                            )}
-                            {isNotificationOpen && (
-                                <div className="notification-dropdown">
-                                    {notifications.length > 0 ? (
-                                        notifications.map((notif) => (
-                                            <div key={notif._id} className="notification-item">
-                                                <p><strong>Có đơn hàng mới:</strong> {notif.description}</p>
-                                                <p><strong>Khu vực:</strong> {shortenAddress(notif.address)}</p>
-                                                <p><strong>Ngày:</strong> {formatDateTime(notif.createdAt)}</p>
-                                                <a
-                                                    onClick={() => {
-                                                        setIsNotificationOpen(false);
-                                                        navigate(`/repairman/detail-request/${notif._id}`, {
-                                                            state: { requestData: notif },
-                                                        });
-                                                    }}
-                                                    style={{ cursor: 'pointer' }}
-                                                >
-                                                    Xem chi tiết ngay!
-                                                </a>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p>Không có thông báo mới.</p>
-                                    )}
-                                </div>
-                            )}
-                        </div> */}
-
                         <div className="divider"></div>
+                        <Chat role={role} />
                         <FaUser className="user-icon" onClick={toggleDropdown} />
                         {isDropdownOpen && (
                             <div className="dropdown-menu">
