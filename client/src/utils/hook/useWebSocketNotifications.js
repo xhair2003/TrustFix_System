@@ -16,7 +16,7 @@ const useWebSocketNotifications = () => {
 
         // Hàm xử lý sự kiện newRequest
         const handleNewRequest = () => {
-            console.log('New request received via WebSocket for user:', userId);
+            //console.log('New request received via WebSocket for user:', userId);
             dispatch(viewRequest()); // Re-fetch dữ liệu viewRequest
             // Uncomment để hiển thị thông báo cho người dùng
             // Swal.fire({
@@ -35,7 +35,7 @@ const useWebSocketNotifications = () => {
         } else {
             console.warn('Socket not connected yet. Waiting for connection...');
             const onConnect = () => {
-                console.log('WebSocket connected:', socket.id);
+                //console.log('WebSocket connected:', socket.id);
                 socket.on('newRequest', handleNewRequest);
             };
             socket.on('connect', onConnect);

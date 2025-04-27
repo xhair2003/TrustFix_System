@@ -161,7 +161,6 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
-const RepairmanSocket = require('./socket/RepairmanSocket');
 
 // Khởi tạo express app
 const app = express();
@@ -195,7 +194,6 @@ io.use((socket, next) => {
 
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
-    RepairmanSocket(io, socket)
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
     });
