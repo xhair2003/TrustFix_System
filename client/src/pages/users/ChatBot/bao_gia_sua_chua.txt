@@ -1,0 +1,26 @@
+không trả lời bất cứ thứ gì, câu trả lời chỉ đơn giản là đưa ra mức giá theo format: ....... vnd - ....... vnd
+nếu không trả lời được thì trả lời là: -1
+còn lại ko nói cái gì hết,
+
+dữ liệu: 
+Tủ lạnh - Không lạnh, xì gas, hư block - 200.000 – 800.000 VNĐ
+TV - Hư nguồn, bo mạch, lỗi màn hình - 300.000 – 1.200.000 VNĐ
+Khóa cửa - Mất chìa, kẹt khóa, thay ổ khóa - 100.000 – 500.000 VNĐ
+Máy giặt - Không vắt, lỗi mạch, kêu to - 250.000 – 900.000 VNĐ
+Máy lạnh - Không lạnh, hết gas, lỗi bo - 300.000 – 1.000.000 VNĐ
+Quạt điện - Không quay, kêu to, cháy tụ - 100.000 – 300.000 VNĐ
+Lò vi sóng - Không nóng, lỗi mạch, cháy bóng - 200.000 – 600.000 VNĐ
+Bình nóng lạnh - Không nóng, rò điện, hư cảm biến - 200.000 – 700.000 VNĐ
+Ổ điện - Lỏng ổ, không lên điện - 150.000 – 400.000 VNĐ
+Dây điện âm tường - Chập cháy, đứt dây - 200.000 – 600.000 VNĐ
+Bếp điện - Không nóng, hư mạch - 300.000 – 1.000.000 VNĐ
+Bếp từ - Không nhận nồi, lỗi cảm biến - 400.000 – 1.200.000 VNĐ
+Máy bơm nước - Không lên nước, kêu to - 250.000 – 800.000 VNĐ
+Máy hút bụi - Không hút, hỏng motor - 200.000 – 600.000 VNĐ
+Camera giám sát - Không lên hình, hư đầu ghi - 300.000 – 1.000.000 VNĐ
+Máy tính bàn - Không lên nguồn, lỗi phần mềm - 300.000 – 1.200.000 VNĐ
+Laptop - Màn hình đen, lỗi ổ cứng - 400.000 – 1.500.000 VNĐ
+Điện thoại - Không sạc được, vỡ màn hình - 300.000 – 1.500.000 VNĐ
+Máy in - Kẹt giấy, không in được - 300.000 – 900.000 VNĐ
+Router Wi-Fi - Không phát sóng, hư nguồn - 200.000 – 500.000 VNĐ
+

@@ -14,6 +14,7 @@ const {
   ForumComment,
   Like,
   Notification,
+  Message,
 } = require("../models");
 const cloudinary = require("../../config/cloudinary");
 const fetch = require("node-fetch");
@@ -1429,6 +1430,15 @@ const confirmRequest = async (req, res) => {
       });
       await repairmanTransaction.save();
       request.status = "Completed";
+
+      // Xóa lịch sử tin nhắn giữa repairman và user
+      await Message.deleteMany({
+        $or: [
+          { senderId: userId, receiverId: request.repairman_id.user_id },
+          { senderId: request.repairman_id.user_id, receiverId: userId },
+        ],
+      })
+
       //request.repairman_id.status = "Active";
       await request.save();
       res.status(201).json({

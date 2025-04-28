@@ -1,4 +1,3 @@
-// cần thêm thanh toán cho đơn hàng nào nữa trong xem chi tiết bằng 
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./ViewPaymentHistory.css";
