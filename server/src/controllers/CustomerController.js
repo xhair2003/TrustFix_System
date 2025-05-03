@@ -665,7 +665,7 @@ const sendRequest = async (req, res, next) => {
 const findRepairman = async (req, res) => {
   try {
     const userId = req.user.id; // Lấy từ middleware verifyToken
-    const io = req.app.get("io"); // Lấy io từ app (sẽ cấu hình trong index.js)
+    const io = req.app.get('io'); // Lấy io từ app (sẽ cấu hình trong index.js)
     const requestId = req.savedRequest.requestId;
     const { radius, minPrice, maxPrice } = req.body; // Get radius from request parameters
     const gomapApiKey = process.env.GOMAPS_API_KEY;
@@ -710,22 +710,12 @@ const findRepairman = async (req, res) => {
       serviceIndustry_id: originalRequest.serviceIndustry_id,
       user_id: { $ne: userId }, // Đảm bảo user_id khác với userId
     });
+    const repairmanUserIds = repairmanUpgradeRequests.map(
+      (request) => request.user_id
+    );
 
-    // Separate repairmen with VIP ID and those without
-    const vipRepairmen = [];
-    const nonVipRepairmen = [];
-
-    for (const request of repairmanUpgradeRequests) {
-      if (request.vip_id) {
-        vipRepairmen.push(request.user_id);
-      } else {
-        nonVipRepairmen.push(request.user_id);
-      }
-    }
-
-    // Process VIP repairmen immediately
     const repairmenUsers = await User.find({
-      _id: { $in: vipRepairmen },
+      _id: { $in: repairmanUserIds },
     });
 
     if (!repairmenUsers || repairmenUsers.length === 0) {
@@ -733,14 +723,14 @@ const findRepairman = async (req, res) => {
       return res.status(400).json({
         EC: 0,
         EM: `Không tìm thấy thợ sửa chữa nào trong khu vực bán kính ${radius}km!`,
+
       });
     }
 
     const nearbyRepairmen = [];
 
     for (const repairman of repairmenUsers) {
-      if (repairman.address) {
-        // Bỏ qua chính mình
+      if (repairman.address) { // Bỏ qua chính mình
         const gomapApiUrl = `https://maps.gomaps.pro/maps/api/distancematrix/json?destinations=${encodeURIComponent(
           repairman.address
         )}&origins=${encodeURIComponent(address)}&key=${gomapApiKey}`;
@@ -782,61 +772,6 @@ const findRepairman = async (req, res) => {
         }
       }
     }
-
-    // Delay processing for non-VIP repairmen by 1 minute
-    setTimeout(async () => {
-      const nonVipRepairmenUsers = await User.find({
-        _id: { $in: nonVipRepairmen },
-      });
-
-      for (const repairman of nonVipRepairmenUsers) {
-        if (repairman.address) {
-          const gomapApiUrl = `https://maps.gomaps.pro/maps/api/distancematrix/json?destinations=${encodeURIComponent(
-            repairman.address
-          )}&origins=${encodeURIComponent(address)}&key=${gomapApiKey}`;
-
-          try {
-            const gomapResponse = await fetch(gomapApiUrl);
-            const gomapData = await gomapResponse.json();
-
-            if (
-              gomapData.status === "OK" &&
-              gomapData.rows[0].elements[0].status === "OK"
-            ) {
-              const distanceValue = gomapData.rows[0].elements[0].distance.value;
-
-              if (distanceValue <= radius * 1000) {
-                nearbyRepairmen.push({
-                  _id: repairman._id,
-                  firstName: repairman.firstName,
-                  lastName: repairman.lastName,
-                  email: repairman.email,
-                  phone: repairman.phone,
-                  address: repairman.address,
-                  distance: gomapData.rows[0].elements[0].distance.text,
-                  duration: gomapData.rows[0].elements[0].duration.text,
-                });
-              }
-            } else {
-              console.warn(
-                `GoMap API error for repairman ${repairman._id}: ${gomapData.status
-                } - ${gomapData.error_message || gomapData.rows[0].elements[0].status
-                }`
-              );
-            }
-          } catch (error) {
-            console.error(
-              `Error calling GoMap API for repairman ${repairman._id}:`,
-              error
-            );
-          }
-        }
-      }
-
-      // Continue with the rest of the logic for non-VIP repairmen
-      // This part can be similar to the VIP processing logic
-
-    }, 60000); // 1 minute delay
 
     let assignedRepairman = null;
     const newRequestsForRepairmen = []; // Change to array to store multiple requests
@@ -894,11 +829,8 @@ const findRepairman = async (req, res) => {
         }
 
         // Gửi thông báo WebSocket tới thợ (không gửi dữ liệu chi tiết)
-        console.log(
-          "Sending newRequest to repairman:",
-          repairman._id.toString()
-        );
-        io.to(repairman._id.toString()).emit("newRequest");
+        console.log('Sending newRequest to repairman:', repairman._id.toString());
+        io.to(repairman._id.toString()).emit('newRequest');
       }
     }
     const newDuePrice = new DuePrice({
