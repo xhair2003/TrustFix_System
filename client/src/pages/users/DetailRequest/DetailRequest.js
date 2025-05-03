@@ -23,7 +23,7 @@ const DetailRequest = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [hasNewMessage, setHasNewMessage] = useState(false); // State theo dõi tin nhắn mới
-  //console.log("requestData", requestData);
+  //console.log("messages", messages);
 
   const storedDealPrices = JSON.parse(localStorage.getItem("deal_prices") || "{}");
   const storedDealPrice = storedDealPrices[requestData.parentRequest];
@@ -182,6 +182,7 @@ const DetailRequest = () => {
   const handleCloseChat = () => {
     setIsChatOpen(false);
     setNewMessage('');
+    dispatch({ type: 'RESET_MESSAGES' }); // Thêm action để reset messages trong store
   };
 
   const handleSendMessage = () => {
@@ -215,11 +216,11 @@ const DetailRequest = () => {
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`chat-message ${msg.senderId === user_id ? 'chat-message-self' : 'chat-message-opponent'
+                className={`chat-message ${msg.senderId?.id === user_id ? 'chat-message-self' : 'chat-message-opponent'
                   }`}
               >
                 <p>
-                  <strong>{msg.senderId === user_id ? 'Bạn' : 'Khách hàng'}:</strong> {msg.message}
+                  <strong>{msg.senderId?.id === user_id ? 'Bạn' : 'Khách hàng'}:</strong> {msg.message}
                 </p>
                 <span className="chat-timestamp">
                   {new Date(msg.timestamp).toLocaleTimeString('vi-VN')}

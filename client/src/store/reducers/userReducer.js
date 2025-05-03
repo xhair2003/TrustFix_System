@@ -296,12 +296,12 @@ const userReducer = (state = initialState, action) => {
         case "FIND_REPAIRMAN_REQUEST":
             return {
                 ...state,
-                //loading: true,
+                loading: true,
             };
         case "FIND_REPAIRMAN_SUCCESS":
             return {
                 ...state,
-                //loading: false,
+                loading: false,
                 requestId: action.payload.requestId, // Lưu dữ liệu từ BE
                 successFindRepairman: action.payload.message, // Lưu dữ liệu từ BE (VD: { EC: 1, EM: "Gửi yêu cầu thành công!" })
                 errorFindRepairman: null,
@@ -309,7 +309,7 @@ const userReducer = (state = initialState, action) => {
         case "FIND_REPAIRMAN_FAIL":
             return {
                 ...state,
-                //loading: false,
+                loading: false,
                 successFindRepairman: null,
                 requestId: null,
                 errorFindRepairman: action.payload, // Lưu thông báo lỗi

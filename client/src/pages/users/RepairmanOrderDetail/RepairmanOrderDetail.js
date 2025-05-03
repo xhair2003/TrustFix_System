@@ -166,10 +166,10 @@ const RepairmanOrderDetail = () => {
                         {messages.map((msg, index) => (
                             <div
                                 key={index}
-                                className={`chat-message ${msg.senderId === user_id ? 'chat-message-self' : 'chat-message-opponent'}`}
+                                className={`chat-message ${msg.senderId?.id === user_id ? 'chat-message-self' : 'chat-message-opponent'}`}
                             >
                                 <p>
-                                    <strong>{msg.senderId === user_id ? 'Bạn' : 'Khách hàng'}:</strong> {msg.message}
+                                    <strong>{msg.senderId?.id === user_id ? 'Bạn' : 'Khách hàng'}:</strong> {msg.message}
                                 </p>
                                 <span className="chat-timestamp">
                                     {new Date(msg.timestamp).toLocaleTimeString('vi-VN')}
