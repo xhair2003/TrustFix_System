@@ -252,6 +252,8 @@ const customerRoutes = require('./routes/CustomerRoutes');
 app.use('/api/customer', customerRoutes);
 const paymentRoutes = require('./routes/PaymentRoutes');
 app.use('/api', paymentRoutes);
+const chatRoutes = require('./routes/MessageRoutes');
+app.use('/api/chat', chatRoutes);
 
 // Test route at root level
 app.get('/', (req, res) => {

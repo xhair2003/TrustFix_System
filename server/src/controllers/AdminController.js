@@ -3048,7 +3048,7 @@ const checkVipExpiration = async (req, res) => {
     }
   };
 
-  const checkVipExpirationAndSendEmails = async () => {
+const checkVipExpirationAndSendEmails = async () => {
     try {
       const currentDate = new Date();
   
