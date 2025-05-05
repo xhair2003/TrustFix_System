@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 import socket from '../../../socket';
 import './Chat.css';
 
-const Chat = ({ role }) => {
+const Chat = () => {
     const dispatch = useDispatch();
     const { messages, loading: loadingMessage, error: errorMessage } = useSelector((state) => state.message);
     const user_id = localStorage.getItem('user_id'); // ID của khách hàng
@@ -157,7 +157,8 @@ const Chat = ({ role }) => {
     const handleSendMessage = (e) => {
         e.preventDefault();
         if (messageInput.trim() && selectedChat) {
-            dispatch(sendMessage(selectedChat.id, messageInput));
+            dispatch(sendMessage(selectedChat.id, messageInput, user_id));
+            console.log('selectedChat:', selectedChat);
             setMessageInput('');
             // Cập nhật lastMessage và timestamp trong chatList
             setChatList((prevChats) =>

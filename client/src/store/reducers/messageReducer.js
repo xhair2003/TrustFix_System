@@ -53,6 +53,15 @@ export default function chatReducer(state = initialState, action) {
         case "RESET_ERROR":
             return { ...state, error: null };
 
+        case 'RESET_MESSAGES':
+            return {
+                ...state,
+                messages: [],
+                loading: false,
+                error: null,
+            };
+
+
         default:
             return state;
     }
