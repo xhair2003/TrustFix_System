@@ -19,15 +19,13 @@
 //   const dispatch = useDispatch();
 //   const { repairman, request } = location.state || {};
 
-//   const { loading, successConfirmRequest, errorConfirmRequest, requestStatus } = useSelector(
+//   //console.log("repairman", repairman);
+
+//   const { loading, successConfirmRequest, errorConfirmRequest, requestStatus, errorRequestStatus } = useSelector(
 //     (state) => state.user
 //   );
 
-//   //console.log("requestStatus", requestStatus);
-
-//   const [isCompleted, setIsCompleted] = useState(false);
 //   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
-//   const [canConfirm, setCanConfirm] = useState(false);
 
 //   useEffect(() => {
 //     if (!request) {
@@ -35,13 +33,11 @@
 //       return;
 //     }
 
+//     // Fetch trạng thái request khi component mount
 //     dispatch(fetchRequestStatus(request.parentRequest));
 
-//     // Lắng nghe sự kiện từ server
 //     const handleRepairmanConfirmedCompletion = (data) => {
-//       //console.log('Received repairmanConfirmedCompletion event:', data);
 //       if (data.requestId === request.parentRequest) {
-//         setCanConfirm(true);
 //         Swal.fire({
 //           title: "Thông báo",
 //           icon: "info",
@@ -50,13 +46,12 @@
 //           timer: 5000,
 //           timerProgressBar: true,
 //         });
-//       }
-//       else {
+//         dispatch(fetchRequestStatus(request.parentRequest)); // Cập nhật lại requestStatus
+//       } else {
 //         console.warn('Received event for wrong requestId:', data.requestId);
 //       }
 //     };
 
-//     // Đảm bảo socket đã kết nối
 //     if (socket.connected) {
 //       socket.on("repairmanConfirmedCompletion", handleRepairmanConfirmedCompletion);
 //     } else {
@@ -65,43 +60,35 @@
 //         socket.on("repairmanConfirmedCompletion", handleRepairmanConfirmedCompletion);
 //       };
 //       socket.on('connect', onConnect);
-
-//       // Cleanup nếu socket kết nối sau khi component unmount
 //       return () => {
-//         if (socket.connected) {
-//           socket.off("repairmanConfirmedCompletion", handleRepairmanConfirmedCompletion);
-//         }
 //         socket.off('connect', onConnect);
 //       };
 //     }
 
-//     // Cleanup khi component unmount
 //     return () => {
 //       socket.off("repairmanConfirmedCompletion", handleRepairmanConfirmedCompletion);
 //     };
 //   }, [request, dispatch]);
 
-//   // Check initial status 
+//   // Handle success/error from API
 //   useEffect(() => {
-//     console.log("Current requestStatus:", requestStatus);
-//     if (requestStatus === 'Repairman confirmed completion') {
-//       setCanConfirm(true);
+//     if (errorRequestStatus) {
 //       Swal.fire({
-//         title: "Thông báo",
-//         icon: "info",
-//         text: "Thợ sửa chữa đã xác nhận hoàn thành. Vui lòng xác nhận để hoàn tất.",
+//         title: "Lỗi",
+//         icon: "error",
+//         text: errorRequestStatus,
 //         showConfirmButton: false,
 //         timer: 5000,
 //         timerProgressBar: true,
+//       }).then(() => {
+//         dispatch(resetError());
 //       });
 //     }
-//   }, [requestStatus]);
+//   }, [errorRequestStatus, dispatch]);
 
 //   // Handle success/error from API
 //   useEffect(() => {
 //     if (successConfirmRequest) {
-//       setIsCompleted(true);
-//       setCanConfirm(false);
 //       Swal.fire({
 //         title: "Thành công",
 //         icon: "success",
@@ -111,7 +98,7 @@
 //         timerProgressBar: true,
 //       }).then(() => {
 //         dispatch(resetSuccess());
-//         dispatch(fetchRequestStatus(request.parentRequest));
+//         dispatch(fetchRequestStatus(request.parentRequest)); // Cập nhật lại trạng thái
 //       });
 //     }
 //   }, [successConfirmRequest, dispatch, request]);
@@ -131,12 +118,16 @@
 //     }
 //   }, [errorConfirmRequest, dispatch]);
 
+//   // useEffect(() => {
+//   //   console.log("Current requestStatus:", requestStatus);
+//   //   console.log("request:", request);
+//   // }, [requestStatus, request]);
+
 //   const handleComplain = () => {
 //     navigate("/complain", { state: { request, repairman } });
 //   };
 
 //   const handleConfirmCompletion = () => {
-//     // Không cần kiểm tra canConfirm nữa vì nút chỉ hiển thị khi canConfirm = true
 //     dispatch(confirmRequest("Completed")).then(() => {
 //       dispatch(fetchRequestStatus(request.parentRequest)); // Cập nhật requestStatus
 //     });
@@ -163,6 +154,20 @@
 //       </div>
 
 //       <div className="order-detail-content">
+//         <div className="section customer-info">
+//           <h2 className="section-title">Thông tin thợ sửa chữa</h2>
+//           <div className="customer-header">
+//             {repairman.profileImage && (
+//               <img src={repairman.profileImage} alt={repairman.fullName} className="customer-avatar" />
+//             )}
+//             <div className="customer-details">
+//               <h3 className="customer-name">{repairman.fullName}</h3>
+//               <p className="customer-email">Email: {repairman.email || "Không có"}</p>
+//               <p className="customer-phone">Số điện thoại: {repairman.phone || "Không có"}</p>
+//             </div>
+//           </div>
+//         </div>
+
 //         <div className="section order-info">
 //           <h2 className="section-title">Thông tin đơn hàng</h2>
 //           <div className="info-item">
@@ -181,16 +186,16 @@
 //             <span className="info-label">Trạng thái:</span>
 //             <span className="info-value">
 //               {
-//                 request.status === "Completed" ? "Đã hoàn thành" :
-//                   request.status === "Confirmed" ? "Đã xác nhận" :
-//                     request.status === "Pending" ? "Đang chờ xử lý" :
-//                       request.status === "Cancelled" ? "Đã hủy" :
-//                         request.status === "Requesting Details" ? "Yêu cầu chi tiết" :
-//                           request.status === "Deal price" ? "Thỏa thuận giá" :
-//                             request.status === "Done deal price" ? "Đã chốt giá" :
-//                               request.status === "Make payment" ? "Chờ thanh toán" :
-//                                 request.status === "Repairman confirmed completion" ? "Thợ xác nhận hoàn thành" :
-//                                   request.status === "Proceed with repair" ? "Tiến hành sửa chữa" :
+//                 requestStatus === "Completed" ? "Đã hoàn thành" :
+//                   requestStatus === "Confirmed" ? "Đã xác nhận" :
+//                     requestStatus === "Pending" ? "Đang chờ xử lý" :
+//                       requestStatus === "Cancelled" ? "Đã hủy" :
+//                         requestStatus === "Requesting Details" ? "Yêu cầu chi tiết" :
+//                           requestStatus === "Deal price" ? "Thỏa thuận giá" :
+//                             requestStatus === "Done deal price" ? "Đã chốt giá" :
+//                               requestStatus === "Make payment" ? "Chờ thanh toán" :
+//                                 requestStatus === "Repairman confirmed completion" ? "Thợ xác nhận hoàn thành" :
+//                                   requestStatus === "Proceed with repair" ? "Tiến hành sửa chữa" :
 //                                     "Trạng thái không xác định"
 //               }
 //             </span>
@@ -216,84 +221,7 @@
 //           )}
 //         </div>
 
-//         <div className="section repairman-info">
-//           <h2 className="section-title">Thông tin thợ sửa chữa</h2>
-//           <div className="repairman-header">
-//             {repairman.profileImage && (
-//               <img
-//                 src={repairman.profileImage}
-//                 alt={repairman.fullName}
-//                 className="repairman-avatar"
-//               />
-//             )}
-//             <div className="repairman-details">
-//               <h3 className="repairman-name">{repairman.fullName}</h3>
-//               <p className="repairman-description">{repairman.description}</p>
-//             </div>
-//           </div>
-//           <div className="info-item">
-//             <span className="info-label">Email:</span>
-//             <span className="info-value">
-//               {repairman.email || "Không có thông tin"}
-//             </span>
-//           </div>
-//           <div className="info-item">
-//             <span className="info-label">Số điện thoại:</span>
-//             <span className="info-value">
-//               {repairman.phone || "Không có thông tin"}
-//             </span>
-//           </div>
-//           <div className="info-item">
-//             <span className="info-label">Số tiền thanh toán:</span>
-//             <span className="info-value">
-//               {repairman.dealPrice?.toLocaleString("vi-VN") || "Chưa có"} VNĐ
-//             </span>
-//           </div>
-//           <div className="info-item">
-//             <span className="info-label">Số đơn đã nhận:</span>
-//             <span className="info-value">{repairman.bookingCount || 0}</span>
-//           </div>
-//           {repairman.certificationImages?.length > 0 && (
-//             <div className="info-item">
-//               <span className="info-label">Chứng chỉ:</span>
-//               <div className="certification-gallery">
-//                 {repairman.certificationImages.map((image, index) => (
-//                   <img
-//                     key={index}
-//                     src={image}
-//                     alt={`Certification ${index + 1}`}
-//                     className="certification-image"
-//                   />
-//                 ))}
-//               </div>
-//             </div>
-//           )}
-//         </div>
-
-//         {repairman.reviews?.length > 0 && (
-//           <div className="section reviews-section">
-//             <h2 className="section-title">Đánh giá từ khách hàng</h2>
-//             {repairman.reviews.map((review, index) => (
-//               <div key={index} className="review-item">
-//                 <div className="review-header">
-//                   <span className="reviewer-name">{review.reviewerName}</span>
-//                   <span className="review-date">{new Date(review.date).toLocaleDateString('vi-VN')}</span>
-//                 </div>
-//                 <div className="review-rating">
-//                   {[...Array(5)].map((_, i) => (
-//                     <span
-//                       key={i}
-//                       className={`star ${i < review.rating ? "filled" : ""}`}
-//                     >
-//                       ★
-//                     </span>
-//                   ))}
-//                 </div>
-//                 <p className="review-comment">{review.comment}</p>
-//               </div>
-//             ))}
-//           </div>
-//         )}
+//         {/* Các section khác giữ nguyên */}
 //       </div>
 
 //       <div className="action-buttons">
@@ -304,7 +232,7 @@
 //         >
 //           Khiếu nại
 //         </button>
-//         {isCompleted ? (
+//         {requestStatus === "Completed" ? (
 //           <button
 //             className="rate-btn"
 //             onClick={handleOpenRatingModal}
@@ -312,16 +240,15 @@
 //           >
 //             Đánh giá thợ
 //           </button>
-//         )
-//           : (
-//             <button
-//               className={canConfirm ? "confirm-button active" : "confirm-button disabled"}
-//               onClick={handleConfirmCompletion}
-//               disabled={loading || !canConfirm}
-//             >
-//               Xác nhận thợ đã sửa xong
-//             </button>
-//           )}
+//         ) : requestStatus === "Repairman confirmed completion" ? (
+//           <button
+//             className="confirm-button active"
+//             onClick={handleConfirmCompletion}
+//             disabled={loading}
+//           >
+//             Xác nhận thợ đã sửa xong
+//           </button>
+//         ) : null}
 //       </div>
 
 //       <RatingModal
@@ -348,6 +275,7 @@ import {
   resetError,
   resetSuccess,
 } from "../../../store/actions/userActions";
+import { getChatHistory, sendMessage, resetErrorMessage } from "../../../store/actions/messageActions";
 import Loading from "../../../component/Loading/Loading";
 import Swal from "sweetalert2";
 import socket from "../../../socket";
@@ -358,11 +286,18 @@ const OrderDetail = () => {
   const dispatch = useDispatch();
   const { repairman, request } = location.state || {};
 
+  //console.log("repairman", repairman);
+
   const { loading, successConfirmRequest, errorConfirmRequest, requestStatus, errorRequestStatus } = useSelector(
     (state) => state.user
   );
+  const { loading: loadingMessage, error: errorMessage, messages } = useSelector((state) => state.message);
 
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false); // State cho form chat
+  const [newMessage, setNewMessage] = useState(''); // State cho tin nhắn nhập
+  const [hasNewMessage, setHasNewMessage] = useState(false); // State cho tin nhắn mới
+  const user_id = localStorage.getItem("user_id"); // ID của khách hàng
 
   useEffect(() => {
     if (!request) {
@@ -383,18 +318,28 @@ const OrderDetail = () => {
           timer: 5000,
           timerProgressBar: true,
         });
-        dispatch(fetchRequestStatus(request.parentRequest)); // Cập nhật lại requestStatus
+        dispatch(fetchRequestStatus(request.parentRequest));
       } else {
         console.warn('Received event for wrong requestId:', data.requestId);
       }
     };
 
+    const handleReceiveMessage = (message) => {
+      // Kiểm tra tin nhắn từ thợ và không phải từ khách
+      if (message.senderId === repairman.repairmanId && message.senderId !== user_id) {
+        setHasNewMessage(true);
+      }
+      dispatch(getChatHistory(repairman.repairmanId));
+    };
+
     if (socket.connected) {
       socket.on("repairmanConfirmedCompletion", handleRepairmanConfirmedCompletion);
+      socket.on("receiveMessage", handleReceiveMessage);
     } else {
       console.warn('Socket not connected yet. Waiting...');
       const onConnect = () => {
         socket.on("repairmanConfirmedCompletion", handleRepairmanConfirmedCompletion);
+        socket.on("receiveMessage", handleReceiveMessage);
       };
       socket.on('connect', onConnect);
       return () => {
@@ -404,10 +349,11 @@ const OrderDetail = () => {
 
     return () => {
       socket.off("repairmanConfirmedCompletion", handleRepairmanConfirmedCompletion);
+      socket.off("receiveMessage", handleReceiveMessage);
     };
-  }, [request, dispatch]);
+  }, [request, dispatch, repairman, user_id]);
 
-  // Handle success/error from API
+  // Xử lý lỗi request status
   useEffect(() => {
     if (errorRequestStatus) {
       Swal.fire({
@@ -423,7 +369,7 @@ const OrderDetail = () => {
     }
   }, [errorRequestStatus, dispatch]);
 
-  // Handle success/error from API
+  // Xử lý thành công xác nhận
   useEffect(() => {
     if (successConfirmRequest) {
       Swal.fire({
@@ -435,11 +381,12 @@ const OrderDetail = () => {
         timerProgressBar: true,
       }).then(() => {
         dispatch(resetSuccess());
-        dispatch(fetchRequestStatus(request.parentRequest)); // Cập nhật lại trạng thái
+        dispatch(fetchRequestStatus(request.parentRequest));
       });
     }
   }, [successConfirmRequest, dispatch, request]);
 
+  // Xử lý lỗi xác nhận
   useEffect(() => {
     if (errorConfirmRequest) {
       Swal.fire({
@@ -455,10 +402,19 @@ const OrderDetail = () => {
     }
   }, [errorConfirmRequest, dispatch]);
 
-  // useEffect(() => {
-  //   console.log("Current requestStatus:", requestStatus);
-  //   console.log("request:", request);
-  // }, [requestStatus, request]);
+  // Xử lý lỗi tin nhắn
+  useEffect(() => {
+    if (errorMessage) {
+      Swal.fire({
+        title: "Lỗi",
+        text: errorMessage,
+        icon: "error",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+      dispatch(resetErrorMessage());
+    }
+  }, [errorMessage, dispatch]);
 
   const handleComplain = () => {
     navigate("/complain", { state: { request, repairman } });
@@ -466,12 +422,38 @@ const OrderDetail = () => {
 
   const handleConfirmCompletion = () => {
     dispatch(confirmRequest("Completed")).then(() => {
-      dispatch(fetchRequestStatus(request.parentRequest)); // Cập nhật requestStatus
+      dispatch(fetchRequestStatus(request.parentRequest));
     });
   };
 
   const handleOpenRatingModal = () => {
     setIsRatingModalOpen(true);
+  };
+
+  const handleOpenChat = () => {
+    setIsChatOpen(true);
+    setHasNewMessage(false); // Xóa chấm đỏ khi mở chat
+    dispatch(getChatHistory(repairman.repairmanId));
+  };
+
+  const handleCloseChat = () => {
+    setIsChatOpen(false);
+    setNewMessage('');
+  };
+
+  const handleSendMessage = () => {
+    if (!newMessage.trim()) {
+      Swal.fire({
+        title: 'Lỗi',
+        text: 'Tin nhắn không được để trống!',
+        icon: 'error',
+        timer: 3000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+    dispatch(sendMessage(repairman.repairmanId, newMessage, user_id));
+    setNewMessage('');
   };
 
   if (!repairman || !request) {
@@ -482,6 +464,45 @@ const OrderDetail = () => {
 
   return (
     <div className="order-detail-container">
+      {isChatOpen && (
+        <div className="chat-window">
+          <div className="chat-header">
+            <h3>Chat với thợ #{repairman.repairmanId.slice(-6)}</h3>
+            <button onClick={handleCloseChat} className="chat-close-button">✖</button>
+          </div>
+          <div className="chat-messages">
+            {loadingMessage && <p>Đang tải tin nhắn...</p>}
+            {messages.length === 0 && !loadingMessage && <p>Chưa có tin nhắn.</p>}
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`chat-message ${msg.senderId === user_id ? 'chat-message-self' : 'chat-message-opponent'}`}
+              >
+                <p>
+                  <strong>{msg.senderId === user_id ? 'Bạn' : 'Thợ'}:</strong> {msg.message}
+                </p>
+                <span className="chat-timestamp">
+                  {new Date(msg.timestamp).toLocaleTimeString('vi-VN')}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="chat-input-group">
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Nhập tin nhắn..."
+              className="chat-input"
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            />
+            <button onClick={handleSendMessage} className="chat-send-button">
+              Gửi
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="notification-banner">
         <p>
           Thợ <strong>{repairman.fullName}</strong> đã tiếp nhận đầy đủ thông
@@ -491,7 +512,20 @@ const OrderDetail = () => {
       </div>
 
       <div className="order-detail-content">
-        {/* Các section thông tin giữ nguyên */}
+        <div className="section customer-info">
+          <h2 className="section-title">Thông tin thợ sửa chữa</h2>
+          <div className="customer-header">
+            {repairman.profileImage && (
+              <img src={repairman.profileImage} alt={repairman.fullName} className="customer-avatar" />
+            )}
+            <div className="customer-details">
+              <h3 className="customer-name">{repairman.fullName}</h3>
+              <p className="customer-email">Email: {repairman.email || "Không có"}</p>
+              <p className="customer-phone">Số điện thoại: {repairman.phone || "Không có"}</p>
+            </div>
+          </div>
+        </div>
+
         <div className="section order-info">
           <h2 className="section-title">Thông tin đơn hàng</h2>
           <div className="info-item">
@@ -544,8 +578,6 @@ const OrderDetail = () => {
             </div>
           )}
         </div>
-
-        {/* Các section khác giữ nguyên */}
       </div>
 
       <div className="action-buttons">
@@ -556,6 +588,15 @@ const OrderDetail = () => {
         >
           Khiếu nại
         </button>
+        {requestStatus !== "Repairman confirmed completion" && requestStatus !== "Completed" && (
+          <button
+            className={`chat-button ${hasNewMessage ? 'has-new-message' : ''}`}
+            onClick={handleOpenChat}
+            disabled={loading}
+          >
+            <span role="img" aria-label="chat">💬</span> Nhắn tin với thợ
+          </button>
+        )}
         {requestStatus === "Completed" ? (
           <button
             className="rate-btn"

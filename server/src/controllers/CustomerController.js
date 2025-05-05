@@ -14,6 +14,7 @@ const {
   ForumComment,
   Like,
   Notification,
+  Message,
 } = require("../models");
 const cloudinary = require("../../config/cloudinary");
 const fetch = require("node-fetch");
@@ -709,12 +710,22 @@ const findRepairman = async (req, res) => {
       serviceIndustry_id: originalRequest.serviceIndustry_id,
       user_id: { $ne: userId }, // Đảm bảo user_id khác với userId
     });
-    const repairmanUserIds = repairmanUpgradeRequests.map(
-      (request) => request.user_id
-    );
 
+    // Separate repairmen with VIP ID and those without
+    const vipRepairmen = [];
+    const nonVipRepairmen = [];
+
+    for (const request of repairmanUpgradeRequests) {
+      if (request.vip_id) {
+        vipRepairmen.push(request.user_id);
+      } else {
+        nonVipRepairmen.push(request.user_id);
+      }
+    }
+
+    // Process VIP repairmen immediately
     const repairmenUsers = await User.find({
-      _id: { $in: repairmanUserIds },
+      _id: { $in: vipRepairmen },
     });
 
     if (!repairmenUsers || repairmenUsers.length === 0) {
@@ -771,6 +782,61 @@ const findRepairman = async (req, res) => {
         }
       }
     }
+
+    // Delay processing for non-VIP repairmen by 1 minute
+    setTimeout(async () => {
+      const nonVipRepairmenUsers = await User.find({
+        _id: { $in: nonVipRepairmen },
+      });
+
+      for (const repairman of nonVipRepairmenUsers) {
+        if (repairman.address) {
+          const gomapApiUrl = `https://maps.gomaps.pro/maps/api/distancematrix/json?destinations=${encodeURIComponent(
+            repairman.address
+          )}&origins=${encodeURIComponent(address)}&key=${gomapApiKey}`;
+
+          try {
+            const gomapResponse = await fetch(gomapApiUrl);
+            const gomapData = await gomapResponse.json();
+
+            if (
+              gomapData.status === "OK" &&
+              gomapData.rows[0].elements[0].status === "OK"
+            ) {
+              const distanceValue = gomapData.rows[0].elements[0].distance.value;
+
+              if (distanceValue <= radius * 1000) {
+                nearbyRepairmen.push({
+                  _id: repairman._id,
+                  firstName: repairman.firstName,
+                  lastName: repairman.lastName,
+                  email: repairman.email,
+                  phone: repairman.phone,
+                  address: repairman.address,
+                  distance: gomapData.rows[0].elements[0].distance.text,
+                  duration: gomapData.rows[0].elements[0].duration.text,
+                });
+              }
+            } else {
+              console.warn(
+                `GoMap API error for repairman ${repairman._id}: ${gomapData.status
+                } - ${gomapData.error_message || gomapData.rows[0].elements[0].status
+                }`
+              );
+            }
+          } catch (error) {
+            console.error(
+              `Error calling GoMap API for repairman ${repairman._id}:`,
+              error
+            );
+          }
+        }
+      }
+
+      // Continue with the rest of the logic for non-VIP repairmen
+      // This part can be similar to the VIP processing logic
+
+    }, 60000); // 1 minute delay
 
     let assignedRepairman = null;
     const newRequestsForRepairmen = []; // Change to array to store multiple requests
@@ -1364,6 +1430,15 @@ const confirmRequest = async (req, res) => {
       });
       await repairmanTransaction.save();
       request.status = "Completed";
+
+      // Xóa lịch sử tin nhắn giữa repairman và user
+      await Message.deleteMany({
+        $or: [
+          { senderId: userId, receiverId: request.repairman_id.user_id },
+          { senderId: request.repairman_id.user_id, receiverId: userId },
+        ],
+      })
+
       //request.repairman_id.status = "Active";
       await request.save();
       res.status(201).json({

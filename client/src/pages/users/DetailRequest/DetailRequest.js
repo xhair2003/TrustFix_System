@@ -9,17 +9,37 @@ import Loading from "../../../component/Loading/Loading";
 import Swal from "sweetalert2";
 import "./DetailRequest.css";
 import { useLocation, useNavigate } from "react-router-dom";
-
+import socket from "../../../socket";
+import { getChatHistory, sendMessage, resetErrorMessage } from "../../../store/actions/messageActions";
 const DetailRequest = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
   const { loading, errorDealPrice, successDealPrice } = useSelector((state) => state.user);
+  const { loading: loadingMessage, error, messages } = useSelector((state) => state.message);
   const [dealPriceValue, setDealPriceValue] = useState("");
   const { requestData, status } = location.state || {};
+  const user_id = localStorage.getItem("user_id");
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [newMessage, setNewMessage] = useState('');
+  const [hasNewMessage, setHasNewMessage] = useState(false); // State theo dõi tin nhắn mới
+  //console.log("messages", messages);
 
   const storedDealPrices = JSON.parse(localStorage.getItem("deal_prices") || "{}");
   const storedDealPrice = storedDealPrices[requestData.parentRequest];
+
+  useEffect(() => {
+    if (error) {
+      Swal.fire({
+        title: "Lỗi",
+        text: error,
+        icon: "error",
+        timer: 5000,
+        showConfirmButton: false,
+      });
+      dispatch(resetErrorMessage());
+    }
+  }, [error, dispatch]);
 
   useEffect(() => {
     if (status !== false) {
@@ -55,6 +75,48 @@ const DetailRequest = () => {
       }
     }
   }, [errorDealPrice, successDealPrice, dispatch, navigate, status, dealPriceValue, requestData.parentRequest, storedDealPrices]);
+
+  // Lắng nghe WebSocket
+  useEffect(() => {
+    if (!requestData._id) {
+      console.warn("No request ID available for WebSocket listening.");
+      return;
+    }
+
+    // const handleReceiveMessage = () => {
+    //   //console.log('Deal price update received');
+    //   dispatch(getChatHistory(requestData.user_id));
+    // };
+
+    const handleReceiveMessage = (message) => {
+      // Kiểm tra tin nhắn từ khách (requestData.user_id) và không phải từ thợ (user_id)
+      if (message.senderId === requestData.user_id && message.senderId !== user_id) {
+        setHasNewMessage(true); // Có tin nhắn mới
+      }
+      dispatch(getChatHistory(requestData.user_id));
+    };
+
+    if (socket.connected) {
+      socket.on('receiveMessage', handleReceiveMessage);
+    } else {
+      console.warn('Socket not connected yet. Waiting...');
+      const onConnect = () => {
+        socket.on('receiveMessage', handleReceiveMessage);
+      };
+      socket.on('connect', onConnect);
+
+      return () => {
+        if (socket.connected) {
+          socket.off('receiveMessage', handleReceiveMessage);
+        }
+        socket.off('connect', onConnect);
+      };
+    }
+
+    return () => {
+      socket.off('receiveMessage', handleReceiveMessage);
+    };
+  }, [requestData, dispatch]);
 
   const shortenAddress = (address) => {
     const parts = address.split(", ");
@@ -111,10 +173,78 @@ const DetailRequest = () => {
     navigate(-1); // Đóng modal bằng cách quay lại trang trước
   };
 
+  const handleOpenChat = () => {
+    setIsChatOpen(true);
+    setHasNewMessage(false); // Xóa chấm đỏ khi mở chat
+    dispatch(getChatHistory(requestData.user_id));
+  };
+
+  const handleCloseChat = () => {
+    setIsChatOpen(false);
+    setNewMessage('');
+    dispatch({ type: 'RESET_MESSAGES' }); // Thêm action để reset messages trong store
+  };
+
+  const handleSendMessage = () => {
+    if (!newMessage.trim()) {
+      Swal.fire({
+        title: 'Lỗi',
+        text: 'Tin nhắn không được để trống!',
+        icon: 'error',
+        timer: 3000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+    dispatch(sendMessage(requestData.user_id, newMessage, user_id));
+    setNewMessage('');
+  };
+
   if (loading) return <Loading />;
 
   return (
     <div className="modal-overlay">
+      {isChatOpen && (
+        <div className="chat-window">
+          <div className="chat-header">
+            <h3>Chat với khách hàng #{requestData.user_id.slice(-6)}</h3>
+            <button onClick={handleCloseChat} className="chat-close-button">✖</button>
+          </div>
+          <div className="chat-messages">
+            {loadingMessage && <p>Đang tải tin nhắn...</p>}
+            {messages.length === 0 && !loadingMessage && <p>Chưa có tin nhắn.</p>}
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`chat-message ${msg.senderId?.id === user_id ? 'chat-message-self' : 'chat-message-opponent'
+                  }`}
+              >
+                <p>
+                  <strong>{msg.senderId?.id === user_id ? 'Bạn' : 'Khách hàng'}:</strong> {msg.message}
+                </p>
+                <span className="chat-timestamp">
+                  {new Date(msg.timestamp).toLocaleTimeString('vi-VN')}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="chat-input-group">
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Nhập tin nhắn..."
+              className="chat-input"
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            />
+            <button onClick={handleSendMessage} className="chat-send-button">
+              Gửi
+            </button>
+          </div>
+        </div>
+      )}
+
+
       <div
         className="request-detail-container"
         onClick={(e) => e.stopPropagation()}
@@ -187,7 +317,7 @@ const DetailRequest = () => {
                   type="number"
                   value={dealPriceValue}
                   onChange={(e) => setDealPriceValue(e.target.value)}
-                  placeholder="Nhập giá deal (VND)"
+                  placeholder="Nhập giá deal (VNĐ)"
                   className="deal-input"
                 />
                 <div className="deal-buttons-container">
@@ -197,6 +327,10 @@ const DetailRequest = () => {
                     </button>
                     <button onClick={handleCancel} className="cancel-button">
                       Hủy bỏ
+                    </button>
+                    {/* Thêm nút chat */}
+                    <button onClick={handleOpenChat} className={`chat-button ${hasNewMessage ? 'has-new-message' : ''}`}>
+                      <span role="img" aria-label="chat">💬</span> Nhắn tin với khách hàng
                     </button>
                   </div>
                   <button onClick={handleClose} className="close-button">
@@ -214,9 +348,15 @@ const DetailRequest = () => {
                 <strong>Giá đã Deal:</strong>{" "}
                 {storedDealPrice ? `${Number(storedDealPrice).toLocaleString()} VNĐ` : "Chưa có thông tin giá deal"}
               </p>
-              <button onClick={handleBack} className="back-button">
-                Trở về
-              </button>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                {/* Thêm nút chat */}
+                <button onClick={handleOpenChat} className={`chat-button ${hasNewMessage ? 'has-new-message' : ''}`}>
+                  <span role="img" aria-label="chat">💬</span> Nhắn tin với khách hàng
+                </button>
+                <button onClick={handleBack} className="back-button" style={{ marginTop: "18px", marginLeft: "10px" }}>
+                  Trở về
+                </button>
+              </div>
             </div>
           </section>
         )}
