@@ -4,6 +4,7 @@ import MapView from "../../../component/users/customer/FindComponent/MapView";
 import SearchBar from "../../../component/users/SearchBar/SearchBar";
 import RepairmanList from "../../../component/users/customer/FindComponent/RepairmanList";
 import { viewRepairmanDeal } from "../../../store/actions/userActions.js";
+import PriceBot from "./PriceBot";
 import "./FindRepairman.css";
 import socket from "../../../socket";
 
@@ -25,20 +26,27 @@ const FindRepairman = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [storedRequestId, setStoredRequestId] = useState(localStorage.getItem("requestId"));
   const [hasResults, setHasResults] = useState(false);
+  const [priceResponse, setPriceResponse] = useState(""); // State for price response
   const mapSectionRef = useRef(null);
   const [isGeocoding, setIsGeocoding] = useState(false);
 
   const { errorViewRepairmanDeal, requestId, repairmanDeals } = useSelector((state) => state.user);
   const finalRequestId = requestId || storedRequestId;
 
+  // Handle price response from PriceBot
+  const handlePriceResponse = useCallback((price) => {
+    setPriceResponse(price);
+  }, []);
+
   // Geocoding Function
   const geocodeAddress = useCallback(async (address) => {
-    if (!address || address.trim() === "" || address.endsWith(', ')) return;
+    if (!address || address.trim() === "" || address.endsWith(", ")) return;
 
     setIsGeocoding(true);
-    //console.log(`Geocoding address: ${address}`);
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`
+      );
       const data = await response.json();
       if (data && data.length > 0) {
         const { lat, lon } = data[0];
@@ -55,24 +63,27 @@ const FindRepairman = () => {
 
   const debouncedGeocode = useCallback(debounce(geocodeAddress, 1000), [geocodeAddress]);
 
-  const handleDataChange = useCallback((data) => {
-    setSearchData(data);
+  const handleDataChange = useCallback(
+    (data) => {
+      setSearchData(data);
 
-    const { detailAddress, wardName, districtName, cityName } = data;
-    if (cityName && districtName && wardName && detailAddress) {
-      const fullAddress = `${detailAddress}, ${wardName}, ${districtName}, ${cityName}, Việt Nam`;
-      debouncedGeocode(fullAddress);
-    } else if (cityName && districtName && wardName) {
-      const partialAddress = `${wardName}, ${districtName}, ${cityName}, Việt Nam`;
-      debouncedGeocode(partialAddress);
-    } else if (cityName && districtName) {
-      const partialAddress = `${districtName}, ${cityName}, Việt Nam`;
-      debouncedGeocode(partialAddress);
-    } else if (cityName) {
-      const partialAddress = `${cityName}, Việt Nam`;
-      debouncedGeocode(partialAddress);
-    }
-  }, [debouncedGeocode]);
+      const { detailAddress, wardName, districtName, cityName } = data;
+      if (cityName && districtName && wardName && detailAddress) {
+        const fullAddress = `${detailAddress}, ${wardName}, ${districtName}, ${cityName}, Việt Nam`;
+        debouncedGeocode(fullAddress);
+      } else if (cityName && districtName && wardName) {
+        const partialAddress = `${wardName}, ${districtName}, ${cityName}, Việt Nam`;
+        debouncedGeocode(partialAddress);
+      } else if (cityName && districtName) {
+        const partialAddress = `${districtName}, ${cityName}, Việt Nam`;
+        debouncedGeocode(partialAddress);
+      } else if (cityName) {
+        const partialAddress = `${cityName}, Việt Nam`;
+        debouncedGeocode(partialAddress);
+      }
+    },
+    [debouncedGeocode]
+  );
 
   const smoothScrollTo = (element, duration) => {
     const start = window.scrollY;
@@ -137,29 +148,28 @@ const FindRepairman = () => {
     }
 
     const handleDealPriceUpdate = () => {
-      //console.log('Deal price update received');
       dispatch(viewRepairmanDeal(finalRequestId));
     };
 
     if (socket.connected) {
-      socket.on('dealPriceUpdate', handleDealPriceUpdate);
+      socket.on("dealPriceUpdate", handleDealPriceUpdate);
     } else {
-      console.warn('Socket not connected yet. Waiting...');
+      console.warn("Socket not connected yet. Waiting...");
       const onConnect = () => {
-        socket.on('dealPriceUpdate', handleDealPriceUpdate);
+        socket.on("dealPriceUpdate", handleDealPriceUpdate);
       };
-      socket.on('connect', onConnect);
+      socket.on("connect", onConnect);
 
       return () => {
         if (socket.connected) {
-          socket.off('dealPriceUpdate', handleDealPriceUpdate);
+          socket.off("dealPriceUpdate", handleDealPriceUpdate);
         }
-        socket.off('connect', onConnect);
+        socket.off("connect", onConnect);
       };
     }
 
     return () => {
-      socket.off('dealPriceUpdate', handleDealPriceUpdate);
+      socket.off("dealPriceUpdate", handleDealPriceUpdate);
     };
   }, [finalRequestId, dispatch]);
 
@@ -184,6 +194,12 @@ const FindRepairman = () => {
           districts={[]}
           wards={[]}
         />
+        <PriceBot description={searchData.description} onPriceResponse={handlePriceResponse} />
+        {priceResponse && (
+          <div className="price-response">
+            <p>Ước tính chi phí sửa chữa: {priceResponse}</p>
+          </div>
+        )}
       </div>
       <div className={`map-section ${isAnimating ? "animate" : ""}`} ref={mapSectionRef}>
         <MapView
