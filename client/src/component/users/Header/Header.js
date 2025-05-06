@@ -443,6 +443,9 @@ const Header = () => {
                                         </div>
                                     </>
                                 )}
+                                <div className="dropdown-item" onClick={() => navigate("/view-repairman-deal")}>
+                                    <FaUser className="dropdown-icon" /> Danh sách thợ deal giá
+                                </div>
                                 <div className="dropdown-item" onClick={() => navigate("/profile")}>
                                     <FaUser className="dropdown-icon" /> Thông tin cá nhân
                                 </div>

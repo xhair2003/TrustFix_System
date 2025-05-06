@@ -43,6 +43,7 @@ import Guides from "./pages/Guides/Guides/Guides.jsx";
 import GuideDetail from "./pages/Guides/GuideDetail/GuideDetail.jsx";
 import ChatBot from "./pages/users/ChatBot/ChatBot.jsx";
 import ManageGuides from "./pages/admin/ManageGuides/ManageGuides.jsx";
+import ViewRepairmanDeal from "./pages/users/ViewRepairmanDeal/ViewRepairmanDeal.jsx";
 
 const UserROUTERS = () => {
     const routers = [
@@ -61,7 +62,11 @@ const UserROUTERS = () => {
             component: <ChatBot />,
             layout: MasterLayoutMain, // Routes using MasterLayout
         },
-
+        {
+            path: ROUTERS.CUSTOMER.VIEW_REPAIRMAN_DEAL,
+            component: <ViewRepairmanDeal />,
+            layout: MasterLayoutUser, // Routes using MasterLayout
+        },
         {
             path: ROUTERS.CUSTOMER.PROFILE,
             component: <PersonalInformation />,

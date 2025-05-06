@@ -47,7 +47,7 @@ const sendMessage = async (req, res) => {
     // io.to(receiverId).emit("receiveMessage");
 
     // Chỉ gửi socket cho receiverId
-    io.to(receiverId).emit("receiveMessage", {
+    io.to(receiverId.toString()).emit("receiveMessage", {
       senderId,
       receiverId,
       message,
