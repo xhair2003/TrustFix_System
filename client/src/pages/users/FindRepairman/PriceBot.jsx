@@ -7,11 +7,11 @@ const PriceBot = ({ description, onPriceResponse }) => {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     // System Instructions for Gemini
-    const systemInstructions = `Không trả lời bất cứ thứ gì, câu trả lời chỉ đơn giản là đưa ra mức giá theo format: " ....... vnd - ....... vnd (đúng 98% so với thị trường) "nếu không trả lời được thì trả lời là: "Bạn nên trao đổi với thợ để có mức giá chính xác" còn lại ko nói cái gì hết
+    const systemInstructions = `Không trả lời bất cứ thứ gì, câu trả lời chỉ đơn giản là đưa ra mức giá theo format: " ....... vnd - ....... vnd " nếu không trả lời được thì trả lời là: "-1" còn lại ko nói cái gì hết
             data về giá: 
                 Tủ lạnh: 300.000 - 700.000  
                 Máy giặt: 350.000 - 800.000  
-                Máy lạnh: 400. priceBot.jsx000 - 1.000.000  
+                Máy lạnh: 400.000 - 1.000.000  
                 Quạt điện: 100.000 - 250.000  
                 Sửa khóa: 150.000 - 400.000  
                 Bếp ga: 200.000 - 500.000  
@@ -41,6 +41,28 @@ const PriceBot = ({ description, onPriceResponse }) => {
                 Máy cắt cỏ: 400.000 - 900.000 
         `;
 
+    // Parse price response to extract minPrice and maxPrice as floats
+    const parsePrice = (priceText) => {
+        if (priceText === '-1') {
+            return { minPrice: -1, maxPrice: -1 };
+        }
+
+        // Remove 'vnd' and split by ' - '
+        const cleanedText = priceText.replace(' vnd', '').replace(/\./g, '');
+        const [minPriceStr, maxPriceStr] = cleanedText.split(' - ');
+
+        // Convert to float
+        const minPrice = parseFloat(minPriceStr);
+        const maxPrice = parseFloat(maxPriceStr);
+
+        // Validate numbers
+        if (isNaN(minPrice) || isNaN(maxPrice)) {
+            return { minPrice: -1, maxPrice: -1 };
+        }
+
+        return { minPrice, maxPrice };
+    };
+
     // Fetch price from Gemini API
     const getPrice = async (message) => {
         try {
@@ -50,15 +72,16 @@ const PriceBot = ({ description, onPriceResponse }) => {
             return response.text();
         } catch (error) {
             console.error('Lỗi Gemini API:', error.message, error.stack);
-            return 'Có lỗi xảy ra khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.';
+            return '-1'; // Return -1 for errors
         }
     };
 
     // Process description when received
     useEffect(() => {
         if (description) {
-            getPrice(description).then((price) => {
-                onPriceResponse(price);
+            getPrice(description).then((priceText) => {
+                const { minPrice, maxPrice } = parsePrice(priceText);
+                onPriceResponse({ minPrice, maxPrice });
             });
         }
     }, [description]);

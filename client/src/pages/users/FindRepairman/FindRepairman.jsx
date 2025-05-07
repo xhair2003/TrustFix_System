@@ -8,6 +8,11 @@ import PriceBot from "./PriceBot";
 import "./FindRepairman.css";
 import socket from "../../../socket";
 
+// Helper Function to format price to VND
+const formatPrice = (price) => {
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
 // Helper Function for Debouncing
 const debounce = (func, delay) => {
   let timeoutId;
@@ -26,7 +31,7 @@ const FindRepairman = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [storedRequestId, setStoredRequestId] = useState(localStorage.getItem("requestId"));
   const [hasResults, setHasResults] = useState(false);
-  const [priceResponse, setPriceResponse] = useState(""); // State for price response
+  const [priceResponse, setPriceResponse] = useState({ minPrice: null, maxPrice: null }); // State for price response
   const mapSectionRef = useRef(null);
   const [isGeocoding, setIsGeocoding] = useState(false);
 
@@ -34,8 +39,8 @@ const FindRepairman = () => {
   const finalRequestId = requestId || storedRequestId;
 
   // Handle price response from PriceBot
-  const handlePriceResponse = useCallback((price) => {
-    setPriceResponse(price);
+  const handlePriceResponse = useCallback(({ minPrice, maxPrice }) => {
+    setPriceResponse({ minPrice, maxPrice });
   }, []);
 
   // Geocoding Function
@@ -195,9 +200,16 @@ const FindRepairman = () => {
           wards={[]}
         />
         <PriceBot description={searchData.description} onPriceResponse={handlePriceResponse} />
-        {priceResponse && (
+        {priceResponse.minPrice !== null && priceResponse.maxPrice !== null && (
           <div className="price-response">
-            <p>Ước tính chi phí sửa chữa: {priceResponse}</p>
+            {priceResponse.minPrice === -1 && priceResponse.maxPrice === -1 ? (
+              <p>Không thể ước tính chi phí sửa chữa.</p>
+            ) : (
+              <p>
+                Ước tính chi phí sửa chữa: {formatPrice(priceResponse.minPrice)} vnd -{" "}
+                {formatPrice(priceResponse.maxPrice)} vnd
+              </p>
+            )}
           </div>
         )}
       </div>

@@ -15,7 +15,7 @@ const debounce = (func, delay) => {
     };
 };
 
-const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch, onDataChange }) => {
+const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch, onDataChange, minPrice, maxPrice }) => {
     const dispatch = useDispatch();
     const [cities, setCities] = useState([]);
     const [districts, setDistricts] = useState([]);
@@ -32,8 +32,6 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch, onDataChange }
     const [serviceIndustryId, setServiceIndustryId] = useState("");
     const [imageFiles, setImageFiles] = useState([]);
     const [serviceTypes, setServiceTypes] = useState([]);
-    const [minPrice] = useState("200000");
-    const [maxPrice] = useState("500000");
 
     const { loading, serviceTypes: serviceTypesFromStore } = useSelector((state) => state.user);
     const { successFindRepairman, errorFindRepairman } = useSelector((state) => state.user);
@@ -138,8 +136,8 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch, onDataChange }
             districtName,
             cityName,
             selectedRadius,
-            minPrice,
-            maxPrice,
+            minPrice: minPrice?.toString(),
+            maxPrice: maxPrice?.toString(),
         };
         debouncedOnDataChange(searchData);
     }, [description, serviceIndustryId, detailAddress, ward, district, city, wardName, districtName, cityName, selectedRadius, minPrice, maxPrice, debouncedOnDataChange]);
@@ -224,8 +222,8 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch, onDataChange }
             serviceIndustry_id: serviceIndustryId,
             address,
             radius: selectedRadius ? selectedRadius.value / 1000 : "",
-            minPrice,
-            maxPrice,
+            minPrice: minPrice?.toString(),
+            maxPrice: maxPrice?.toString(),
         };
 
         dispatch(findRepairman(requestData, imageFiles));
@@ -366,7 +364,7 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch, onDataChange }
                             setImageFiles([]);
                         }
                     }}
-                    className="search-file-input"
+ className="search-file-input"
                 />
                 {imageFiles.length > 0 && (
                     <div className="selected-files">
