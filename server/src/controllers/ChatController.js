@@ -5,7 +5,7 @@ const sendMessage = async (req, res) => {
   try {
     const io = req.app.get("io"); // Lấy io từ app (sẽ cấu hình trong index.js)
     const senderId = req.user.id; // Lấy senderId từ token
-    const { receiverId, message } = req.body;
+    const { receiverId, message, requestId } = req.body;
 
     if (!receiverId || !message) {
       return res.status(400).json({
@@ -39,6 +39,8 @@ const sendMessage = async (req, res) => {
       senderId,
       receiverId,
       message,
+      requestId,
+      timestamp: new Date(),
     });
 
     await newMessage.save();
@@ -51,6 +53,7 @@ const sendMessage = async (req, res) => {
       senderId,
       receiverId,
       message,
+      requestId,
       timestamp: newMessage.timestamp,
     });
 
@@ -69,17 +72,35 @@ const sendMessage = async (req, res) => {
 };
 
 // const getChatHistory = async (req, res) => {
-//   const { opponent } = req.params;
-//   const myself = req.user.id;
+//   const { opponent } = req.params; // opponent là user_id của đối phương (nếu có)
+//   const myself = req.user.id; // ID của người dùng hiện tại
 
 //   try {
-//     // Lấy lịch sử tin nhắn giữa repairman và user
-//     const messages = await Message.find({
-//       $or: [
-//         { senderId: myself, receiverId: opponent },
-//         { senderId: opponent, receiverId: myself },
-//       ],
-//     }).sort({ timestamp: 1 }); // Sắp xếp theo thời gian (cũ -> mới)
+//     let query;
+
+//     if (opponent) {
+//       // Lấy tin nhắn giữa myself và opponent cụ thể
+//       query = {
+//         $or: [
+//           { senderId: myself, receiverId: opponent },
+//           { senderId: opponent, receiverId: myself },
+//         ],
+//       };
+//     } else {
+//       // Lấy tất cả tin nhắn của myself với mọi đối phương
+//       query = {
+//         $or: [
+//           { senderId: myself },
+//           { receiverId: myself },
+//         ],
+//       };
+//     }
+
+//     // Lấy lịch sử tin nhắn và sắp xếp theo thời gian
+//     const messages = await Message.find(query)
+//       .sort({ timestamp: 1 }) // Sắp xếp từ cũ đến mới
+//       .populate('senderId', 'firstName lastName') // Lấy tên của sender
+//       .populate('receiverId', 'firstName lastName'); // Lấy tên của receiver
 
 //     return res.status(200).json({
 //       EC: 1,
@@ -96,7 +117,7 @@ const sendMessage = async (req, res) => {
 // };
 
 const getChatHistory = async (req, res) => {
-  const { opponent } = req.params; // opponent là user_id của đối phương (nếu có)
+  const { opponent, requestId } = req.params; // Thêm requestId từ params
   const myself = req.user.id; // ID của người dùng hiện tại
 
   try {
@@ -108,6 +129,15 @@ const getChatHistory = async (req, res) => {
         $or: [
           { senderId: myself, receiverId: opponent },
           { senderId: opponent, receiverId: myself },
+        ],
+      };
+    } else if (requestId) {
+      // Lấy tin nhắn liên quan đến requestId
+      query = {
+        requestId,
+        $or: [
+          { senderId: myself },
+          { receiverId: myself },
         ],
       };
     } else {

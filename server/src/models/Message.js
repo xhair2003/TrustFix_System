@@ -16,6 +16,10 @@ const MessageSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    requestId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Request'
+    }, // Thêm trường requestId để liên kết với bảng Request
     timestamp: {
       type: Date,
       default: Date.now,

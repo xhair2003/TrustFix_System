@@ -429,7 +429,7 @@ const Header = () => {
                         )}
 
                         <div className="divider"></div>
-                        <Chat role={role} />
+                        <Chat />
                         <FaUser className="user-icon" onClick={toggleDropdown} />
                         {isDropdownOpen && (
                             <div className="dropdown-menu">

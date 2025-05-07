@@ -320,8 +320,8 @@ export const requestRepairmanUpgrade = (formData) => async (dispatch, getState) 
     try {
         dispatch({ type: 'REPAIRMAN_UPGRADE_REQUEST' });
 
-        const { auth } = getState();
-        const token = auth.token;
+        // Lấy token từ state (giả sử lưu trong Redux từ quá trình đăng nhập)
+        const token = getState().auth.token || localStorage.getItem('token');
 
         const config = {
             headers: {

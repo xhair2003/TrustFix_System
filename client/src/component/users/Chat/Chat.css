@@ -1,5 +1,4 @@
-/* Chat Icon */
-.chat-icon {
+/* .chat-icon {
   font-size: 24px;
   cursor: pointer;
   position: relative;
@@ -18,7 +17,6 @@
   animation: pulse 1s infinite;
 }
 
-/* Chat Item */
 .user-chat-item {
   display: flex;
   justify-content: space-between;
@@ -42,7 +40,6 @@
   animation: pulse 1s infinite;
 }
 
-/* Existing styles remain unchanged */
 .user-chat-popup {
   position: absolute;
   top: 60px;
@@ -211,6 +208,259 @@
   padding: 20px;
 }
 
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+} */
+
+/* Chat Container */
+.chat-container {
+  position: relative;
+  display: inline-block;
+  z-index: 3000; /* Tăng z-index để tránh bị che trong Header */
+}
+
+/* Chat Icon Wrapper */
+.chat-icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Chat Icon */
+.chat-icon {
+  font-size: 24px;
+  color: #333 !important;
+  cursor: pointer;
+}
+
+/* Notification Dot */
+.chat-notification-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background-color: red !important;
+  border-radius: 50%;
+  border: 1px solid white !important;
+  animation: pulse 1s infinite;
+  z-index: 3001 !important;
+}
+
+/* Chat Popup */
+.user-chat-popup {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  width: 600px;
+  height: 400px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+  display: block;
+}
+
+/* Chat Container */
+.user-chat-container {
+  display: flex;
+  height: 100%;
+}
+
+/* Chat List */
+.user-chat-list {
+  width: 200px;
+  border-right: 1px solid #eee;
+  overflow-y: auto;
+  padding: 10px;
+  background-color: #f9fafb;
+}
+
+/* Chat Title */
+.user-chat-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  padding: 0 10px;
+}
+
+/* Chat Item */
+.user-chat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 5px;
+  position: relative;
+}
+
+.user-chat-item:hover {
+  background-color: #e5e7eb;
+}
+
+.user-chat-item.user-chat-selected {
+  background-color: #e0f7fa;
+}
+
+.user-chat-item.has-new-message::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  background-color: red;
+  border-radius: 50%;
+  border: 1px solid white;
+  animation: pulse 1s infinite;
+}
+
+/* Chat Info */
+.user-chat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-chat-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.user-chat-preview {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.user-chat-time {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Chat Messages */
+.user-chat-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Chat Header */
+.user-chat-header {
+  padding: 10px 15px;
+  border-bottom: 1px solid #eee;
+  background-color: #f9fafb;
+}
+
+.user-chat-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Message Area */
+.user-chat-message-area {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  background-color: #fff;
+}
+
+/* Chat Message */
+.user-chat-message {
+  margin-bottom: 10px;
+  display: flex;
+}
+
+.user-chat-sent {
+  justify-content: flex-end;
+}
+
+.user-chat-received {
+  justify-content: flex-start;
+}
+
+.user-chat-message-content {
+  max-width: 70%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.user-chat-sent .user-chat-message-content {
+  background-color: #3961fb;
+  color: white;
+}
+
+.user-chat-received .user-chat-message-content {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.user-chat-message-content p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.user-chat-message-time {
+  font-size: 10px;
+  color: #9ca3af;
+  margin-top: 4px;
+  display: block;
+  text-align: right;
+}
+
+/* Input Area */
+.user-chat-input-area {
+  padding: 10px 15px;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 10px;
+  background-color: #f9fafb;
+}
+
+.user-chat-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+.user-chat-input:focus {
+  border-color: #3961fb;
+}
+
+.user-chat-send-btn {
+  padding: 8px 16px;
+  background-color: #3961fb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.user-chat-send-btn:hover {
+  background-color: #2a4cd9;
+}
+
+/* Empty State */
+.user-chat-empty {
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+  padding: 20px;
+}
+
+/* Pulse Animation */
 @keyframes pulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.2); }
