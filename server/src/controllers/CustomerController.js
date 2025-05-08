@@ -1459,6 +1459,7 @@ const getRequestStatus = async (req, res) => {
   try {
     const userId = req.user.id; // Lấy userId từ token
     const { request_id } = req.query; // Lấy request_id từ query
+    //console.log("request_id:", request_id);
 
     if (!request_id) {
       return res.status(400).json({
@@ -1471,7 +1472,7 @@ const getRequestStatus = async (req, res) => {
     const request = await Request.findOne({
       _id: request_id,
       user_id: userId,
-      status: ["Repairman confirmed completion", "Completed"],
+      //status: ["Repairman confirmed completion", "Completed"],
     });
 
     if (!request) {

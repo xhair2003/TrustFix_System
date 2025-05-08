@@ -1898,7 +1898,7 @@ const viewPendingSupplementaryCertificates = async (req, res) => {
         if (!pendingCertificates || pendingCertificates.length === 0) {
             return res.status(404).json({
                 EC: 0,
-                EM: "Không có yêu cầu nào đang ở trạng thái 'In review'!",
+                EM: "Không có yêu cầu bổ sung chứng chỉ hành nghề nào !",
             });
         }
 
@@ -2946,112 +2946,112 @@ const deleteGuide = async (req, res) => {
 };
 const checkVipExpiration = async (req, res) => {
     try {
-      // Lấy tất cả các giao dịch có `payCode` bắt đầu bằng "VIP"
-      const vipTransactions = await Transaction.find({
-        payCode: { $regex: /^VIP/ }, // Tìm các giao dịch có `payCode` bắt đầu bằng "VIP"
-        transactionType: "payment", // Chỉ lấy giao dịch thanh toán
-        status: 1, // Chỉ lấy giao dịch thành công
-      }).populate({
-        path: "wallet_id",
-        populate: { path: "user_id", select: "firstName lastName email" }, // Lấy thông tin người dùng
-      });
-  
-      if (!vipTransactions || vipTransactions.length === 0) {
-        return res.status(404).json({
-          EC: 0,
-          EM: "Không tìm thấy giao dịch VIP nào!",
-          DT: [],
+        // Lấy tất cả các giao dịch có `payCode` bắt đầu bằng "VIP"
+        const vipTransactions = await Transaction.find({
+            payCode: { $regex: /^VIP/ }, // Tìm các giao dịch có `payCode` bắt đầu bằng "VIP"
+            transactionType: "payment", // Chỉ lấy giao dịch thanh toán
+            status: 1, // Chỉ lấy giao dịch thành công
+        }).populate({
+            path: "wallet_id",
+            populate: { path: "user_id", select: "firstName lastName email" }, // Lấy thông tin người dùng
         });
-      }
-  
-      const currentDate = new Date();
-      const expiredUsers = [];
-      const activeUsers = [];
-  
-      // Duyệt qua từng giao dịch để kiểm tra ngày hết hạn
-      for (const transaction of vipTransactions) {
-        // Kiểm tra nếu `wallet_id` hoặc `user_id` bị null
-        if (!transaction.wallet_id || !transaction.wallet_id.user_id) {
-          console.log(`Giao dịch không hợp lệ: ${transaction._id}`);
-          continue; // Bỏ qua giao dịch không hợp lệ
+
+        if (!vipTransactions || vipTransactions.length === 0) {
+            return res.status(404).json({
+                EC: 0,
+                EM: "Không tìm thấy giao dịch VIP nào!",
+                DT: [],
+            });
         }
-  
-        const user = transaction.wallet_id.user_id; // Lấy thông tin người dùng
-        const vipStartDate = transaction.createdAt; // Ngày bắt đầu từ giao dịch
-  
-        // Tìm gói VIP liên quan đến giao dịch
-        const repairmanRequest = await RepairmanUpgradeRequest.findOne({
-          user_id: user._id,
-          vip_id: { $ne: null }, // Chỉ lấy các yêu cầu có gói VIP
-        }).populate("vip_id"); // Lấy thông tin gói VIP
-  
-        if (!repairmanRequest || !repairmanRequest.vip_id) {
-          console.log(`Không tìm thấy gói VIP cho user_id: ${user._id}`);
-          continue; // Bỏ qua nếu không tìm thấy gói VIP
+
+        const currentDate = new Date();
+        const expiredUsers = [];
+        const activeUsers = [];
+
+        // Duyệt qua từng giao dịch để kiểm tra ngày hết hạn
+        for (const transaction of vipTransactions) {
+            // Kiểm tra nếu `wallet_id` hoặc `user_id` bị null
+            if (!transaction.wallet_id || !transaction.wallet_id.user_id) {
+                console.log(`Giao dịch không hợp lệ: ${transaction._id}`);
+                continue; // Bỏ qua giao dịch không hợp lệ
+            }
+
+            const user = transaction.wallet_id.user_id; // Lấy thông tin người dùng
+            const vipStartDate = transaction.createdAt; // Ngày bắt đầu từ giao dịch
+
+            // Tìm gói VIP liên quan đến giao dịch
+            const repairmanRequest = await RepairmanUpgradeRequest.findOne({
+                user_id: user._id,
+                vip_id: { $ne: null }, // Chỉ lấy các yêu cầu có gói VIP
+            }).populate("vip_id"); // Lấy thông tin gói VIP
+
+            if (!repairmanRequest || !repairmanRequest.vip_id) {
+                console.log(`Không tìm thấy gói VIP cho user_id: ${user._id}`);
+                continue; // Bỏ qua nếu không tìm thấy gói VIP
+            }
+
+            const vipPackage = repairmanRequest.vip_id; // Gói VIP
+            const vipExpiryDate = new Date(vipStartDate);
+            vipExpiryDate.setMonth(vipExpiryDate.getMonth() + vipPackage.duration); // Tính ngày hết hạn
+
+            // Kiểm tra ngày hết hạn
+            if (currentDate > vipExpiryDate) {
+                expiredUsers.push({
+                    user: {
+                        id: user._id,
+                        name: `${user.firstName} ${user.lastName}`,
+                        email: user.email,
+                    },
+                    vipStartDate,
+                    vipExpiryDate,
+                    status: "Expired",
+                });
+
+                // Cập nhật trạng thái nếu cần
+                // repairmanRequest.status = "Inactive";
+                // await repairmanRequest.save();
+            } else {
+                activeUsers.push({
+                    user: {
+                        id: user._id,
+                        name: `${user.firstName} ${user.lastName}`,
+                        email: user.email,
+                    },
+                    vipStartDate,
+                    vipExpiryDate,
+                    status: "Active",
+                });
+            }
         }
-  
-        const vipPackage = repairmanRequest.vip_id; // Gói VIP
-        const vipExpiryDate = new Date(vipStartDate);
-        vipExpiryDate.setMonth(vipExpiryDate.getMonth() + vipPackage.duration); // Tính ngày hết hạn
-  
-        // Kiểm tra ngày hết hạn
-        if (currentDate > vipExpiryDate) {
-          expiredUsers.push({
-            user: {
-              id: user._id,
-              name: `${user.firstName} ${user.lastName}`,
-              email: user.email,
+
+        // Tính số lượng người dùng
+        const expiredCount = expiredUsers.length;
+        const activeCount = activeUsers.length;
+
+        // Trả về kết quả
+        return res.status(200).json({
+            EC: 1,
+            EM: "Kiểm tra trạng thái VIP thành công!",
+            DT: {
+                expiredUsers,
+                activeUsers,
+                expiredCount,
+                activeCount,
             },
-            vipStartDate,
-            vipExpiryDate,
-            status: "Expired",
-          });
-  
-          // Cập nhật trạng thái nếu cần
-          // repairmanRequest.status = "Inactive";
-          // await repairmanRequest.save();
-        } else {
-          activeUsers.push({
-            user: {
-              id: user._id,
-              name: `${user.firstName} ${user.lastName}`,
-              email: user.email,
-            },
-            vipStartDate,
-            vipExpiryDate,
-            status: "Active",
-          });
-        }
-      }
-  
-      // Tính số lượng người dùng
-      const expiredCount = expiredUsers.length;
-      const activeCount = activeUsers.length;
-  
-      // Trả về kết quả
-      return res.status(200).json({
-        EC: 1,
-        EM: "Kiểm tra trạng thái VIP thành công!",
-        DT: {
-          expiredUsers,
-          activeUsers,
-          expiredCount,
-          activeCount,
-        },
-      });
+        });
     } catch (error) {
-      console.error("Error in checkVipExpiration:", error);
-      return res.status(500).json({
-        EC: 0,
-        EM: "Đã xảy ra lỗi. Vui lòng thử lại sau!",
-      });
+        console.error("Error in checkVipExpiration:", error);
+        return res.status(500).json({
+            EC: 0,
+            EM: "Đã xảy ra lỗi. Vui lòng thử lại sau!",
+        });
     }
-  };
+};
 
 // const checkVipExpirationAndSendEmails = async () => {
 //     try {
 //       const currentDate = new Date();
-  
+
 //       // Lấy tất cả các giao dịch có `payCode` bắt đầu bằng "VIP"
 //       const vipTransactions = await Transaction.find({
 //         payCode: { $regex: /^VIP/ },
@@ -3061,40 +3061,40 @@ const checkVipExpiration = async (req, res) => {
 //         path: "wallet_id",
 //         populate: { path: "user_id", select: "firstName lastName email" },
 //       });
-  
+
 //       if (!vipTransactions || vipTransactions.length === 0) {
 //         console.log("Không tìm thấy giao dịch VIP nào!");
 //         return;
 //       }
-  
+
 //       for (const transaction of vipTransactions) {
 //         // Kiểm tra nếu `wallet_id` hoặc `user_id` bị null
 //         if (!transaction.wallet_id || !transaction.wallet_id.user_id) {
 //           console.log(`Giao dịch không hợp lệ: ${transaction._id}`);
 //           continue; // Bỏ qua giao dịch không hợp lệ
 //         }
-  
+
 //         const user = transaction.wallet_id.user_id; // Lấy thông tin người dùng
 //         const vipStartDate = transaction.createdAt; // Ngày bắt đầu từ giao dịch
-  
+
 //         // Tìm gói VIP liên quan đến giao dịch
 //         const repairmanRequest = await RepairmanUpgradeRequest.findOne({
 //           user_id: user._id,
 //           vip_id: { $ne: null },
 //         }).populate("vip_id");
-  
+
 //         if (!repairmanRequest || !repairmanRequest.vip_id) {
 //           console.log(`Không tìm thấy gói VIP cho user_id: ${user._id}`);
 //           continue; // Bỏ qua nếu không tìm thấy gói VIP
 //         }
-  
+
 //         const vipPackage = repairmanRequest.vip_id; // Gói VIP
 //         const vipExpiryDate = new Date(vipStartDate);
 //         vipExpiryDate.setMonth(vipExpiryDate.getMonth() + vipPackage.duration); // Tính ngày hết hạn
-  
+
 //         // Tính thời gian còn lại
 //         const daysUntilExpiry = Math.ceil((vipExpiryDate - currentDate) / (1000 * 60 * 60 * 24));
-  
+
 //         // Gửi email trước 3 ngày hết hạn
 //         if (daysUntilExpiry === 3) {
 //           const emailContent = `
@@ -3106,7 +3106,7 @@ const checkVipExpiration = async (req, res) => {
 //           await sendEmail(user.email, "Thông báo sắp hết hạn gói VIP", emailContent);
 //           console.log(`Đã gửi email nhắc nhở trước 3 ngày cho user_id: ${user._id}`);
 //         }
-  
+
 //         // Gửi email sau khi hết hạn
 //         if (daysUntilExpiry < 0) {
 //           const emailContent = `
@@ -3119,13 +3119,13 @@ const checkVipExpiration = async (req, res) => {
 //           console.log(`Đã gửi email thông báo hết hạn cho user_id: ${user._id}`);
 //         }
 //       }
-  
+
 //       console.log("Hoàn thành kiểm tra và gửi email VIP.");
 //     } catch (error) {
 //       console.error("Error in checkVipExpirationAndSendEmails:", error);
 //     }
 //   };
-  
+
 //   cron.schedule("0 0 * * *", () => {
 //       console.log("Bắt đầu kiểm tra trạng thái VIP và gửi email...");
 //       checkVipExpirationAndSendEmails()
@@ -3186,11 +3186,11 @@ module.exports = {
     getPosts,
     moderate,
     getGuideslist,
-     getGuildebyId,
-     getGuideByUser,
-     addGuide,
-     updateGuide,
-     deleteGuide,
+    getGuildebyId,
+    getGuideByUser,
+    addGuide,
+    updateGuide,
+    deleteGuide,
     checkVipExpiration
 };
 

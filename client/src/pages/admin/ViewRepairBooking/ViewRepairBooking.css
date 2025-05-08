@@ -61,7 +61,10 @@
   .view-order-item-id {
     font-weight: bold;
     color: #2c3e50;
-    width: 10%;
+    width: 12%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
   }
   
   .view-order-item-date,
@@ -155,4 +158,20 @@
   
   .view-order-modal-close:hover {
     background: #2980b9;
+  }
+
+  @media (max-width: 768px) {
+    .view-order-item {
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+    .view-order-item-id,
+    .view-order-item-date,
+    .view-order-item-complete,
+    .view-order-item-price,
+    .view-order-item-status,
+    .view-order-item-rating {
+      width: 100%;
+      margin-bottom: 5px;
+    }
   }

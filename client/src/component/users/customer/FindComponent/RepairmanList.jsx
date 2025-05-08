@@ -12,6 +12,7 @@ const RepairmanList = ({ repairmanDeals }) => {
     // Xử lý hiển thị chi tiết thợ
     const handleViewDetails = (repairman) => {
         const formattedRepairman = {
+            realRepairmanId: repairman.repairman.user_id._id,
             repairmanId: repairman.repairman._id,
             email: repairman.repairman.user_id.email || "Không có email",
             phone: repairman.repairman.user_id.phone || "Không có số điện thoại",

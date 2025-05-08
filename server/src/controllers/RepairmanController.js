@@ -355,6 +355,10 @@ const dealPrice = async (req, res) => {
       await DuePrice.findByIdAndDelete(duePrice_id);
       await Request.findByIdAndDelete(dealPriceRequest._id);
 
+      // Cập nhật trạng thái RepairmanUpgradeRequest thành Active
+      repairmanUpgradeRequest.status = 'Active';
+      await repairmanUpgradeRequest.save();
+
       // Gửi thông báo hủy deal (nếu cần) tới customer
       const parentRequest = await Request.findById(requestId);
       if (parentRequest && parentRequest.user_id) {
@@ -387,12 +391,12 @@ const dealPrice = async (req, res) => {
       const maxPrice = parseFloat(duePrice.maxPrice);
       const parsedDealPrice = parseFloat(deal_price);
 
-      if (parsedDealPrice < minPrice || parsedDealPrice > maxPrice) {
-        return res.status(400).json({
-          EC: 0,
-          EM: `Giá deal phải nằm trong khoảng từ ${minPrice} đến ${maxPrice}!`
-        });
-      }
+      // if (parsedDealPrice < minPrice || parsedDealPrice > maxPrice) {
+      //   return res.status(400).json({
+      //     EC: 0,
+      //     EM: `Giá deal phải nằm trong khoảng từ ${minPrice} đến ${maxPrice}!`
+      //   });
+      // }
 
       const newPrice = new Price({
         duePrice_id: duePrice_id,
@@ -864,7 +868,7 @@ const confirmRequest = async (req, res) => {
       await request.save();
 
       // Gửi thông báo WebSocket tới khách hàng (dựa trên user_id của customer)
-      const customerId = request.user_id.toString(); // Giả sử request có field user_id là ID của khách hàng
+      const customerId = request.user_id._id.toString(); // Giả sử request có field user_id._id là ID của khách hàng
       console.log('Sending repairmanConfirmedCompletion to customer:', customerId);
       io.to(customerId).emit('repairmanConfirmedCompletion', { requestId: request._id }); // Gửi thêm requestId để frontend dễ xử lý
 

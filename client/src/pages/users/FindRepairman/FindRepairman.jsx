@@ -190,15 +190,17 @@ const FindRepairman = () => {
   return (
     <div className="find-repairman-container">
       <div className="search-section">
-        <SearchBar
-          setSelectedRadius={setSelectedRadius}
-          selectedRadius={selectedRadius}
-          onSearch={handleSearch}
-          onDataChange={handleDataChange}
-          cities={[]}
-          districts={[]}
-          wards={[]}
-        />
+      <SearchBar
+        setSelectedRadius={setSelectedRadius}
+        selectedRadius={selectedRadius}
+        onSearch={handleSearch}
+        onDataChange={handleDataChange}
+        cities={[]}
+        districts={[]}
+        wards={[]}
+        minPrice={priceResponse.minPrice}
+        maxPrice={priceResponse.maxPrice}
+      />
         <PriceBot description={searchData.description} onPriceResponse={handlePriceResponse} />
         {priceResponse.minPrice !== null && priceResponse.maxPrice !== null && (
           <div className="price-response">

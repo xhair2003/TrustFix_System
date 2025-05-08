@@ -429,7 +429,7 @@ const Header = () => {
                         )}
 
                         <div className="divider"></div>
-                        <Chat role={role} />
+                        <Chat />
                         <FaUser className="user-icon" onClick={toggleDropdown} />
                         {isDropdownOpen && (
                             <div className="dropdown-menu">
@@ -443,6 +443,9 @@ const Header = () => {
                                         </div>
                                     </>
                                 )}
+                                <div className="dropdown-item" onClick={() => navigate("/view-repairman-deal")}>
+                                    <FaUser className="dropdown-icon" /> Danh sách thợ deal giá
+                                </div>
                                 <div className="dropdown-item" onClick={() => navigate("/profile")}>
                                     <FaUser className="dropdown-icon" /> Thông tin cá nhân
                                 </div>
