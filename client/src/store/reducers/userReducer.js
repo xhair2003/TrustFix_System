@@ -67,7 +67,7 @@ const initialState = {
 const userReducer = (state = initialState, action) => {
     switch (action.type) {
         case "GET_USER_INFO_REQUEST":
-            return { ...state, loading: true };
+            return { ...state, loading: true, error: null };
         case "GET_USER_INFO_SUCCESS":
             return { ...state, loading: false, userInfo: action.payload, error: null };
         case "GET_USER_INFO_FAIL":
@@ -366,6 +366,8 @@ const userReducer = (state = initialState, action) => {
         case "REMOVE_REQUEST":
             return {
                 ...state,
+                successDealPrice: null,
+                errorDealPrice: null,
                 request: null, // Xóa request khỏi state khi hủy deal
             };
 

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Action gửi tin nhắn
-export const sendMessage = (receiverId, message, senderId) => async (dispatch, getState) => {
+export const sendMessage = (receiverId, message, senderId, requestId) => async (dispatch, getState) => {
     try {
         dispatch({ type: 'SEND_MESSAGE_REQUEST' });
 
@@ -19,7 +19,7 @@ export const sendMessage = (receiverId, message, senderId) => async (dispatch, g
         // Gửi request POST tới API
         const response = await axios.post(
             'http://localhost:8080/api/chat/send-message',
-            { receiverId, message },
+            { receiverId, message, requestId },
             config
         );
 
@@ -96,7 +96,7 @@ export const sendMessage = (receiverId, message, senderId) => async (dispatch, g
 //     }
 // };
 
-export const getChatHistory = (opponent) => async (dispatch, getState) => {
+export const getChatHistory = (opponent, requestId) => async (dispatch, getState) => {
     try {
         dispatch({ type: 'GET_CHAT_HISTORY_REQUEST' });
 
@@ -111,10 +111,17 @@ export const getChatHistory = (opponent) => async (dispatch, getState) => {
             },
         };
 
+        // Xây dựng URL dựa trên opponent hoặc requestId
+        let url;
+        if (opponent) {
+            url = `http://localhost:8080/api/chat/get-chat-history/${opponent}`;
+        } else if (requestId) {
+            url = `http://localhost:8080/api/chat/get-chat-history/request/${requestId}`;
+        } else {
+            url = `http://localhost:8080/api/chat/get-chat-history`;
+        }
+
         // Gửi request GET tới API
-        const url = opponent
-            ? `http://localhost:8080/api/chat/get-chat-history/${opponent}`
-            : `http://localhost:8080/api/chat/get-chat-history`;
         const response = await axios.get(url, config);
 
         if (response.data.EC === 1) {
