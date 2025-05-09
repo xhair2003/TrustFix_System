@@ -1,23 +1,25 @@
-/* .history-container {
+/* Container chính */
+.user-management-history-container {
     padding: 20px;
     background-color: #f8f9fa;
     height: 100%;
 }
 
-.history-form {
+.user-management-history-form {
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-} */
-.filter-section {
+}
+
+.user-management-filter-section {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
     align-items: center;
 }
 
-.search-input {
+.user-management-search-input {
     padding: 8px 12px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -25,7 +27,7 @@
     width: 200px;
 }
 
-.role-dropdown {
+.user-management-role-dropdown {
     padding: 8px 12px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -33,7 +35,7 @@
     width: 150px;
 }
 
-.delete-button {
+.user-management-delete-button {
     padding: 8px 16px;
     background-color: #dc3545;
     color: white;
@@ -44,90 +46,76 @@
     transition: background-color 0.3s;
 }
 
-.delete-button:hover {
+.user-management-delete-button:hover {
     background-color: #c82333;
 }
 
-.delete-button:disabled {
+.user-management-delete-button:disabled {
     background-color: #e9ecef;
     cursor: not-allowed;
 }
 
-.user-table {
+.user-management-user-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
 }
 
-.user-table th,
-.user-table td {
+.user-management-user-table th,
+.user-management-user-table td {
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid #dee2e6;
 }
 
-.user-table th {
+.user-management-user-table th {
     background-color: #f8f9fa;
     font-weight: bold;
     color: #333;
 }
 
-.user-table td input[type="checkbox"] {
+.user-management-user-table td input[type="checkbox"] {
     margin: 0;
 }
 
-.avatar-placeholder {
-    width: 40px;  /* Kích thước cụ thể cho ảnh đại diện */
-    height: 40px; /* Kích thước cụ thể cho ảnh đại diện */
+.user-management-avatar-placeholder {
+    width: 40px;
+    height: 40px;
     background-color: #ccc;
     border-radius: 50%;
     display: inline-block;
-    overflow: hidden; /* Ẩn phần ảnh vượt quá vùng chứa */
+    overflow: hidden;
 }
 
-.avatar-placeholder img {
+.user-management-avatar-placeholder img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Đảm bảo ảnh được cắt sao cho phù hợp */
+    object-fit: cover;
 }
 
-.edit-button {
+.user-management-edit-button {
     color: #007bff;
 }
 
-.edit-button:hover {
+.user-management-edit-button:hover {
     color: #0056b3;
 }
 
-.delete-button {
-    color: #ff031c;
-}
-
-.delete-button:hover {
-    color: #ffffff;
-}
-/* Thêm vào file ManageUserAccount.css */
-.table-wrapper {
-    max-height: 400px; /* Giới hạn chiều cao bảng */
-    overflow-y: auto; /* Thêm thanh cuộn dọc */
+.user-management-table-wrapper {
+    max-height: 400px;
+    overflow-y: auto;
     border: 1px solid #dee2e6;
     border-radius: 4px;
 }
 
-.user-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-}
-
-.user-table thead th {
-    position: sticky; /* Giữ tiêu đề cố định khi cuộn */
+.user-management-user-table thead th {
+    position: sticky;
     top: 0;
     background-color: #f8f9fa;
     z-index: 1;
 }
 
-.items-per-page-dropdown {
+.user-management-items-per-page-dropdown {
     padding: 8px 12px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -135,49 +123,52 @@
     width: 80px;
 }
 
-.pagination {
+.user-management-pagination {
     display: flex;
-    gap: 5px;
     justify-content: center;
+    align-items: center;
+    gap: 8px;
     margin-top: 20px;
 }
 
-.pagination button {
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+.user-management-pagination button {
+    padding: 8px 14px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
     background-color: #fff;
+    color: #333;
+    font-size: 14px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
 }
 
-.pagination button:hover {
-    background-color: #f8f9fa;
-}
-
-.pagination button.active {
-    background-color: #76b3f5c2;
+.user-management-pagination button:hover:not(:disabled) {
+    background-color: #007bff;
     color: white;
     border-color: #007bff;
 }
 
-.pagination button:disabled {
-    background-color: #e9ecef;
-    cursor: not-allowed;
+.user-management-pagination button.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    font-weight: bold;
 }
 
+.user-management-pagination button:disabled {
+    background-color: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+    border-color: #dee2e6;
+}
 
-/* .action-button {
-    background: none;
-    border: none;
-    cursor: pointer;
+.user-management-pagination button.prev,
+.user-management-pagination button.next {
     font-size: 16px;
-    margin-right: 8px;
-    transition: color 0.3s;
-} */
+    font-weight: bold;
+}
 
-/* Cấu trúc cho nút */
-.action-button {
+.user-management-action-button {
     background-color: transparent;
     border: none;
     cursor: pointer;
@@ -185,11 +176,11 @@
     padding: 10px;
 }
 
-.action-button:hover {
+.user-management-action-button:hover {
     opacity: 0.8;
 }
 
-.action-button span {
+.user-management-action-button span {
     position: absolute;
     top: 50%;
     left: 100%;
@@ -201,18 +192,17 @@
     transition: opacity 0.3s;
 }
 
-.action-button:hover span {
+.user-management-action-button:hover span {
     opacity: 1;
 }
 
-.icon-container {
+.user-management-icon-container {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Modal */
-.modal {
+.user-management-modal {
     display: none;
     position: fixed;
     z-index: 1;
@@ -225,7 +215,7 @@
     padding-top: 60px;
 }
 
-.modal-content {
+.user-management-modal-content {
     background-color: #fefefe;
     margin: 5% auto;
     padding: 20px;
@@ -234,24 +224,24 @@
     max-width: 400px;
 }
 
-.modal-header {
+.user-management-modal-header {
     font-size: 18px;
     font-weight: bold;
 }
 
-.modal-footer {
+.user-management-modal-footer {
     text-align: right;
 }
 
-.close {
+.user-management-close {
     color: #aaa;
     float: right;
     font-size: 28px;
     font-weight: bold;
 }
 
-.close:hover,
-.close:focus {
+.user-management-close:hover,
+.user-management-close:focus {
     color: black;
     text-decoration: none;
     cursor: pointer;

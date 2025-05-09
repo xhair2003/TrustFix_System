@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUsers, deleteUser, lockUser, unlockUser, resetError, resetSuccess } from "../../../store/actions/adminActions";
-import { FaTrash, FaEye, FaLock, FaUnlock } from "react-icons/fa"; // Icons for view, lock, delete
+import { FaTrash, FaEye, FaLock, FaUnlock } from "react-icons/fa";
 import "./ManageUserAccount.css";
 import Loading from "../../../component/Loading/Loading";
 import Swal from "sweetalert2";
@@ -18,7 +18,7 @@ const ManageUserAccount = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const [modalType, setModalType] = useState(null);
-    const [selectedUser, setSelectedUser] = useState(null); 
+    const [selectedUser, setSelectedUser] = useState(null);
     const [reason, setReason] = useState("");
 
     useEffect(() => {
@@ -42,8 +42,6 @@ const ManageUserAccount = () => {
                 showConfirmButton: false,
             });
             dispatch(resetSuccess());
-
-            // Làm mới danh sách người dùng sau khi xóa thành công
             dispatch(fetchUsers());
         }
 
@@ -89,7 +87,7 @@ const ManageUserAccount = () => {
                 showConfirmButton: false,
             });
             dispatch(resetSuccess());
-            dispatch(fetchUsers()); // Refresh the user list after locking the user
+            dispatch(fetchUsers());
         }
 
         if (unlockSuccessMessage) {
@@ -101,17 +99,14 @@ const ManageUserAccount = () => {
                 showConfirmButton: false,
             });
             dispatch(resetSuccess());
-            dispatch(fetchUsers()); // Refresh the user list after unlocking the user
+            dispatch(fetchUsers());
         }
-
-
     }, [deleteSuccessMessage, deleteErrorMessage, dispatch, errorGetUsers,
-        lockSuccessMessage, lockErrorMessage,
-        unlockErrorMessage, unlockSuccessMessage
+        lockSuccessMessage, lockErrorMessage, unlockErrorMessage, unlockSuccessMessage
     ]);
 
     useEffect(() => {
-        dispatch(fetchUsers()); // Fetch users when the component mounts
+        dispatch(fetchUsers());
     }, [dispatch]);
 
     const openModal = (type, user) => {
@@ -139,9 +134,9 @@ const ManageUserAccount = () => {
             const matchesSearch =
                 fullName.includes(searchTerm.toLowerCase()) ||
                 user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user._id.toLowerCase().includes(searchTerm.toLowerCase()); // Thêm điều kiện tìm kiếm theo _id
+                user._id.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesRole = roleFilter === "All" || user.roles[0]?.type === roleFilter;
-        return matchesSearch && matchesRole;
+            return matchesSearch && matchesRole;
         })
         .sort((a, b) => {
             if (roleFilter === "All") {
@@ -168,7 +163,6 @@ const ManageUserAccount = () => {
     };
 
     const handleSubmitReason = () => {
-        // Gọi API khóa tài khoản hoặc mở khóa tài khoản tùy theo modalType
         if (modalType === "lock") {
             if (!reason) {
                 Swal.fire("Vui lòng nhập lý do!");
@@ -176,45 +170,102 @@ const ManageUserAccount = () => {
             }
             dispatch(lockUser(selectedUser._id, reason));
         } else if (modalType === "unlock") {
-            dispatch(unlockUser(selectedUser._id)); // Unlock the user
+            dispatch(unlockUser(selectedUser._id));
         } else if (modalType === "delete") {
             if (!reason) {
                 Swal.fire("Vui lòng nhập lý do!");
                 return;
             }
-            // Gọi API xóa tài khoản
             dispatch(deleteUser(selectedUser._id, reason));
         }
-
-        // Reset lý do sau khi gửi
         setReason("");
-
-        // Đóng modal sau khi xác nhận
         closeModal();
     };
 
+    const renderPagination = () => {
+        const maxButtons = 5;
+        const buttons = [];
+        let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+        let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+
+        if (endPage - startPage + 1 < maxButtons) {
+            startPage = Math.max(1, endPage - maxButtons + 1);
+        }
+
+        buttons.push(
+            <button
+                key="prev"
+                className="prev"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+            >
+                ← Trước
+            </button>
+        );
+
+        if (startPage > 1) {
+            buttons.push(
+                <button key="start-ellipsis" disabled>
+                    ...
+                </button>
+            );
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            buttons.push(
+                <button
+                    key={i}
+                    onClick={() => handlePageChange(i)}
+                    className={currentPage === i ? "active" : ""}
+                >
+                    {i}
+                </button>
+            );
+        }
+
+        if (endPage < totalPages) {
+            buttons.push(
+                <button key="end-ellipsis" disabled>
+                    ...
+                </button>
+            );
+        }
+
+        buttons.push(
+            <button
+                key="next"
+                className="next"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+            >
+                Sau →
+            </button>
+        );
+
+        return buttons;
+    };
 
     if (!users || loading) {
         return <Loading />;
-    };
+    }
 
     return (
-        <div className="history-container">
-            <div className="history-form">
+        <div className="user-management-history-container">
+            <div className="user-management-history-form">
                 <h2 className="complaint-title">QUẢN LÝ TÀI KHOẢN NGƯỜI DÙNG</h2>
 
-                <div className="filter-section">
+                <div className="user-management-filter-section">
                     <input
                         type="text"
                         placeholder="Tìm kiếm người dùng theo ID, Họ và tên hoặc Email..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
+                        className="user-management-search-input"
                     />
                     <select
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
-                        className="role-dropdown"
+                        className="user-management-role-dropdown"
                     >
                         <option value="All">Tất cả</option>
                         <option value="customer">Khách hàng</option>
@@ -223,22 +274,22 @@ const ManageUserAccount = () => {
                     <select
                         value={itemsPerPage}
                         onChange={handleItemsPerPageChange}
-                        className="items-per-page-dropdown"
+                        className="user-management-items-per-page-dropdown"
                     >
                         <option value={5}>5</option>
                         <option value={10}>10</option>
                         <option value={15}>15</option>
                     </select>
                     <button
-                        className="delete-button"
+                        className="user-management-delete-button"
                         disabled={selectedUsers.length === 0}
                     >
                         Xóa người dùng đã chọn
                     </button>
                 </div>
 
-                <div className="table-wrapper">
-                    <table className="user-table">
+                <div className="user-management-table-wrapper">
+                    <table className="user-management-user-table">
                         <thead>
                             <tr>
                                 <th>
@@ -246,10 +297,10 @@ const ManageUserAccount = () => {
                                         type="checkbox"
                                         onChange={() => {
                                             if (selectedUsers.length === paginatedUsers.length) {
-                                        setSelectedUsers([]);
-                                    } else {
+                                                setSelectedUsers([]);
+                                            } else {
                                                 setSelectedUsers(paginatedUsers.map((user) => user._id));
-                                    }
+                                            }
                                         }}
                                         checked={selectedUsers.length === paginatedUsers.length}
                                     />
@@ -279,29 +330,28 @@ const ManageUserAccount = () => {
                                     <td>{user.phone}</td>
                                     <td>{user.roles[0]?.type === "customer" ? "Khách hàng" : "Thợ"}</td>
                                     <td>
-                                        <div className="avatar-placeholder">
+                                        <div className="user-management-avatar-placeholder">
                                             <img src={user.imgAvt} alt="Avatar" />
                                         </div>
                                     </td>
                                     <td>
-                                        <div className="icon-container">
-                                            <button className="action-button" onClick={() => openModal("view", user)}>
+                                        <div className="user-management-icon-container">
+                                            <button className="user-management-action-button" onClick={() => openModal("view", user)}>
                                                 <FaEye />
                                                 <span>Xem chi tiết</span>
                                             </button>
-                                            {/* Hiển thị nút khóa/mở khóa tài khoản tùy vào trạng thái */}
                                             {user.status === "Active" || user.status === "Inactive" || user.status === 1 ? (
-                                                <button className="action-button" onClick={() => openModal("lock", user)}>
+                                                <button className="user-management-action-button" onClick={() => openModal("lock", user)}>
                                                     <FaLock />
                                                     <span>Khóa tài khoản</span>
                                                 </button>
                                             ) : user.status === "Banned" ? (
-                                                <button className="action-button" onClick={() => openModal("unlock", user)}>
+                                                <button className="user-management-action-button" onClick={() => openModal("unlock", user)}>
                                                     <FaUnlock />
                                                     <span>Mở khóa tài khoản</span>
                                                 </button>
                                             ) : null}
-                                            <button className="action-button" onClick={() => openModal("delete", user)}>
+                                            <button className="user-management-action-button" onClick={() => openModal("delete", user)}>
                                                 <FaTrash />
                                                 <span>Xóa tài khoản</span>
                                             </button>
@@ -313,30 +363,13 @@ const ManageUserAccount = () => {
                     </table>
                 </div>
 
-                <div className="pagination">
-                    <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                        Trước
-                    </button>
-                    {Array.from({ length: totalPages }, (_, index) => (
-                        <button
-                            key={index + 1}
-                            onClick={() => handlePageChange(index + 1)}
-                            className={currentPage === index + 1 ? "active" : ""}
-                        >
-                            {index + 1}
-                        </button>
-                    ))}
-                    <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                        Sau
-                    </button>
-                </div>
+                <div className="user-management-pagination">{renderPagination()}</div>
             </div>
 
-            {/* Modal for View User Details */}
             {modalType === "view" && selectedUser && (
-                <div className="modal" style={{ display: "block" }}>
-                    <div className="modal-content">
-                        <span className="close" onClick={closeModal}>
+                <div className="user-management-modal" style={{ display: "block" }}>
+                    <div className="user-management-modal-content">
+                        <span className="user-management-close" onClick={closeModal}>
                             &times;
                         </span>
                         <h3>Chi tiết người dùng</h3>
@@ -346,27 +379,20 @@ const ManageUserAccount = () => {
                         <p><strong>Ảnh:</strong> <img style={{ width: '250px', height: '250px' }} src={selectedUser.imgAvt} alt="Avatar" /></p>
                         <p><strong>Địa chỉ:</strong> {selectedUser.address}</p>
                         <p><strong>Vai trò:</strong> {selectedUser.roles[0].type === "customer" ? "Khách hàng" : "Thợ"}</p>
-
-                        {/* Hiển thị trạng thái chỉ khi vai trò là "Thợ" */}
                         {selectedUser.roles[0].type === "repairman" && (
                             <p><strong>Trạng thái:</strong> {selectedUser.status}</p>
                         )}
-
                         <p><strong>Mô tả bản thân:</strong> {selectedUser.description}</p>
-
-                        {/* Định dạng ngày giờ */}
                         <p><strong>Ngày tạo tài khoản:</strong> {new Date(selectedUser.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</p>
                         <p><strong>Ngày cập nhật thông tin:</strong> {new Date(selectedUser.updatedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</p>
-
                     </div>
                 </div>
             )}
 
-            {/* Modal for Lock User Account */}
             {modalType === "lock" && selectedUser && (
-                <div className="modal" style={{ display: "block" }}>
-                    <div className="modal-content">
-                        <span className="close" onClick={closeModal}>
+                <div className="user-management-modal" style={{ display: "block" }}>
+                    <div className="user-management-modal-content">
+                        <span className="user-management-close" onClick={closeModal}>
                             &times;
                         </span>
                         <h3>Khóa tài khoản</h3>
@@ -377,7 +403,7 @@ const ManageUserAccount = () => {
                             rows="4"
                             style={{ width: "100%" }}
                         />
-                        <div className="modal-footer">
+                        <div className="user-management-modal-footer">
                             <button onClick={handleSubmitReason}>Xác nhận</button>
                             <button onClick={closeModal}>Hủy</button>
                         </div>
@@ -385,16 +411,15 @@ const ManageUserAccount = () => {
                 </div>
             )}
 
-            {/* Modal for Unlock User Account */}
             {modalType === "unlock" && selectedUser && (
-                <div className="modal" style={{ display: "block" }}>
-                    <div className="modal-content">
-                        <span className="close" onClick={closeModal}>
+                <div className="user-management-modal" style={{ display: "block" }}>
+                    <div className="user-management-modal-content">
+                        <span className="user-management-close" onClick={closeModal}>
                             &times;
                         </span>
-                        <h3>Mở khóa tài khoản</h3>
+  <h3>Mở khóa tài khoản</h3>
                         <p>Bạn có thực sự muốn mở khóa người dùng này?</p>
-                        <div className="modal-footer">
+                        <div className="user-management-modal-footer">
                             <button onClick={handleSubmitReason}>Xác nhận</button>
                             <button onClick={closeModal}>Hủy</button>
                         </div>
@@ -402,13 +427,10 @@ const ManageUserAccount = () => {
                 </div>
             )}
 
-
-
-            {/* Modal for Delete User Account */}
             {modalType === "delete" && selectedUser && (
-                <div className="modal" style={{ display: "block" }}>
-                    <div className="modal-content">
-                        <span className="close" onClick={closeModal}>
+                <div className="user-management-modal" style={{ display: "block" }}>
+                    <div className="user-management-modal-content">
+                        <span className="user-management-close" onClick={closeModal}>
                             &times;
                         </span>
                         <h3>Xóa tài khoản</h3>
@@ -419,7 +441,7 @@ const ManageUserAccount = () => {
                             rows="4"
                             style={{ width: "100%" }}
                         />
-                        <div className="modal-footer">
+                        <div className="user-management-modal-footer">
                             <button onClick={handleSubmitReason} disabled={loading}>
                                 {loading ? "Đang xử lý..." : "Xác nhận"}
                             </button>
@@ -433,4 +455,3 @@ const ManageUserAccount = () => {
 };
 
 export default ManageUserAccount;
-
