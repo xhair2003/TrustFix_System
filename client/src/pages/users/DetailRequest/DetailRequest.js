@@ -675,11 +675,13 @@ const DetailRequest = () => {
           <section className="request-section deal-section">
             <h3>Deal giá</h3>
             <div className="deal-info">
-              <p>
-                <strong>Khoảng giá đề xuất:</strong>{" "}
-                {requestData.minPrice?.toLocaleString() || "N/A"} -{" "}
-                {requestData.maxPrice?.toLocaleString() || "N/A"} VNĐ
-              </p>
+              {(requestData.minPrice?.toLocaleString() !== -1 || requestData.maxPrice?.toLocaleString() !== -1) &&
+                (<p>
+                  <strong>Khoảng giá đề xuất:</strong>{" "}
+                  {requestData.minPrice?.toLocaleString() || "N/A"} -{" "}
+                  {requestData.maxPrice?.toLocaleString() || "N/A"} VNĐ
+                </p>)
+              }
               <div className="deal-input-group">
                 <input
                   type="number"

@@ -535,7 +535,7 @@ export const findRepairman = (requestData, imageFiles) => async (dispatch, getSt
         if (response.data.EC === 1) {
             localStorage.setItem("requestId", response.data.DT.requestId); // Lưu requestId vào localStorage
 
-            console.log("nearbyRepairmen", response.data.DT.nearbyRepairmen);
+            //console.log("nearbyRepairmen", response.data.DT.nearbyRepairmen);
             // Dispatch success với dữ liệu từ BE
             dispatch({
                 type: "FIND_REPAIRMAN_SUCCESS",
