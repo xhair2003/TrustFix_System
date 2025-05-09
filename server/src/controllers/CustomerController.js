@@ -665,7 +665,7 @@ const sendRequest = async (req, res, next) => {
 const findRepairman = async (req, res) => {
   try {
     const userId = req.user.id; // Lấy từ middleware verifyToken
-    const io = req.app.get('io'); // Lấy io từ app (sẽ cấu hình trong index.js)
+    const io = req.app.get("io"); // Lấy io từ app (sẽ cấu hình trong index.js)
     const requestId = req.savedRequest.requestId;
     const { radius, minPrice, maxPrice } = req.body; // Get radius from request parameters
     const gomapApiKey = process.env.GOMAPS_API_KEY;
@@ -710,12 +710,14 @@ const findRepairman = async (req, res) => {
       serviceIndustry_id: originalRequest.serviceIndustry_id,
       user_id: { $ne: userId }, // Đảm bảo user_id khác với userId
     });
-    const repairmanUserIds = repairmanUpgradeRequests.map(
-      (request) => request.user_id
-    );
 
+    // Separate repairmen with VIP ID and those without
+    const vipRepairmen = repairmanUpgradeRequests.filter(request => request.vip_id).map(request => request.user_id);
+    const nonVipRepairmen = repairmanUpgradeRequests.filter(request => !request.vip_id).map(request => request.user_id);
+
+    // Process VIP repairmen immediately
     const repairmenUsers = await User.find({
-      _id: { $in: repairmanUserIds },
+      _id: { $in: vipRepairmen },
     });
 
     if (!repairmenUsers || repairmenUsers.length === 0) {
@@ -723,14 +725,14 @@ const findRepairman = async (req, res) => {
       return res.status(400).json({
         EC: 0,
         EM: `Không tìm thấy thợ sửa chữa nào trong khu vực bán kính ${radius}km!`,
-
       });
     }
 
     const nearbyRepairmen = [];
 
     for (const repairman of repairmenUsers) {
-      if (repairman.address) { // Bỏ qua chính mình
+      if (repairman.address) {
+        // Bỏ qua chính mình
         const gomapApiUrl = `https://maps.gomaps.pro/maps/api/distancematrix/json?destinations=${encodeURIComponent(
           repairman.address
         )}&origins=${encodeURIComponent(address)}&key=${gomapApiKey}`;
@@ -829,8 +831,11 @@ const findRepairman = async (req, res) => {
         }
 
         // Gửi thông báo WebSocket tới thợ (không gửi dữ liệu chi tiết)
-        console.log('Sending newRequest to repairman:', repairman._id.toString());
-        io.to(repairman._id.toString()).emit('newRequest');
+        console.log(
+          "Sending newRequest to repairman:",
+          repairman._id.toString()
+        );
+        io.to(repairman._id.toString()).emit("newRequest");
       }
     }
     const newDuePrice = new DuePrice({
@@ -841,16 +846,68 @@ const findRepairman = async (req, res) => {
     await newDuePrice.save(); // Lưu Due_price
     //const deal_price = minPrice + "  " + maxPrice;
 
+    // Trigger cron job for non-VIP repairmen
+    setTimeout(async () => {
+      const nonVipRepairmenUsers = await User.find({
+        _id: { $in: nonVipRepairmen },
+      }).populate({
+        path: 'repairmanUpgradeRequests',
+        match: { status: 'Active' },
+        select: '_id', // Ensure you are selecting the _id field
+      });
+
+      for (const repairman of nonVipRepairmenUsers) {
+        if (repairman.address && repairman.repairmanUpgradeRequests.length > 0) {
+          const repairmanUpgradeRequest = repairman.repairmanUpgradeRequests[0]; // Assuming you want the first one
+          const repairmanId = repairmanUpgradeRequest._id; // Access the _id of the repairmanUpgradeRequest
+
+          // Use repairmanId for creating new requests
+          const newRequestForRepairman = new Request({
+            user_id: originalRequest.user_id,
+            serviceIndustry_id: originalRequest.serviceIndustry_id,
+            description: originalRequest.description,
+            address: originalRequest.address,
+            image: originalRequest.image,
+            status: "Deal price",
+            repairman_id: repairmanId, // Correctly reference the repairman_id
+            parentRequest: originalRequest._id,
+          });
+          await newRequestForRepairman.save();
+          newRequestsForRepairmen.push(newRequestForRepairman);
+          //DuePrice cho mooix thowj
+          const newDuePriceForRepairmen = new DuePrice({
+            request_id: newRequestForRepairman._id,
+            minPrice: minPrice,
+            maxPrice: maxPrice,
+          });
+          await newDuePriceForRepairmen.save();
+          newDuePricesForRepairmen.push(newDuePriceForRepairmen);
+          // Update RepairmanUpgradeRequest status to 'Deal price'
+          const repairmanUpgrade = await RepairmanUpgradeRequest.findOne({
+            user_id: repairman._id,
+          });
+          if (repairmanUpgrade) {
+            repairmanUpgrade.status = "Deal price";
+            await repairmanUpgrade.save();
+          }
+
+          if (!assignedRepairman) {
+            assignedRepairman = repairman; // Assign the first repairman as assignedRepairman for response
+          }
+
+          // Gửi thông báo WebSocket tới thợ (không gửi dữ liệu chi tiết)
+          console.log(
+            "Sending newRequest to repairman:",
+            repairman._id.toString()
+          );
+          io.to(repairman._id.toString()).emit("newRequest");
+        }
+      }
+    }, 60000); // 1 minute delay
+
     res.status(200).json({
       EC: 1,
       EM: "Gửi yêu cầu tìm kiếm thành công!",
-      // DT: {
-      //   //nearbyRepairmen: nearbyRepairmen,
-      //   request: originalRequest, // Vẫn trả về request gốc
-      //   //assignedRepairman: assignedRepairman, // Vẫn trả về assignedRepairman (first one found)
-      //   deal_price: saveDuePrice,
-      //   // newRequestsForRepairmen: newRequestsForRepairmen // Trả về array các request mới tạo
-      // },
       DT: originalRequest._id, // Trả về ID của request gốc
     });
   } catch (error) {
