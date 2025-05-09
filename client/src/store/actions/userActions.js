@@ -533,14 +533,16 @@ export const findRepairman = (requestData, imageFiles) => async (dispatch, getSt
             config
         );
         if (response.data.EC === 1) {
-            localStorage.setItem("requestId", response.data.DT); // Lưu requestId vào localStorage
+            localStorage.setItem("requestId", response.data.DT.requestId); // Lưu requestId vào localStorage
 
+            console.log("nearbyRepairmen", response.data.DT.nearbyRepairmen);
             // Dispatch success với dữ liệu từ BE
             dispatch({
                 type: "FIND_REPAIRMAN_SUCCESS",
                 payload: {
                     message: response.data.EM,
-                    requestId: response.data.DT // ID đơn hàng
+                    requestId: response.data.DT.requestId, // ID đơn hàng
+                    nearbyRepairmen: response.data.DT.nearbyRepairmen // thông tin các thợ tìm được trong vùng bán kính
                 },
             });
         } else {

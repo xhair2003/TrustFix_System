@@ -46,6 +46,15 @@
   .results-section.animate {
     animation: slideInWithBounce 0.8s ease-out forwards; /* Hiệu ứng trượt xuống đặc sắc */
   }
+
+  .price-response {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    font-size: 14px;
+    color: #20aa01;
+}
   
   /* Hiệu ứng nảy nhẹ cho MapView */
   @keyframes bounce {

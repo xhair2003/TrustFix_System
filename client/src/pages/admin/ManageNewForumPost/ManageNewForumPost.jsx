@@ -120,11 +120,11 @@ function ManageNewForumPost() {
                                 </td>
                                 <td className={styles.tableCell}>
                                     <button
-                                        className={styles.viewButton}
+                                        className={styles.viewpostButton}
                                         onClick={() => handleViewDetails(post)}
                                         disabled={loading}
                                     >
-                                        <FaEye /> Xem
+                                         Xem
                                     </button>
                                     <button
                                         className={styles.approveButton}

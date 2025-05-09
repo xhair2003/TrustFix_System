@@ -19,6 +19,7 @@ const initialState = {
     errorGetStatus: null,
     errorFetchBalance: null,
     requestId: null,
+    nearbyRepairmen: [],
     errorFindRepairman: null,
     errorViewRequest: null,
     successFindRepairman: null,
@@ -305,6 +306,7 @@ const userReducer = (state = initialState, action) => {
                 requestId: action.payload.requestId, // Lưu dữ liệu từ BE
                 successFindRepairman: action.payload.message, // Lưu dữ liệu từ BE (VD: { EC: 1, EM: "Gửi yêu cầu thành công!" })
                 errorFindRepairman: null,
+                nearbyRepairmen: action.payload.nearbyRepairmen, // Lưu dữ liệu từ BE
             };
         case "FIND_REPAIRMAN_FAIL":
             return {
@@ -312,6 +314,7 @@ const userReducer = (state = initialState, action) => {
                 loading: false,
                 successFindRepairman: null,
                 requestId: null,
+                nearbyRepairmen: null,
                 errorFindRepairman: action.payload, // Lưu thông báo lỗi
             };
 

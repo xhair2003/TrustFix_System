@@ -394,7 +394,7 @@ const DetailRequest = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [hasNewMessage, setHasNewMessage] = useState(false);
-  console.log("requestData", requestData);
+  //console.log("requestData", requestData);
   const storedDealPrices = JSON.parse(localStorage.getItem("deal_prices") || "{}");
   const storedDealPrice = storedDealPrices[requestData.parentRequest];
 
