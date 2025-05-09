@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchRepairBookingHistory, resetError
-} from "../../../store/actions/adminActions"; // Adjust import to match the location of your actions
+} from "../../../store/actions/adminActions";
 
 const ViewRepairBooking = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -57,26 +57,21 @@ const ViewRepairBooking = () => {
 
   // Filter orders based on search term, status, and date
   const filteredOrders = repairBookingHistory.filter((order) => {
-    const orderDate = new Date(order.updatedAt); // Use the completion date for filtering
+    const orderDate = new Date(order.updatedAt);
     const start = startDate ? new Date(startDate) : null;
     const end = endDate ? new Date(endDate) : null;
 
-    // Normalize the start and end dates (set end date to 23:59:59 for inclusivity)
     if (end) {
-      end.setHours(23, 59, 59, 999); // Set time to end of the day
+      end.setHours(23, 59, 59, 999);
     }
 
     const fullName = order.user_id ? `${order.user_id.firstName} ${order.user_id.lastName}` : "";
-    // Check if the search term matches order ID or customer name
     const matchesSearch =
       searchTerm === "" ||
       order._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (fullName.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    // Apply status filter
     const matchesStatus = statusFilter === "" || order.status === statusFilter;
-
-    // Apply date range filter
     const matchesDate =
       (!start || orderDate >= start) && (!end || orderDate <= end);
 
@@ -88,22 +83,22 @@ const ViewRepairBooking = () => {
   }
 
   return (
-    <div className="history-container">
-      <div className="history-form">
-        <h2 className="complaint-title">XEM LỊCH SỬ SỬA CHỮA</h2>
+    <div className="view-booking-repair-order-container">
+      <div className="view-booking-repair-order-form">
+        <h2 className="view-booking-repair-order-title">XEM LỊCH SỬ SỬA CHỮA</h2>
 
-        <div className="filter-section">
+        <div className="view-booking-repair-filter-section">
           <input
             type="text"
             placeholder="Tìm theo mã hoặc tên khách hàng"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
+            className="view-booking-repair-search-input"
           />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="status-filter"
+            className="view-booking-repair-status-filter"
           >
             <option value="">Tất cả trạng thái</option>
             <option value="Completed">Đã hoàn thành</option>
@@ -121,60 +116,74 @@ const ViewRepairBooking = () => {
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="date-filter"
+            className="view-booking-repair-date-filter"
           />
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="date-filter"
+            className="view-booking-repair-date-filter"
           />
         </div>
 
-        <div className="view-order-list">
-          {filteredOrders.map((order) => (
-            <div
-              key={order._id}
-              className="view-order-item"
-              onClick={() => handleOrderClick(order)}
-            >
-              <span className="view-order-item-id">{order._id || "không xác định"}</span>
-              <span className="view-order-item-date">Đặt: {formatDateTime(order.createdAt) || "Không xác định"}</span>
-              <span className="view-order-item-complete">
-                Hoàn thành: {formatDateTime(order.updatedAt) || "Không xác định"}
-              </span>
-              <span className="view-order-item-price">{order.priceRange || 0}</span>
-              <span
-                className={`view-order-item-status view-order-status-${order.status.toLowerCase().replace(" ", "-")}`}
-              >
-                {
-                  order.status === "Completed" ? "Đã hoàn thành" :
-                    order.status === "Confirmed" ? "Đã xác nhận" :
-                      order.status === "Pending" ? "Đang chờ xử lý" :
+        <div className="view-booking-repair-order-table-container">
+          <table className="view-booking-repair-order-table">
+            <thead>
+              <tr>
+                <th>Mã đơn</th>
+                <th>Ngày đặt</th>
+                <th>Ngày hoàn thành</th>
+                <th>Giá</th>
+                <th>Trạng thái</th>
+                <th>Đánh giá</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredOrders.map((order) => (
+                <tr
+                  key={order._id}
+                  className="view-booking-repair-order-item"
+                  onClick={() => handleOrderClick(order)}
+                >
+                  <td className="view-booking-repair-order-item-id">{order._id || "không xác định"}</td>
+                  <td className="view-booking-repair-order-item-date">{formatDateTime(order.createdAt) || "Không xác định"}</td>
+                  <td className="view-booking-repair-order-item-complete">{formatDateTime(order.updatedAt) || "Không xác định"}</td>
+                  <td className="view-booking-repair-order-item-price">{order.priceRange || 0}</td>
+                  <td>
+                    <span
+                      className={`view-booking-repair-order-item-status view-booking-repair-order-status-${order.status.toLowerCase().replace(" ", "-")}`}
+                    >
+                      {
+                        order.status === "Completed" ? "Đã hoàn thành" :
+                        order.status === "Confirmed" ? "Đã xác nhận" :
+                        order.status === "Pending" ? "Đang chờ xử lý" :
                         order.status === "Cancelled" ? "Đã hủy" :
-                          order.status === "Requesting Details" ? "Yêu cầu chi tiết" :
-                            order.status === "Deal price" ? "Thỏa thuận giá" :
-                              order.status === "Done deal price" ? "Đã chốt giá" :
-                                order.status === "Make payment" ? "Chờ thanh toán" :
-                                  order.status === "Repairman confirmed completion" ? "Thợ xác nhận hoàn thành" :
-                                    order.status === "Proceed with repair" ? "Tiến hành sửa chữa" :
-                                      "Trạng thái không xác định"
-                }
-              </span>
-              <span className="view-order-item-rating">
-                {order.ratings && order.ratings[0] ? `★ ${order.ratings[0].rate}/5` : "Chưa đánh giá"}
-              </span>
-            </div>
-          ))}
+                        order.status === "Requesting Details" ? "Yêu cầu chi tiết" :
+                        order.status === "Deal price" ? "Thỏa thuận giá" :
+                        order.status === "Done deal price" ? "Đã chốt giá" :
+                        order.status === "Make payment" ? "Chờ thanh toán" :
+                        order.status === "Repairman confirmed completion" ? "Thợ xác nhận hoàn thành" :
+                        order.status === "Proceed with repair" ? "Tiến hành sửa chữa" :
+                        "Trạng thái không xác định"
+                      }
+                    </span>
+                  </td>
+                  <td className="view-booking-repair-order-item-rating">
+                    {order.ratings && order.ratings[0] ? `★ ${order.ratings[0].rate}/5` : "Chưa đánh giá"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
       {selectedOrder && (
-        <div className="view-order-modal">
-          <div className="view-order-modal-content">
-            <h3 className="view-order-modal-title">CHI TIẾT ĐƠN HÀNG {selectedOrder._id}</h3>
+        <div className="view-booking-repair-order-modal">
+          <div className="view-booking-repair-order-modal-content">
+            <h3 className="view-booking-repair-order-modal-title">CHI TIẾT ĐƠN HÀNG {selectedOrder._id}</h3>
 
-            <div className="view-order-modal-section">
+            <div className="view-booking-repair-order-modal-section">
               <h4>Thông tin đơn hàng</h4>
               <p>Mã đơn hàng: {selectedOrder._id || "Không xác định"}</p>
               <p>Ngày đặt: {formatDateTime(selectedOrder.createdAt) || "Không xác định"}</p>
@@ -188,23 +197,22 @@ const ViewRepairBooking = () => {
                 Trạng thái:{" "}
                 {
                   selectedOrder.status === "Completed" ? "Đã hoàn thành" :
-                    selectedOrder.status === "Confirmed" ? "Đã xác nhận" :
-                      selectedOrder.status === "Pending" ? "Đang chờ xử lý" :
-                        selectedOrder.status === "Cancelled" ? "Đã hủy" :
-                          selectedOrder.status === "Requesting Details" ? "Yêu cầu chi tiết" :
-                            selectedOrder.status === "Deal price" ? "Thỏa thuận giá" :
-                              selectedOrder.status === "Done deal price" ? "Đã chốt giá" :
-                                selectedOrder.status === "Make payment" ? "Chờ thanh toán" :
-                                  selectedOrder.status === "Repairman confirmed completion" ? "Thợ xác nhận hoàn thành" :
-                                    selectedOrder.status === "Proceed with repair" ? "Tiến hành sửa chữa" :
-                                      "Trạng thái không xác định"
+                  selectedOrder.status === "Confirmed" ? "Đã xác nhận" :
+                  selectedOrder.status === "Pending" ? "Đang chờ xử lý" :
+                  selectedOrder.status === "Cancelled" ? "Đã hủy" :
+                  selectedOrder.status === "Requesting Details" ? "Yêu cầu chi tiết" :
+                  selectedOrder.status === "Deal price" ? "Thỏa thuận giá" :
+                  selectedOrder.status === "Done deal price" ? "Đã chốt giá" :
+                  selectedOrder.status === "Make payment" ? "Chờ thanh toán" :
+                  selectedOrder.status === "Repairman confirmed completion" ? "Thợ xác nhận hoàn thành" :
+                  selectedOrder.status === "Proceed with repair" ? "Tiến hành sửa chữa" :
+                  "Trạng thái không xác định"
                 }
               </p>
               <p>Đánh giá: {selectedOrder.ratings && selectedOrder.ratings[0] ? `${selectedOrder.ratings[0].rate}/5` : "Chưa đánh giá"}</p>
-
             </div>
 
-            <div className="view-order-modal-section">
+            <div className="view-booking-repair-order-modal-section">
               <h4>Thông tin khách hàng</h4>
               <p>Tên: {selectedOrder.user_id ? `${selectedOrder.user_id.firstName} ${selectedOrder.user_id.lastName}` : "Không xác định"}</p>
               <p>Email: {selectedOrder.user_id ? selectedOrder.user_id.email : "Không xác định"}</p>
@@ -212,7 +220,7 @@ const ViewRepairBooking = () => {
               <p>Địa chỉ: {selectedOrder.user_id ? selectedOrder.user_id.address : "Không xác định"}</p>
             </div>
 
-            <div className="view-order-modal-section">
+            <div className="view-booking-repair-order-modal-section">
               <h4>Thông tin thợ sửa</h4>
               <p>Tên: {selectedOrder.repairman_id ? `${selectedOrder.repairman_id.firstName} ${selectedOrder.repairman_id.lastName}` : "Không xác định"}</p>
               <p>Email: {selectedOrder.repairman_id ? selectedOrder.repairman_id.email : "Không xác định"}</p>
@@ -220,7 +228,7 @@ const ViewRepairBooking = () => {
               <p>Địa chỉ: {selectedOrder.repairman_id ? selectedOrder.repairman_id.address : "Không xác định"}</p>
             </div>
 
-            <button className="view-order-modal-close" onClick={closeModal}>
+            <button className="view-booking-repair-order-modal-close" onClick={closeModal}>
               Đóng
             </button>
           </div>
