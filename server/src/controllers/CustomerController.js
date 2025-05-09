@@ -908,7 +908,14 @@ const findRepairman = async (req, res) => {
     res.status(200).json({
       EC: 1,
       EM: "Gửi yêu cầu tìm kiếm thành công!",
-      DT: originalRequest._id, // Trả về ID của request gốc
+      DT: {
+        nearbyRepairmen: nearbyRepairmen,
+        requestId: originalRequest._id, // Trả về ID của request gốc
+        //   request: originalRequest, // Vẫn trả về request gốc
+        //   //assignedRepairman: assignedRepairman, // Vẫn trả về assignedRepairman (first one found)
+        //   deal_price: saveDuePrice,
+        //   // newRequestsForRepairmen: newRequestsForRepairmen // Trả về array các request mới tạo
+      },
     });
   } catch (error) {
     console.error("Error finding repairman and assigning:", error);
