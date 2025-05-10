@@ -71,5 +71,7 @@ router.post('/add-comments/:post_id', authMiddleware.verifyToken, CustomerContro
 router.post('/likes/:post_id', authMiddleware.verifyToken, CustomerController.like);
 router.get('/notifications', authMiddleware.verifyToken, CustomerController.getNotifications);
 
+
+router.get('/view-history-repairment',authMiddleware.verifyToken, CustomerController.getRepairHistoryByUserId);
 module.exports = router;
 

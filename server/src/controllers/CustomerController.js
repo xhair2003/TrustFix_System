@@ -1763,6 +1763,75 @@ const getNotifications = async (req, res) => {
     });
   }
 };
+const getRepairHistoryByUserId = async (req, res) => {
+  try {
+    const userId = req.user.id; // Lấy user_id từ token
+
+    // Tìm tất cả các yêu cầu sửa chữa của người dùng
+    const requests = await Request.find({ user_id: userId })
+      .sort({ createdAt: -1 }) // Sắp xếp theo thời gian mới nhất trước
+      .populate({
+        path: "serviceIndustry_id",
+        select: "type", // Lấy thông tin loại dịch vụ
+      })
+      .populate({
+        path: "repairman_id",
+        populate: {
+          path: "user_id",
+          model: "User",
+          select: "firstName lastName phone email imgAvt address description", // Lấy thông tin thợ sửa chữa
+        },
+      });
+
+    // Kiểm tra nếu không có yêu cầu nào
+    if (!requests || requests.length === 0) {
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy lịch sử sửa chữa cho người dùng này.",
+        DT: [],
+      });
+    }
+
+    // Xử lý dữ liệu để trả về
+    const repairHistory = requests.map((request) => {
+      const requestObj = request.toObject();
+      const repairmanData =
+        request.repairman_id && request.repairman_id.user_id
+          ? {
+              firstName: request.repairman_id.user_id.firstName,
+              lastName: request.repairman_id.user_id.lastName,
+              phone: request.repairman_id.user_id.phone,
+              email: request.repairman_id.user_id.email,
+              imgAvt: request.repairman_id.user_id.imgAvt,
+              address: request.repairman_id.user_id.address,
+              description: request.repairman_id.user_id.description,
+            }
+          : null;
+
+      return {
+        ...requestObj,
+        serviceType: request.serviceIndustry_id
+          ? request.serviceIndustry_id.type
+          : null,
+        repairman: repairmanData,
+      };
+    });
+
+    // Trả về kết quả
+    res.status(200).json({
+      EC: 1,
+      EM: "Lấy lịch sử sửa chữa thành công!",
+      DT: repairHistory,
+    });
+  } catch (error) {
+    console.error("Error fetching repair history by user_id:", error);
+    res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra khi lấy lịch sử sửa chữa. Vui lòng thử lại sau!",
+      DT: [],
+    });
+  }
+};
 
 module.exports = {
   getRequestStatus,
@@ -1792,4 +1861,5 @@ module.exports = {
   addComment,
   like,
   getNotifications,
+  getRepairHistoryByUserId
 };
