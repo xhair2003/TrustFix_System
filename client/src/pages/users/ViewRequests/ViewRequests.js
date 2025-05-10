@@ -45,7 +45,7 @@ const ViewRequests = () => {
       return;
     }
 
-    // Chỉ cần lắng nghe sự kiện, không cần join/leave vì socket.js đã xử lý
+    // Lắng nghe repairmanAssigned
     const handleRepairmanAssigned = () => {
       //console.log("Repairman assigned received for user:", userId);
       dispatch(viewCustomerRequest());
@@ -59,7 +59,22 @@ const ViewRequests = () => {
       });
     };
 
+    // Lắng nghe requestAssignedToOther
+    const handleRequestAssignedToOther = (data) => {
+      console.log("Request assigned to other repairman:", data);
+      dispatch(viewCustomerRequest()); // Gọi lại để cập nhật danh sách đơn hàng
+      Swal.fire({
+        icon: "info",
+        title: "Đơn hàng đã được giao",
+        text: data.message || "Đơn hàng đã được giao cho thợ khác !",
+        timer: 5000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+    };
+
     socket.on("repairmanAssigned", handleRepairmanAssigned);
+    socket.on("requestAssignedToOther", handleRequestAssignedToOther);
 
     socket.on('connect', () => console.log('WebSocket connected:', socket.id));
     socket.on('connect_error', (err) => console.error('WebSocket connect error:', err));
@@ -67,6 +82,7 @@ const ViewRequests = () => {
     // Cleanup: Hủy lắng nghe khi component unmount
     return () => {
       socket.off("repairmanAssigned", handleRepairmanAssigned);
+      socket.off("requestAssignedToOther", handleRequestAssignedToOther);
       socket.off('connect');
       socket.off('connect_error');
     };

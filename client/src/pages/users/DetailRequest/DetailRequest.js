@@ -459,18 +459,35 @@ const DetailRequest = () => {
       dispatch(getChatHistory(requestData.user_id, null));
     };
 
+    // Lắng nghe requestAssignedToOther
+    const handleRequestAssignedToOther = (data) => {
+      console.log("Request assigned to other repairman:", data);
+      Swal.fire({
+        icon: "info",
+        title: "Đơn hàng đã được giao",
+        text: data.message || "Đơn hàng này đã được giao cho thợ khác!",
+        timer: 5000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+      navigate("/repairman/view-requests");
+    };
+
     if (socket.connected) {
       socket.on('receiveMessage', handleReceiveMessage);
+      socket.on("requestAssignedToOther", handleRequestAssignedToOther);
     } else {
       console.warn('Socket not connected yet. Waiting...');
       const onConnect = () => {
         socket.on('receiveMessage', handleReceiveMessage);
+        socket.on("requestAssignedToOther", handleRequestAssignedToOther);
       };
       socket.on('connect', onConnect);
 
       return () => {
         if (socket.connected) {
           socket.off('receiveMessage', handleReceiveMessage);
+          socket.off("requestAssignedToOther", handleRequestAssignedToOther);
         }
         socket.off('connect', onConnect);
       };
@@ -478,6 +495,7 @@ const DetailRequest = () => {
 
     return () => {
       socket.off('receiveMessage', handleReceiveMessage);
+      socket.off("requestAssignedToOther", handleRequestAssignedToOther);
     };
   }, [requestData, dispatch]);
 
