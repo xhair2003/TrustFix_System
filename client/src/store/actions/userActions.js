@@ -533,14 +533,16 @@ export const findRepairman = (requestData, imageFiles) => async (dispatch, getSt
             config
         );
         if (response.data.EC === 1) {
-            localStorage.setItem("requestId", response.data.DT); // Lưu requestId vào localStorage
+            localStorage.setItem("requestId", response.data.DT.requestId); // Lưu requestId vào localStorage
 
+            //console.log("nearbyRepairmen", response.data.DT.nearbyRepairmen);
             // Dispatch success với dữ liệu từ BE
             dispatch({
                 type: "FIND_REPAIRMAN_SUCCESS",
                 payload: {
                     message: response.data.EM,
-                    requestId: response.data.DT // ID đơn hàng
+                    requestId: response.data.DT.requestId, // ID đơn hàng
+                    nearbyRepairmen: response.data.DT.nearbyRepairmen // thông tin các thợ tìm được trong vùng bán kính
                 },
             });
         } else {
@@ -1323,6 +1325,40 @@ export const likePost = (postId) => async (dispatch) => {
         dispatch({
             type: "LIKE_POST_FAILURE",
             payload: error.response?.data?.EM || 'Error liking post',
+        });
+    }
+};
+
+export const getRepairHistoryByUserId = () => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "GET_REPAIR_HISTORY_REQUEST" });
+
+        // Get token from state or localStorage
+        const token = getState().auth.token || localStorage.getItem('token');
+
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        };
+
+        const response = await axios.get(`${API_URL_CUSTOMER}/view-history-repairment`, config);
+
+        if (response.data.EC === 1) {
+            dispatch({
+                type: "GET_REPAIR_HISTORY_SUCCESS",
+                payload: response.data.DT, // Array of repair history records
+            });
+        } else {
+            dispatch({
+                type: "GET_REPAIR_HISTORY_FAIL",
+                payload: response.data.EM,
+            });
+        }
+    } catch (error) {
+        dispatch({
+            type: "GET_REPAIR_HISTORY_FAIL",
+            payload: error.response?.data?.EM || 'Failed to fetch repair history',
         });
     }
 };

@@ -155,6 +155,7 @@ const mongoose = require('mongoose');
 const { User, Wallet, Transaction } = require('../models');
 const { CRON_TIME, MONTHLY_FEE } = require('../constants');
 const { sendEmail } = require('../utils/sendEmail');
+const checkRepairmanStatus = require('./checkRepairmanStatus');
 
 module.exports = (io) => {
   console.log('Monthly fee processor loaded');
@@ -309,6 +310,12 @@ module.exports = (io) => {
     timezone: 'Asia/Ho_Chi_Minh',
   });
   console.log('Cron job scheduled:', job);
+
+  // Schedule the cron job to run every minute
+  cron.schedule('* * * * *', async () => {
+    console.log('Running checkRepairmanStatus processor...');
+    await checkRepairmanStatus();
+  });
 
   return processMonthlyFee;
 };

@@ -31,11 +31,11 @@ const FindRepairman = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [storedRequestId, setStoredRequestId] = useState(localStorage.getItem("requestId"));
   const [hasResults, setHasResults] = useState(false);
-  const [priceResponse, setPriceResponse] = useState({ minPrice: null, maxPrice: null }); // State for price response
+  const [priceResponse, setPriceResponse] = useState({ minPrice: null, maxPrice: null });
   const mapSectionRef = useRef(null);
   const [isGeocoding, setIsGeocoding] = useState(false);
 
-  const { errorViewRepairmanDeal, requestId, repairmanDeals } = useSelector((state) => state.user);
+  const { errorViewRepairmanDeal, requestId, repairmanDeals, nearbyRepairmen } = useSelector((state) => state.user);
   const finalRequestId = requestId || storedRequestId;
 
   // Handle price response from PriceBot
@@ -190,17 +190,17 @@ const FindRepairman = () => {
   return (
     <div className="find-repairman-container">
       <div className="search-section">
-      <SearchBar
-        setSelectedRadius={setSelectedRadius}
-        selectedRadius={selectedRadius}
-        onSearch={handleSearch}
-        onDataChange={handleDataChange}
-        cities={[]}
-        districts={[]}
-        wards={[]}
-        minPrice={priceResponse.minPrice}
-        maxPrice={priceResponse.maxPrice}
-      />
+        <SearchBar
+          setSelectedRadius={setSelectedRadius}
+          selectedRadius={selectedRadius}
+          onSearch={handleSearch}
+          onDataChange={handleDataChange}
+          cities={[]}
+          districts={[]}
+          wards={[]}
+          minPrice={priceResponse.minPrice}
+          maxPrice={priceResponse.maxPrice}
+        />
         <PriceBot description={searchData.description} onPriceResponse={handlePriceResponse} />
         {priceResponse.minPrice !== null && priceResponse.maxPrice !== null && (
           <div className="price-response">
@@ -222,6 +222,7 @@ const FindRepairman = () => {
           triggerSearch={triggerSearch}
           setTriggerSearch={setTriggerSearch}
           isGeocoding={isGeocoding}
+          nearbyRepairmen={nearbyRepairmen} // Pass nearbyRepairmen to MapView
         />
       </div>
       {hasResults ? (

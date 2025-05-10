@@ -70,7 +70,7 @@ import RepairmentHistoryItem from './RepairmentHistoryItem';
 import './RepairmentHistoryList.scss';
 import RepairmentDetailModal from './RepairmentDetailModal';
 import { useDispatch, useSelector } from 'react-redux';
-import { getRepairHistory, resetError, resetSuccess } from '../../../../store/actions/userActions';
+import { getRepairHistoryByUserId, resetError, resetSuccess } from '../../../../store/actions/userActions';
 import Loading from '../../../Loading/Loading';
 
 const RepairmentHistoryList = ({ filter }) => {
@@ -80,7 +80,7 @@ const RepairmentHistoryList = ({ filter }) => {
   const [filteredHistory, setFilteredHistory] = useState([]);
 
   useEffect(() => {
-    dispatch(getRepairHistory());
+    dispatch(getRepairHistoryByUserId());
   }, [dispatch]);
 
   useEffect(() => {

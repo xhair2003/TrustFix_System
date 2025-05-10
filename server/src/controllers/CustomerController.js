@@ -712,16 +712,8 @@ const findRepairman = async (req, res) => {
     });
 
     // Separate repairmen with VIP ID and those without
-    const vipRepairmen = [];
-    const nonVipRepairmen = [];
-
-    for (const request of repairmanUpgradeRequests) {
-      if (request.vip_id) {
-        vipRepairmen.push(request.user_id);
-      } else {
-        nonVipRepairmen.push(request.user_id);
-      }
-    }
+    const vipRepairmen = repairmanUpgradeRequests.filter(request => request.vip_id).map(request => request.user_id);
+    const nonVipRepairmen = repairmanUpgradeRequests.filter(request => !request.vip_id).map(request => request.user_id);
 
     // Process VIP repairmen immediately
     const repairmenUsers = await User.find({
@@ -782,61 +774,6 @@ const findRepairman = async (req, res) => {
         }
       }
     }
-
-    // Delay processing for non-VIP repairmen by 1 minute
-    setTimeout(async () => {
-      const nonVipRepairmenUsers = await User.find({
-        _id: { $in: nonVipRepairmen },
-      });
-
-      for (const repairman of nonVipRepairmenUsers) {
-        if (repairman.address) {
-          const gomapApiUrl = `https://maps.gomaps.pro/maps/api/distancematrix/json?destinations=${encodeURIComponent(
-            repairman.address
-          )}&origins=${encodeURIComponent(address)}&key=${gomapApiKey}`;
-
-          try {
-            const gomapResponse = await fetch(gomapApiUrl);
-            const gomapData = await gomapResponse.json();
-
-            if (
-              gomapData.status === "OK" &&
-              gomapData.rows[0].elements[0].status === "OK"
-            ) {
-              const distanceValue = gomapData.rows[0].elements[0].distance.value;
-
-              if (distanceValue <= radius * 1000) {
-                nearbyRepairmen.push({
-                  _id: repairman._id,
-                  firstName: repairman.firstName,
-                  lastName: repairman.lastName,
-                  email: repairman.email,
-                  phone: repairman.phone,
-                  address: repairman.address,
-                  distance: gomapData.rows[0].elements[0].distance.text,
-                  duration: gomapData.rows[0].elements[0].duration.text,
-                });
-              }
-            } else {
-              console.warn(
-                `GoMap API error for repairman ${repairman._id}: ${gomapData.status
-                } - ${gomapData.error_message || gomapData.rows[0].elements[0].status
-                }`
-              );
-            }
-          } catch (error) {
-            console.error(
-              `Error calling GoMap API for repairman ${repairman._id}:`,
-              error
-            );
-          }
-        }
-      }
-
-      // Continue with the rest of the logic for non-VIP repairmen
-      // This part can be similar to the VIP processing logic
-
-    }, 60000); // 1 minute delay
 
     let assignedRepairman = null;
     const newRequestsForRepairmen = []; // Change to array to store multiple requests
@@ -909,17 +846,76 @@ const findRepairman = async (req, res) => {
     await newDuePrice.save(); // Lưu Due_price
     //const deal_price = minPrice + "  " + maxPrice;
 
+    // Trigger cron job for non-VIP repairmen
+    setTimeout(async () => {
+      const nonVipRepairmenUsers = await User.find({
+        _id: { $in: nonVipRepairmen },
+      }).populate({
+        path: 'repairmanUpgradeRequests',
+        match: { status: 'Active' },
+        select: '_id', // Ensure you are selecting the _id field
+      });
+
+      for (const repairman of nonVipRepairmenUsers) {
+        if (repairman.address && repairman.repairmanUpgradeRequests.length > 0) {
+          const repairmanUpgradeRequest = repairman.repairmanUpgradeRequests[0]; // Assuming you want the first one
+          const repairmanId = repairmanUpgradeRequest._id; // Access the _id of the repairmanUpgradeRequest
+
+          // Use repairmanId for creating new requests
+          const newRequestForRepairman = new Request({
+            user_id: originalRequest.user_id,
+            serviceIndustry_id: originalRequest.serviceIndustry_id,
+            description: originalRequest.description,
+            address: originalRequest.address,
+            image: originalRequest.image,
+            status: "Deal price",
+            repairman_id: repairmanId, // Correctly reference the repairman_id
+            parentRequest: originalRequest._id,
+          });
+          await newRequestForRepairman.save();
+          newRequestsForRepairmen.push(newRequestForRepairman);
+          //DuePrice cho mooix thowj
+          const newDuePriceForRepairmen = new DuePrice({
+            request_id: newRequestForRepairman._id,
+            minPrice: minPrice,
+            maxPrice: maxPrice,
+          });
+          await newDuePriceForRepairmen.save();
+          newDuePricesForRepairmen.push(newDuePriceForRepairmen);
+          // Update RepairmanUpgradeRequest status to 'Deal price'
+          const repairmanUpgrade = await RepairmanUpgradeRequest.findOne({
+            user_id: repairman._id,
+          });
+          if (repairmanUpgrade) {
+            repairmanUpgrade.status = "Deal price";
+            await repairmanUpgrade.save();
+          }
+
+          if (!assignedRepairman) {
+            assignedRepairman = repairman; // Assign the first repairman as assignedRepairman for response
+          }
+
+          // Gửi thông báo WebSocket tới thợ (không gửi dữ liệu chi tiết)
+          console.log(
+            "Sending newRequest to repairman:",
+            repairman._id.toString()
+          );
+          io.to(repairman._id.toString()).emit("newRequest");
+        }
+      }
+    }, 60000); // 1 minute delay
+
     res.status(200).json({
       EC: 1,
       EM: "Gửi yêu cầu tìm kiếm thành công!",
-      // DT: {
-      //   //nearbyRepairmen: nearbyRepairmen,
-      //   request: originalRequest, // Vẫn trả về request gốc
-      //   //assignedRepairman: assignedRepairman, // Vẫn trả về assignedRepairman (first one found)
-      //   deal_price: saveDuePrice,
-      //   // newRequestsForRepairmen: newRequestsForRepairmen // Trả về array các request mới tạo
-      // },
-      DT: originalRequest._id, // Trả về ID của request gốc
+      DT: {
+        nearbyRepairmen: nearbyRepairmen,
+        requestId: originalRequest._id, // Trả về ID của request gốc
+        //   request: originalRequest, // Vẫn trả về request gốc
+        //   //assignedRepairman: assignedRepairman, // Vẫn trả về assignedRepairman (first one found)
+        //   deal_price: saveDuePrice,
+        //   // newRequestsForRepairmen: newRequestsForRepairmen // Trả về array các request mới tạo
+      },
     });
   } catch (error) {
     console.error("Error finding repairman and assigning:", error);
@@ -1210,6 +1206,7 @@ const assignedRepairman = async (req, res) => {
       await repairmanUpgradeRequest.save();
 
       // Cập nhật trạng thái RepairmanUpgradeRequest cho các thợ không được chọn (trở lại 'Active')
+      const nonSelectedRepairmen = []; // Lưu danh sách ID của thợ không được chọn
       if (requestChild && requestChild.length > 0) {
         await Promise.all(
           requestChild.map(async (childRequest) => {
@@ -1222,6 +1219,7 @@ const assignedRepairman = async (req, res) => {
               // Check if not the selected repairman
               repairmanUpgradeRequest.status = "Active";
               await repairmanUpgradeRequest.save();
+              nonSelectedRepairmen.push(childRequest.repairman_id.toString()); // Lưu ID của thợ không được chọn
             }
             // Tìm và xóa Price liên quan đến DuePrice liên quan đến childRequest
             const duePrice = await DuePrice.findOne({
@@ -1286,6 +1284,17 @@ const assignedRepairman = async (req, res) => {
       const repairmanUserId = repairmanInfor._id.toString();
       console.log("Sending repairmanAssigned to repairman:", repairmanUserId);
       io.to(repairmanUserId).emit("repairmanAssigned");
+
+      // Gửi thông báo WebSocket tới các thợ không được chọn
+      if (nonSelectedRepairmen.length > 0) {
+        nonSelectedRepairmen.forEach((repairmanId) => {
+          console.log("Sending requestAssignedToOther to repairman:", repairmanId);
+          io.to(repairmanId).emit("requestAssignedToOther", {
+            requestId: requestId,
+            message: "Đơn hàng đã được giao cho thợ khác.",
+          });
+        });
+      }
 
       res.status(200).json({
         EC: 1,
@@ -1767,6 +1776,75 @@ const getNotifications = async (req, res) => {
     });
   }
 };
+const getRepairHistoryByUserId = async (req, res) => {
+  try {
+    const userId = req.user.id; // Lấy user_id từ token
+
+    // Tìm tất cả các yêu cầu sửa chữa của người dùng
+    const requests = await Request.find({ user_id: userId })
+      .sort({ createdAt: -1 }) // Sắp xếp theo thời gian mới nhất trước
+      .populate({
+        path: "serviceIndustry_id",
+        select: "type", // Lấy thông tin loại dịch vụ
+      })
+      .populate({
+        path: "repairman_id",
+        populate: {
+          path: "user_id",
+          model: "User",
+          select: "firstName lastName phone email imgAvt address description", // Lấy thông tin thợ sửa chữa
+        },
+      });
+
+    // Kiểm tra nếu không có yêu cầu nào
+    if (!requests || requests.length === 0) {
+      return res.status(404).json({
+        EC: 0,
+        EM: "Không tìm thấy lịch sử sửa chữa cho người dùng này.",
+        DT: [],
+      });
+    }
+
+    // Xử lý dữ liệu để trả về
+    const repairHistory = requests.map((request) => {
+      const requestObj = request.toObject();
+      const repairmanData =
+        request.repairman_id && request.repairman_id.user_id
+          ? {
+              firstName: request.repairman_id.user_id.firstName,
+              lastName: request.repairman_id.user_id.lastName,
+              phone: request.repairman_id.user_id.phone,
+              email: request.repairman_id.user_id.email,
+              imgAvt: request.repairman_id.user_id.imgAvt,
+              address: request.repairman_id.user_id.address,
+              description: request.repairman_id.user_id.description,
+            }
+          : null;
+
+      return {
+        ...requestObj,
+        serviceType: request.serviceIndustry_id
+          ? request.serviceIndustry_id.type
+          : null,
+        repairman: repairmanData,
+      };
+    });
+
+    // Trả về kết quả
+    res.status(200).json({
+      EC: 1,
+      EM: "Lấy lịch sử sửa chữa thành công!",
+      DT: repairHistory,
+    });
+  } catch (error) {
+    console.error("Error fetching repair history by user_id:", error);
+    res.status(500).json({
+      EC: 0,
+      EM: "Đã có lỗi xảy ra khi lấy lịch sử sửa chữa. Vui lòng thử lại sau!",
+      DT: [],
+    });
+  }
+};
 
 module.exports = {
   getRequestStatus,
@@ -1796,4 +1874,5 @@ module.exports = {
   addComment,
   like,
   getNotifications,
+  getRepairHistoryByUserId
 };

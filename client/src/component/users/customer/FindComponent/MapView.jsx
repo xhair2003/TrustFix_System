@@ -1,70 +1,112 @@
 import React, { useRef, useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents, Circle } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, useMapEvents, Circle, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import "./MapView.css";
 
-// Make sure the icon path is correct or use a default
-const customIcon = new L.Icon({
-  // iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png', // Default Leaflet icon
-  iconUrl: require('leaflet/dist/images/marker-icon.png'), // Use local package version
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'), // Add shadow
+// Customer icon (default marker)
+const customerIcon = new L.Icon({
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
 });
 
+// Repairman icon (person-shaped icon)
+const repairmanIcon = new L.Icon({
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/3514/3514997.png', // Person icon from Flaticon
+  iconSize: [32, 32], // Adjust size to fit map
+  iconAnchor: [16, 32], // Center bottom of icon
+  popupAnchor: [0, -32], // Popup above icon
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+  shadowSize: [41, 41]
+});
 
-// Receive mapCenter instead of userLocation, remove setUserLocation
-const MapView = ({ selectedRadius, mapCenter, triggerSearch, setTriggerSearch, isGeocoding }) => {
+const MapView = ({ selectedRadius, mapCenter, triggerSearch, setTriggerSearch, isGeocoding, nearbyRepairmen }) => {
   const mapRef = useRef(null);
-  const [zoomLevel, setZoomLevel] = useState(13); // Initial zoom
-  // const [isLoading, setIsLoading] = useState(false); // Remove geolocation loading state
-  const [pixelPosition, setPixelPosition] = useState(null); // Keep for potential radar effect positioning
+  const [zoomLevel, setZoomLevel] = useState(13);
+  const [pixelPosition, setPixelPosition] = useState(null);
   const [radarProgress, setRadarProgress] = useState(0);
+  const [repairmenLocations, setRepairmenLocations] = useState([]);
+
+  // Geocode repairmen addresses
+  useEffect(() => {
+    if (!nearbyRepairmen || nearbyRepairmen.length === 0) {
+      setRepairmenLocations([]);
+      return;
+    }
+
+    const geocodeRepairmen = async () => {
+      const locations = await Promise.all(
+        nearbyRepairmen.map(async (repairman) => {
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(repairman.address)}&limit=1`
+            );
+            const data = await response.json();
+            if (data && data.length > 0) {
+              const { lat, lon } = data[0];
+              return {
+                ...repairman,
+                coordinates: [parseFloat(lat), parseFloat(lon)]
+              };
+            }
+            return null;
+          } catch (error) {
+            console.error(`Geocoding failed for address ${repairman.address}:`, error);
+            return null;
+          }
+        })
+      );
+      setRepairmenLocations(locations.filter(location => location !== null));
+    };
+
+    geocodeRepairmen();
+  }, [nearbyRepairmen]);
 
   // Adjust zoom level based on radius
   const getZoomLevelFromRadius = (radius) => {
-    if (!radius) return 13; // Default zoom if no radius
+    if (!radius) return 13;
     const radiusMeters = parseInt(radius.value);
     if (radiusMeters <= 500) return 16;
     if (radiusMeters <= 1000) return 15;
     if (radiusMeters <= 2000) return 14;
     if (radiusMeters <= 5000) return 13;
     if (radiusMeters <= 10000) return 12;
-    return 11; // Zoom out further for larger radii
+    return 11;
   };
 
-  // Effect to fly to the new mapCenter when it changes or radius changes
+  // Fly to new mapCenter or adjust zoom
   useEffect(() => {
     const map = mapRef.current;
     if (map && mapCenter) {
       const newZoom = getZoomLevelFromRadius(selectedRadius);
-      // Check if mapCenter actually changed to avoid unnecessary flyTo
       const currentCenter = map.getCenter();
-      const tolerance = 0.0001; // Small tolerance for floating point comparison
-      if (Math.abs(currentCenter.lat - mapCenter[0]) > tolerance || Math.abs(currentCenter.lng - mapCenter[1]) > tolerance || map.getZoom() !== newZoom) {
-        console.log("Flying to new center:", mapCenter, "Zoom:", newZoom);
+      const tolerance = 0.0001;
+      if (
+        Math.abs(currentCenter.lat - mapCenter[0]) > tolerance ||
+        Math.abs(currentCenter.lng - mapCenter[1]) > tolerance ||
+        map.getZoom() !== newZoom
+      ) {
         map.flyTo(mapCenter, newZoom, { duration: 1.5, easeLinearity: 0.25 });
       }
     }
-  }, [mapCenter, selectedRadius]); // Depend on mapCenter and selectedRadius
-
+  }, [mapCenter, selectedRadius]);
 
   const MapEvents = () => {
     const map = useMapEvents({
-      moveend: () => { // Use moveend to update after panning/zooming finishes
+      moveend: () => {
         if (mapCenter && mapRef.current) {
           try {
             const point = map.latLngToContainerPoint(mapCenter);
             setPixelPosition({ x: point.x, y: point.y });
           } catch (e) {
             console.error("Error converting latLng to container point:", e);
-            // This can happen if the map isn't fully initialized or the center is invalid
           }
         }
-        setZoomLevel(map.getZoom()); // Update zoom level on moveend as well
+        setZoomLevel(map.getZoom());
       },
       zoomend: () => {
         setZoomLevel(map.getZoom());
@@ -81,26 +123,18 @@ const MapView = ({ selectedRadius, mapCenter, triggerSearch, setTriggerSearch, i
     return null;
   };
 
-  // Remove the updateUserLocation function and related useEffect
-  // useEffect(() => {
-  //   updateUserLocation(); // This was the geolocation call
-  //   ...
-  // }, [updateUserLocation, selectedRadius]);
-
-
-  // Radar animation effect (remains the same)
+  // Radar animation effect
   useEffect(() => {
     let animationFrameId;
     const animateRadar = () => {
       setRadarProgress((prev) => {
-        const next = prev + 0.01; // Adjust speed if needed
+        const next = prev + 0.01;
         return next >= 1 ? 0 : next;
       });
       animationFrameId = requestAnimationFrame(animateRadar);
     };
 
-    if (triggerSearch && selectedRadius && mapCenter) { // Ensure mapCenter exists
-      // Calculate initial pixel position when search starts
+    if (triggerSearch && selectedRadius && mapCenter) {
       const map = mapRef.current;
       if (map) {
         try {
@@ -112,17 +146,17 @@ const MapView = ({ selectedRadius, mapCenter, triggerSearch, setTriggerSearch, i
       }
       animationFrameId = requestAnimationFrame(animateRadar);
     } else {
-      setRadarProgress(0); // Reset progress when search stops
+      setRadarProgress(0);
     }
 
     return () => {
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
-  }, [triggerSearch, selectedRadius, mapCenter]); // Add mapCenter dependency
+  }, [triggerSearch, selectedRadius, mapCenter]);
 
   const handleZoomIn = () => {
     const map = mapRef.current;
-    if (map) map.zoomIn(); // Use built-in zoomIn/Out
+    if (map) map.zoomIn();
   };
 
   const handleZoomOut = () => {
@@ -131,42 +165,56 @@ const MapView = ({ selectedRadius, mapCenter, triggerSearch, setTriggerSearch, i
   };
 
   const handleStopSearch = () => {
-    setTriggerSearch(false); // Dừng tìm kiếm
+    setTriggerSearch(false);
   };
 
-  // --- Key for re-rendering MapContainer when center fundamentally changes ---
-  // Useful if Leaflet doesn't always react smoothly to center prop changes alone
   const mapKey = mapCenter ? `${mapCenter[0]}_${mapCenter[1]}` : 'default';
 
   return (
     <div className="map-container">
-      {/* Add a loading overlay during geocoding */}
       {isGeocoding && (
         <div className="map-loading-overlay">
           Đang xác định vị trí địa chỉ...
         </div>
       )}
       <MapContainer
-        key={mapKey} // Add key here
-        center={mapCenter || [16.047079, 108.206230]} // Use mapCenter, provide default
+        key={mapKey}
+        center={mapCenter || [16.047079, 108.206230]}
         zoom={zoomLevel}
         style={{ height: "100%", width: "100%" }}
         ref={mapRef}
         scrollWheelZoom={true}
         doubleClickZoom={true}
-        zoomControl={false} // We have custom controls
+        zoomControl={false}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           maxZoom={19}
         />
         <MapEvents />
-        {/* Display marker only if mapCenter is valid */}
         {mapCenter && Array.isArray(mapCenter) && mapCenter.length === 2 && (
-          <Marker position={mapCenter} icon={customIcon} />
+          <Marker position={mapCenter} icon={customerIcon}>
+            <Popup>Vị trí của bạn</Popup>
+          </Marker>
         )}
-        {/* Display circles only if mapCenter and radius are valid */}
+        {repairmenLocations.map((repairman, index) => (
+          repairman.coordinates && (
+            <Marker
+              key={repairman._id || index}
+              position={repairman.coordinates}
+              icon={repairmanIcon}
+            >
+              <Popup>
+                <div>
+                  <strong>{repairman.firstName} {repairman.lastName}</strong><br />
+                  Khoảng cách: {repairman.distance}<br />
+                  Thời gian di chuyển: {repairman.duration}
+                </div>
+              </Popup>
+            </Marker>
+          )
+        ))}
         {mapCenter && selectedRadius && (
           <Circle
             center={mapCenter}
@@ -174,18 +222,16 @@ const MapView = ({ selectedRadius, mapCenter, triggerSearch, setTriggerSearch, i
             pathOptions={{ color: "#3388ff", fillColor: "#3388ff", fillOpacity: 0.1 }}
           />
         )}
-        {/* Radar animation */}
         {triggerSearch && mapCenter && selectedRadius && pixelPosition && (
           <>
-            {/* Expanding radar circles */}
             <Circle
               center={mapCenter}
               radius={parseInt(selectedRadius.value) * radarProgress}
               pathOptions={{
-                color: "rgba(51, 136, 255, 0.5)", // Blueish radar
+                color: "rgba(51, 136, 255, 0.5)",
                 fillColor: "rgba(51, 136, 255, 0.2)",
                 fillOpacity: 0.2 - radarProgress * 0.15,
-                weight: 1 // Thin line
+                weight: 1
               }}
             />
             <Circle
@@ -198,39 +244,20 @@ const MapView = ({ selectedRadius, mapCenter, triggerSearch, setTriggerSearch, i
                 weight: 1
               }}
             />
-            {/* Optional: Add a static outer ring for the search radius */}
-            {/* <Circle
-                             center={mapCenter}
-                             radius={parseInt(selectedRadius.value)}
-                             pathOptions={{ color: "#3388ff", fill: false, weight: 2, dashArray: '5, 5' }} // Dashed outline
-                         /> */}
           </>
         )}
       </MapContainer>
-
-      {/* Searching text and cancel button (keep as is) */}
       {triggerSearch && (
         <div className="searching-text">
           Đang tìm thợ<span className="loader-dots">...</span>
         </div>
       )}
-
       {triggerSearch && (
         <button className="cancel-button" onClick={handleStopSearch} title="Dừng tìm kiếm">
           ✕ Dừng tìm
         </button>
       )}
-
-      {/* Map Controls - Remove the geolocation button */}
       <div className="map-controls">
-        {/* <button
-                    className={`control-button ${isLoading ? "loading" : ""}`} // isLoading removed
-                    onClick={updateUserLocation} // Function removed
-                    title="Định vị lại"
-                    disabled={isLoading} // isLoading removed
-                >
-                    {isLoading ? "⏳" : "📍"} // isLoading removed
-                </button> */}
         <button className="control-button" onClick={handleZoomIn} title="Phóng to">
           ➕
         </button>

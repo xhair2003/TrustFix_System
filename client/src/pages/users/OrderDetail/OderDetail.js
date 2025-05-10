@@ -190,7 +190,7 @@ const OrderDetail = () => {
       });
       return;
     }
-    dispatch(sendMessage(repairman.realRepairmanId, newMessage, user_id, request.requestId));
+    dispatch(sendMessage(repairman.realRepairmanId, newMessage, user_id, request.parentRequest));
     setNewMessage('');
   };
 

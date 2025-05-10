@@ -34,7 +34,7 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch, onDataChange, 
     const [serviceTypes, setServiceTypes] = useState([]);
 
     const { loading, serviceTypes: serviceTypesFromStore } = useSelector((state) => state.user);
-    const { successFindRepairman, errorFindRepairman } = useSelector((state) => state.user);
+    const { successFindRepairman, errorFindRepairman, nearbyRepairmen } = useSelector((state) => state.user);
 
     const radiusOptions = [
         { value: "500", label: "500 m" },
@@ -205,41 +205,41 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch, onDataChange, 
     // Handle search
     const handleSearchClick = () => {
         const address = [detailAddress, wardName, districtName, cityName, "Việt Nam"]
-          .filter(Boolean)
-          .join(", ");
-      
+            .filter(Boolean)
+            .join(", ");
+
         if (!description || !serviceIndustryId || !detailAddress || !wardName || !districtName || !cityName || !selectedRadius) {
-          Swal.fire({
-            icon: "warning",
-            title: "Thiếu thông tin",
-            text: "Vui lòng điền đầy đủ các trường bắt buộc (mô tả, loại thợ, địa chỉ, bán kính).",
-          });
-          return;
+            Swal.fire({
+                icon: "warning",
+                title: "Thiếu thông tin",
+                text: "Vui lòng điền đầy đủ các trường bắt buộc (mô tả, loại thợ, địa chỉ, bán kính).",
+            });
+            return;
         }
-      
+
         // 🔻🔻 Thêm đoạn này vào đây
         if (minPrice === undefined || maxPrice === undefined) {
-          Swal.fire({
-            icon: "warning",
-            title: "Thiếu dữ liệu",
-            text: "Hệ thống chưa ước tính được chi phí sửa chữa. Vui lòng mô tả chính xác và thử lại.",
-          });
-          return;
+            Swal.fire({
+                icon: "warning",
+                title: "Thiếu dữ liệu",
+                text: "Hệ thống chưa ước tính được chi phí sửa chữa. Vui lòng mô tả chính xác và thử lại.",
+            });
+            return;
         }
         // 🔺🔺
-      
+
         const requestData = {
-          description,
-          serviceIndustry_id: serviceIndustryId,
-          address,
-          radius: selectedRadius ? selectedRadius.value / 1000 : "",
-          minPrice: minPrice?.toString(),
-          maxPrice: maxPrice?.toString(),
+            description,
+            serviceIndustry_id: serviceIndustryId,
+            address,
+            radius: selectedRadius ? selectedRadius.value / 1000 : "",
+            minPrice: minPrice?.toString(),
+            maxPrice: maxPrice?.toString(),
         };
-      
+
         dispatch(findRepairman(requestData, imageFiles));
-      };
-      
+    };
+
 
     // Handle dropdown changes
     const handleCityChange = (e) => {
@@ -376,7 +376,7 @@ const SearchBar = ({ setSelectedRadius, selectedRadius, onSearch, onDataChange, 
                             setImageFiles([]);
                         }
                     }}
- className="search-file-input"
+                    className="search-file-input"
                 />
                 {imageFiles.length > 0 && (
                     <div className="selected-files">

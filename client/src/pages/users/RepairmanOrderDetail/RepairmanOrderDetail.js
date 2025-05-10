@@ -36,7 +36,7 @@ const RepairmanOrderDetail = () => {
                 timerProgressBar: true,
                 showCloseButton: false,
             });
-            setIsCompleted(true); // Cập nhật state khi xác nhận thành công
+            setIsCompleted(true);
             localStorage.setItem(`completed_${customerRequest._id}`, 'true');
             dispatch(resetSuccess());
         }
@@ -55,7 +55,6 @@ const RepairmanOrderDetail = () => {
         }
     }, [successConfirmRequestRepairman, errorConfirmRequestRepairman, dispatch, customerRequest._id]);
 
-    // Xử lý lỗi tin nhắn
     useEffect(() => {
         if (errorMessage) {
             Swal.fire({
@@ -69,7 +68,6 @@ const RepairmanOrderDetail = () => {
         }
     }, [errorMessage, dispatch]);
 
-    // Lắng nghe WebSocket cho tin nhắn mới
     useEffect(() => {
         if (!customerRequest?._id) {
             console.warn("No request ID available for WebSocket listening.");
@@ -77,11 +75,9 @@ const RepairmanOrderDetail = () => {
         }
 
         const handleReceiveMessage = (message) => {
-            // Kiểm tra tin nhắn từ khách và không phải từ thợ
             if (message.senderId === customerRequest.user_id?._id && message.senderId !== user_id) {
                 setHasNewMessage(true);
             }
-            // Cập nhật lịch sử chat
             dispatch(getChatHistory(customerRequest.user_id?._id, null));
         };
 
@@ -155,83 +151,83 @@ const RepairmanOrderDetail = () => {
     return (
         <div className="repairman-order-detail-container">
             {isChatOpen && (
-                <div className="chat-window">
-                    <div className="chat-header">
+                <div className="repairman-order-detail-chat-window">
+                    <div className="repairman-order-detail-chat-header">
                         <h3>Chat với khách hàng #{customerRequest.user_id?._id.slice(-6)}</h3>
-                        <button onClick={handleCloseChat} className="chat-close-button">✖</button>
+                        <button onClick={handleCloseChat} className="repairman-order-detail-chat-close-button">✖</button>
                     </div>
-                    <div className="chat-messages">
+                    <div className="repairman-order-detail-chat-messages">
                         {loadingMessage && <p>Đang tải tin nhắn...</p>}
                         {messages.length === 0 && !loadingMessage && <p>Chưa có tin nhắn.</p>}
                         {messages.map((msg, index) => (
                             <div
                                 key={index}
-                                className={`chat-message ${msg.senderId === user_id || msg.senderId?.id === user_id ? 'chat-message-self' : 'chat-message-opponent'}`}
+                                className={`repairman-order-detail-chat-message ${msg.senderId === user_id || msg.senderId?.id === user_id ? 'repairman-order-detail-chat-message-self' : 'repairman-order-detail-chat-message-opponent'}`}
                             >
                                 <p>
                                     <strong>{msg.senderId === user_id || msg.senderId?.id === user_id ? 'Bạn' : 'Khách hàng'}:</strong> {msg.message}
                                 </p>
-                                <span className="chat-timestamp">
+                                <span className="repairman-order-detail-chat-timestamp">
                                     {new Date(msg.timestamp).toLocaleTimeString('vi-VN')}
                                 </span>
                             </div>
                         ))}
                     </div>
-                    <div className="chat-input-group">
+                    <div className="repairman-order-detail-chat-input-group">
                         <input
                             type="text"
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
                             placeholder="Nhập tin nhắn..."
-                            className="chat-input"
+                            className="repairman-order-detail-chat-input"
                             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                         />
-                        <button onClick={handleSendMessage} className="chat-send-button">
+                        <button onClick={handleSendMessage} className="repairman-order-detail-chat-send-button">
                             Gửi
                         </button>
                     </div>
                 </div>
             )}
 
-            <div className="notification-banner">
+            <div className="repairman-order-detail-notification-banner">
                 <p>
                     Khách hàng <strong>{fullName}</strong> đã chốt giá của bạn. Hãy tới địa chỉ{" "}
                     <strong>{customerRequest.address}</strong> để sửa chữa ngay!
                 </p>
             </div>
 
-            <div className="order-detail-content">
-                <div className="section customer-info">
-                    <h2 className="section-title">Thông tin khách hàng</h2>
-                    <div className="customer-header">
+            <div className="repairman-order-detail-order-detail-content">
+                <div className="repairman-order-detail-section repairman-order-detail-customer-info">
+                    <h2 className="repairman-order-detail-section-title">Thông tin khách hàng</h2>
+                    <div className="repairman-order-detail-customer-header">
                         {customer.imgAvt && (
-                            <img src={customer.imgAvt} alt={fullName} className="customer-avatar" />
+                            <img src={customer.imgAvt} alt={fullName} className="repairman-order-detail-customer-avatar" />
                         )}
-                        <div className="customer-details">
-                            <h3 className="customer-name">{fullName}</h3>
-                            <p className="customer-email">Email: {customer.email || "Không có"}</p>
-                            <p className="customer-phone">Số điện thoại: {customer.phone || "Không có"}</p>
+                        <div className="repairman-order-detail-customer-details">
+                            <h3 className="repairman-order-detail-customer-name">{fullName}</h3>
+                            <p className="repairman-order-detail-customer-email">Email: {customer.email || "Không có"}</p>
+                            <p className="repairman-order-detail-customer-phone">Số điện thoại: {customer.phone || "Không có"}</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="section request-info">
-                    <h2 className="section-title">Thông tin đơn hàng</h2>
-                    <div className="info-item">
-                        <span className="info-label">Mã đơn hàng:</span>
-                        <span className="info-value">{customerRequest._id}</span>
+                <div className="repairman-order-detail-section repairman-order-detail-request-info">
+                    <h2 className="repairman-order-detail-section-title">Thông tin đơn hàng</h2>
+                    <div className="repairman-order-detail-info-item">
+                        <span className="repairman-order-detail-info-label">Mã đơn hàng:</span>
+                        <span className="repairman-order-detail-info-value">{customerRequest._id}</span>
                     </div>
-                    <div className="info-item">
-                        <span className="info-label">Địa chỉ:</span>
-                        <span className="info-value">{customerRequest.address}</span>
+                    <div className="repairman-order-detail-info-item">
+                        <span className="repairman-order-detail-info-label">Địa chỉ:</span>
+                        <span className="repairman-order-detail-info-value">{customerRequest.address}</span>
                     </div>
-                    <div className="info-item">
-                        <span className="info-label">Mô tả:</span>
-                        <span className="info-value">{customerRequest.description || "Không có mô tả"}</span>
+                    <div className="repairman-order-detail-info-item">
+                        <span className="repairman-order-detail-info-label">Mô tả:</span>
+                        <span className="repairman-order-detail-info-value">{customerRequest.description || "Không có mô tả"}</span>
                     </div>
-                    <div className="info-item">
-                        <span className="info-label">Trạng thái:</span>
-                        <span className="info-value">
+                    <div className="repairman-order-detail-info-item">
+                        <span className="repairman-order-detail-info-label">Trạng thái:</span>
+                        <span className="repairman-order-detail-info-value">
                             {customerRequest.status === "Completed" ? "Đã hoàn thành" :
                                 customerRequest.status === "Confirmed" ? "Đã xác nhận" :
                                     customerRequest.status === "Pending" ? "Đang chờ xử lý" :
@@ -245,20 +241,20 @@ const RepairmanOrderDetail = () => {
                                                                     "Trạng thái không xác định"}
                         </span>
                     </div>
-                    <div className="info-item">
-                        <span className="info-label">Ngày tạo:</span>
-                        <span className="info-value">{new Date(customerRequest.createdAt).toLocaleDateString("vi-VN")}</span>
+                    <div className="repairman-order-detail-info-item">
+                        <span className="repairman-order-detail-info-label">Ngày tạo:</span>
+                        <span className="repairman-order-detail-info-value">{new Date(customerRequest.createdAt).toLocaleDateString("vi-VN")}</span>
                     </div>
                     {customerRequest.image && Array.isArray(customerRequest.image) && customerRequest.image.length > 0 && (
-                        <div className="info-item">
-                            <span className="info-label">Hình ảnh:</span>
-                            <div className="request-images-container">
+                        <div className="repairman-order-detail-info-item">
+                            <span className="repairman-order-detail-info-label">Hình ảnh:</span>
+                            <div className="repairman-order-detail-request-images-container">
                                 {customerRequest.image.map((imageUrl, index) => (
                                     <img
                                         key={index}
                                         src={imageUrl}
                                         alt={`Request ${index + 1}`}
-                                        className="request-image"
+                                        className="repairman-order-detail-request-image"
                                     />
                                 ))}
                             </div>
@@ -267,20 +263,20 @@ const RepairmanOrderDetail = () => {
                 </div>
             </div>
 
-            <div className="action-buttons">
-                <button className="back-btn" onClick={handleBackToRequests}>
+            <div className="repairman-order-detail-action-buttons">
+                <button className="repairman-order-detail-back-btn" onClick={handleBackToRequests}>
                     Quay lại
                 </button>
                 {!isCompleted && customerRequest.status !== "Repairman confirmed completion" && customerRequest.status !== "Completed" && (
                     <>
                         <button
-                            className={`chat-button ${hasNewMessage ? 'has-new-message' : ''}`}
+                            className={`repairman-order-detail-chat-button ${hasNewMessage ? 'has-new-message' : ''}`}
                             onClick={handleOpenChat}
                         >
                             <span role="img" aria-label="chat">💬</span> Nhắn tin với khách hàng
                         </button>
                         <button
-                            className="confirm-btn"
+                            className="repairman-order-detail-confirm-btn"
                             onClick={handleConfirmCompletion}
                             disabled={loading}
                         >
