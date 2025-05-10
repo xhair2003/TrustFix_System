@@ -1206,6 +1206,7 @@ const assignedRepairman = async (req, res) => {
       await repairmanUpgradeRequest.save();
 
       // Cập nhật trạng thái RepairmanUpgradeRequest cho các thợ không được chọn (trở lại 'Active')
+      const nonSelectedRepairmen = []; // Lưu danh sách ID của thợ không được chọn
       if (requestChild && requestChild.length > 0) {
         await Promise.all(
           requestChild.map(async (childRequest) => {
@@ -1218,6 +1219,7 @@ const assignedRepairman = async (req, res) => {
               // Check if not the selected repairman
               repairmanUpgradeRequest.status = "Active";
               await repairmanUpgradeRequest.save();
+              nonSelectedRepairmen.push(childRequest.repairman_id.toString()); // Lưu ID của thợ không được chọn
             }
             // Tìm và xóa Price liên quan đến DuePrice liên quan đến childRequest
             const duePrice = await DuePrice.findOne({
@@ -1282,6 +1284,17 @@ const assignedRepairman = async (req, res) => {
       const repairmanUserId = repairmanInfor._id.toString();
       console.log("Sending repairmanAssigned to repairman:", repairmanUserId);
       io.to(repairmanUserId).emit("repairmanAssigned");
+
+      // Gửi thông báo WebSocket tới các thợ không được chọn
+      if (nonSelectedRepairmen.length > 0) {
+        nonSelectedRepairmen.forEach((repairmanId) => {
+          console.log("Sending requestAssignedToOther to repairman:", repairmanId);
+          io.to(repairmanId).emit("requestAssignedToOther", {
+            requestId: requestId,
+            message: "Đơn hàng đã được giao cho thợ khác.",
+          });
+        });
+      }
 
       res.status(200).json({
         EC: 1,
