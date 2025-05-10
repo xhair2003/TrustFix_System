@@ -71,42 +71,48 @@
   white-space: nowrap;
 }
 
-.viewButton {
-  padding: 8px 16px;
-  background-color: #3b82f6;
-  color: #ffffff;
+.viewpostButton,
+.approveButton,
+.rejectButton {
+  padding: 6px 12px;
   border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
-  display: flex;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
+  line-height: 1.2;
+  margin-left: 2px;
+  justify-content: center; 
+}
+
+.viewpostButton {
+  background-color: #3b82f6;
+  color: #ffffff;
+  margin-bottom: 10px;
 
   &:hover {
     background-color: #2563eb;
+    transform: translateY(-1px); /* Subtle lift effect */
   }
 
   &:disabled {
     background-color: #6b7280;
     cursor: not-allowed;
   }
+
 }
 
 .approveButton {
-  padding: 8px 16px;
   background-color: #10b981;
   color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  margin-left: 8px;
 
   &:hover {
     background-color: #059669;
+    transform: translateY(-1px);
   }
 
   &:disabled {
@@ -115,19 +121,13 @@
   }
 }
 
-.rejectButton {
-  padding: 8px 16px;
+.rejectButton karm {
   background-color: #ef4444;
   color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  margin-left: 8px;
 
   &:hover {
     background-color: #dc2626;
+    transform: translateY(-1px);
   }
 
   &:disabled {
@@ -135,7 +135,6 @@
     cursor: not-allowed;
   }
 }
-
 .modal {
   position: fixed;
   top: 0;

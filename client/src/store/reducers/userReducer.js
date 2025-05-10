@@ -19,6 +19,7 @@ const initialState = {
     errorGetStatus: null,
     errorFetchBalance: null,
     requestId: null,
+    nearbyRepairmen: [],
     errorFindRepairman: null,
     errorViewRequest: null,
     successFindRepairman: null,
@@ -67,7 +68,7 @@ const initialState = {
 const userReducer = (state = initialState, action) => {
     switch (action.type) {
         case "GET_USER_INFO_REQUEST":
-            return { ...state, loading: true };
+            return { ...state, loading: true, error: null };
         case "GET_USER_INFO_SUCCESS":
             return { ...state, loading: false, userInfo: action.payload, error: null };
         case "GET_USER_INFO_FAIL":
@@ -296,22 +297,24 @@ const userReducer = (state = initialState, action) => {
         case "FIND_REPAIRMAN_REQUEST":
             return {
                 ...state,
-                //loading: true,
+                loading: true,
             };
         case "FIND_REPAIRMAN_SUCCESS":
             return {
                 ...state,
-                //loading: false,
+                loading: false,
                 requestId: action.payload.requestId, // Lưu dữ liệu từ BE
                 successFindRepairman: action.payload.message, // Lưu dữ liệu từ BE (VD: { EC: 1, EM: "Gửi yêu cầu thành công!" })
                 errorFindRepairman: null,
+                nearbyRepairmen: action.payload.nearbyRepairmen, // Lưu dữ liệu từ BE
             };
         case "FIND_REPAIRMAN_FAIL":
             return {
                 ...state,
-                //loading: false,
+                loading: false,
                 successFindRepairman: null,
                 requestId: null,
+                nearbyRepairmen: null,
                 errorFindRepairman: action.payload, // Lưu thông báo lỗi
             };
 
@@ -366,6 +369,8 @@ const userReducer = (state = initialState, action) => {
         case "REMOVE_REQUEST":
             return {
                 ...state,
+                successDealPrice: null,
+                errorDealPrice: null,
                 request: null, // Xóa request khỏi state khi hủy deal
             };
 

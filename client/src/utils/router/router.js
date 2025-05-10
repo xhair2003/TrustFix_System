@@ -24,7 +24,7 @@ export const ROUTERS = {
         WALLET: '/wallet',
         ORDER_DETAIL: '/order-detail/:requestId',
         CHAT_BOT: '/chat-bot',
-
+        VIEW_REPAIRMAN_DEAL: '/view-repairman-deal',
     },
 
     REPAIRMAN: {

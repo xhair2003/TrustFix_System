@@ -82,7 +82,7 @@ const RepairmanOrderDetail = () => {
                 setHasNewMessage(true);
             }
             // Cập nhật lịch sử chat
-            dispatch(getChatHistory(customerRequest.user_id?._id));
+            dispatch(getChatHistory(customerRequest.user_id?._id, null));
         };
 
         if (socket.connected) {
@@ -118,7 +118,7 @@ const RepairmanOrderDetail = () => {
     const handleOpenChat = () => {
         setIsChatOpen(true);
         setHasNewMessage(false);
-        dispatch(getChatHistory(customerRequest.user_id?._id));
+        dispatch(getChatHistory(customerRequest.user_id?._id, null));
     };
 
     const handleCloseChat = () => {
@@ -137,7 +137,7 @@ const RepairmanOrderDetail = () => {
             });
             return;
         }
-        dispatch(sendMessage(customerRequest.user_id?._id, newMessage, user_id));
+        dispatch(sendMessage(customerRequest.user_id?._id, newMessage, user_id, customerRequest.parentRequest));
         setNewMessage('');
     };
 
@@ -166,10 +166,10 @@ const RepairmanOrderDetail = () => {
                         {messages.map((msg, index) => (
                             <div
                                 key={index}
-                                className={`chat-message ${msg.senderId === user_id ? 'chat-message-self' : 'chat-message-opponent'}`}
+                                className={`chat-message ${msg.senderId === user_id || msg.senderId?.id === user_id ? 'chat-message-self' : 'chat-message-opponent'}`}
                             >
                                 <p>
-                                    <strong>{msg.senderId === user_id ? 'Bạn' : 'Khách hàng'}:</strong> {msg.message}
+                                    <strong>{msg.senderId === user_id || msg.senderId?.id === user_id ? 'Bạn' : 'Khách hàng'}:</strong> {msg.message}
                                 </p>
                                 <span className="chat-timestamp">
                                     {new Date(msg.timestamp).toLocaleTimeString('vi-VN')}

@@ -1,158 +1,307 @@
-.view-order-container {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+.view-booking-repair-order-container {
+  padding: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  background: linear-gradient(to bottom, #f8fafc, #ffffff);
+}
+
+.view-booking-repair-order-form {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease;
+}
+
+.view-booking-repair-order-form:hover {
+  transform: translateY(-2px);
+}
+
+.view-booking-repair-order-title {
+  color: #1a202c;
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.view-booking-repair-filter-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.view-booking-repair-search-input {
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.view-booking-repair-search-input:focus {
+  outline: none;
+  border-color: #333;
+  border: 1px solid #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.view-booking-repair-status-filter,
+.view-booking-repair-date-filter {
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: #ffffff;
+  transition: border-color 0.2s;
+}
+
+.view-booking-repair-status-filter:focus,
+.view-booking-repair-date-filter:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.view-booking-repair-order-table-container {
+  overflow-x: auto;
+}
+
+.view-booking-repair-order-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.view-booking-repair-order-table th,
+.view-booking-repair-order-table td {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.view-booking-repair-order-table th {
+  background: #f7fafc;
+  color: #2d3748;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.view-booking-repair-order-table tr {
+  transition: background 0.2s;
+}
+
+.view-booking-repair-order-table tr:hover {
+  background: #f7fafc;
+  cursor: pointer;
+}
+
+.view-booking-repair-order-item-id {
+  font-weight: 600;
+  color: #2d3748;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 150px;
+}
+
+.view-booking-repair-order-item-date,
+.view-booking-repair-order-item-complete,
+.view-booking-repair-order-item-price {
+  color: #4a5568;
+}
+
+.view-booking-repair-order-item-status {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.view-booking-repair-order-item-rating {
+  color: #f6e05e;
+  text-align: center;
+}
+
+.view-booking-repair-order-status-đã-hoàn-thành {
+  background: #e6fffa;
+  color: #319795;
+}
+
+.view-booking-repair-order-status-đang-chờ-xử-lý {
+  background: #fefcbf;
+  color: #d97706;
+}
+
+.view-booking-repair-order-status-đã-hủy {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.view-booking-repair-order-status-đã-xác-nhận {
+  background: #e0f2fe;
+  color: #2563eb;
+}
+
+.view-booking-repair-order-status-yêu-cầu-chi-tiết {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.view-booking-repair-order-status-thỏa-thuận-giá {
+  background: #ffedd5;
+  color: #f97316;
+}
+
+.view-booking-repair-order-status-đã-chốt-giá {
+  background: #ecfccb;
+  color: #65a30d;
+}
+
+.view-booking-repair-order-status-chờ-thanh-toán {
+  background: #cffafe;
+  color: #0891b2;
+}
+
+.view-booking-repair-order-status-thợ-xác-nhận-hoàn-thành {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.view-booking-repair-order-status-tiến-hành-sửa-chữa {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+.view-booking-repair-order-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.view-booking-repair-order-modal-content {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+      opacity: 0;
+      transform: translateY(20px);
   }
-  
-  .view-order-form {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  to {
+      opacity: 1;
+      transform: translateY(0);
   }
-  
-  .view-order-title {
-    color: #333;
-    text-align: center;
-    margin-bottom: 20px;
+}
+
+.view-booking-repair-order-modal-title {
+  color: #1a202c;
+  margin-bottom: 24px;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.view-booking-repair-order-modal-section {
+  margin-bottom: 24px;
+}
+
+.view-booking-repair-order-modal-section h4 {
+  color: #2d3748;
+  margin-bottom: 12px;
+  border-bottom: 2px solid #edf2f7;
+  padding-bottom: 8px;
+  font-size: 1.25rem;
+}
+
+.view-booking-repair-order-modal-section p {
+  margin: 8px 0;
+  color: #4a5568;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.view-booking-repair-order-modal-close {
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.view-booking-repair-order-modal-close:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.view-booking-repair-order-modal-close:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .view-booking-repair-order-container {
+      padding: 16px;
   }
-  
-  .filter-section {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+
+  .view-booking-repair-order-table-container {
+      overflow-x: auto;
   }
-  
-  .search-input {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    flex: 1;
+
+  .view-booking-repair-order-table {
+      min-width: 600px;
   }
-  
-  .status-filter,
-  .date-filter {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+
+  .view-booking-repair-order-modal-content {
+      width: 90%;
+      padding: 16px;
   }
-  
-  .view-order-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+
+  .view-booking-repair-filter-section {
+      grid-template-columns: 1fr;
   }
-  
-  .view-order-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px;
-    border: 1px solid #eee;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
+}
+
+@media (max-width: 480px) {
+  .view-booking-repair-order-form {
+      padding: 16px;
   }
-  
-  .view-order-item:hover {
-    background: #f5f5f5;
-    border-color: #ddd;
+
+  .view-booking-repair-order-title {
+      font-size: 1.5rem;
   }
-  
-  .view-order-item-id {
-    font-weight: bold;
-    color: #2c3e50;
-    width: 10%;
+
+  .view-booking-repair-order-modal-title {
+      font-size: 1.25rem;
   }
-  
-  .view-order-item-date,
-  .view-order-item-complete,
-  .view-order-item-price {
-    width: 20%;
-    color: #666;
+
+  .view-booking-repair-order-table th,
+  .view-booking-repair-order-table td {
+      padding: 8px 12px;
+      font-size: 0.85rem;
   }
-  
-  .view-order-item-status {
-    width: 15%;
-    padding: 5px 10px;
-    border-radius: 12px;
-    text-align: center;
-    font-weight: 500;
-  }
-  
-  .view-order-item-rating {
-    width: 15%;
-    color: #f1c40f;
-    text-align: center;
-  }
-  
-  .view-order-status-hoàn-thành {
-    background: #e6ffe6;
-    color: #27ae60;
-  }
-  
-  .view-order-status-đang-xử-lý {
-    background: #fff3e6;
-    color: #e67e22;
-  }
-  
-  .view-order-status-đã-hủy {
-    background: #ffe6e6;
-    color: #c0392b;
-  }
-  
-  .view-order-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .view-order-modal-content {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    width: 500px;
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-  
-  .view-order-modal-title {
-    color: #2c3e50;
-    margin-bottom: 20px;
-  }
-  
-  .view-order-modal-section {
-    margin-bottom: 20px;
-  }
-  
-  .view-order-modal-section h4 {
-    color: #333;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 5px;
-  }
-  
-  .view-order-modal-section p {
-    margin: 5px 0;
-    color: #666;
-  }
-  
-  .view-order-modal-close {
-    background: #3498db;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    width: 100%;
-    transition: background 0.2s;
-  }
-  
-  .view-order-modal-close:hover {
-    background: #2980b9;
-  }
+}

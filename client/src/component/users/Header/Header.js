@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import logo from "../../../assets/Images/logo.png";
+import onlyLogo1 from "../../../assets/Images/onlyLogo.png";
 import { FaLevelUpAlt, FaUser, FaLock, FaHistory, FaExclamationCircle, FaSignOutAlt, FaWallet, FaTools, FaHome } from 'react-icons/fa';
 import { viewRequest, getStatusRepairman, toggleStatusRepairman, resetError } from '../../../store/actions/userActions';
 import { logout } from '../../../store/actions/authActions';
@@ -15,6 +16,7 @@ const Header = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [isActive, setIsActive] = useState(false);
+    const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 992);
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -25,6 +27,16 @@ const Header = () => {
 
     const isAuthenticated = useSelector(state => state.auth.isAuthenticated) || localStorage.getItem('isAuthenticated');
     const role = useSelector(state => state.auth.role) || localStorage.getItem('role');
+
+    // Listen to window resize to toggle logo
+    useEffect(() => {
+        const handleResize = () => {
+            setIsLargeScreen(window.innerWidth >= 992);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // Fetch repairman status and requests on component mount
     useEffect(() => {
@@ -142,7 +154,15 @@ const Header = () => {
         <div className="header-container">
             <div className='center-header'>
                 <div className='header-logo'>
-                    <img src={logo} alt="Logo" className="logo-size" onClick={() => navigate('/')} />
+                    <img
+                        src={isLargeScreen ? onlyLogo1 : logo}
+                        alt="Logo"
+                        className="logo-size"
+                        onClick={() => navigate('/')}
+                    />
+                </div>
+                <div className="hamburger" onClick={() => document.querySelector('.header-nav').classList.toggle('active')}>
+                    ☰
                 </div>
                 <nav className="header-nav">
                     {menuItems.map((menu, index) => (
@@ -176,7 +196,7 @@ const Header = () => {
                         )}
 
                         <div className="divider"></div>
-                        <Chat role={role} />
+                        <Chat />
                         <FaUser className="user-icon" onClick={toggleDropdown} />
                         {isDropdownOpen && (
                             <div className="dropdown-menu">
@@ -190,6 +210,9 @@ const Header = () => {
                                         </div>
                                     </>
                                 )}
+                                <div className="dropdown-item" onClick={() => navigate("/view-repairman-deal")}>
+                                    <FaUser className="dropdown-icon" /> Danh sách thợ deal giá
+                                </div>
                                 <div className="dropdown-item" onClick={() => navigate("/profile")}>
                                     <FaUser className="dropdown-icon" /> Thông tin cá nhân
                                 </div>
