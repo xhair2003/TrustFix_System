@@ -1173,7 +1173,18 @@ const assignedRepairman = async (req, res) => {
     //request con
     const requestChild = await Request.find({
       parentRequest: requestId,
-    });
+    }).populate({
+      path: "repairman_id",
+      select: "user_id",
+      // populate: {
+      //   path: "user_id",
+      //   select: "user_id",
+      //   model: "User",
+      // },
+    })
+
+    console.log("requestChild", requestChild);
+
     const Due_Price = await DuePrice.findOne({
       request_id: requestId,
     });
@@ -1214,12 +1225,12 @@ const assignedRepairman = async (req, res) => {
               await RepairmanUpgradeRequest.findById(childRequest.repairman_id);
             if (
               repairmanUpgradeRequest &&
-              childRequest.repairman_id.toString() !== repairmanId
+              childRequest.repairman_id.user_id.toString() !== repairmanId
             ) {
               // Check if not the selected repairman
               repairmanUpgradeRequest.status = "Active";
               await repairmanUpgradeRequest.save();
-              nonSelectedRepairmen.push(childRequest.repairman_id.toString()); // Lưu ID của thợ không được chọn
+              nonSelectedRepairmen.push(childRequest.repairman_id.user_id.toString()); // Lưu ID của thợ không được chọn
             }
             // Tìm và xóa Price liên quan đến DuePrice liên quan đến childRequest
             const duePrice = await DuePrice.findOne({
@@ -1811,14 +1822,14 @@ const getRepairHistoryByUserId = async (req, res) => {
       const repairmanData =
         request.repairman_id && request.repairman_id.user_id
           ? {
-              firstName: request.repairman_id.user_id.firstName,
-              lastName: request.repairman_id.user_id.lastName,
-              phone: request.repairman_id.user_id.phone,
-              email: request.repairman_id.user_id.email,
-              imgAvt: request.repairman_id.user_id.imgAvt,
-              address: request.repairman_id.user_id.address,
-              description: request.repairman_id.user_id.description,
-            }
+            firstName: request.repairman_id.user_id.firstName,
+            lastName: request.repairman_id.user_id.lastName,
+            phone: request.repairman_id.user_id.phone,
+            email: request.repairman_id.user_id.email,
+            imgAvt: request.repairman_id.user_id.imgAvt,
+            address: request.repairman_id.user_id.address,
+            description: request.repairman_id.user_id.description,
+          }
           : null;
 
       return {

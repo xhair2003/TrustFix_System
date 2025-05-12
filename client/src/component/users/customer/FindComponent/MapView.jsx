@@ -31,6 +31,8 @@ const MapView = ({ selectedRadius, mapCenter, triggerSearch, setTriggerSearch, i
   const [radarProgress, setRadarProgress] = useState(0);
   const [repairmenLocations, setRepairmenLocations] = useState([]);
 
+  console.log("MapView: nearbyRepairmen", nearbyRepairmen);
+
   // Geocode repairmen addresses
   useEffect(() => {
     if (!nearbyRepairmen || nearbyRepairmen.length === 0) {

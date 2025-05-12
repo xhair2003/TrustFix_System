@@ -21,6 +21,7 @@ const OrderDetail = () => {
   const { repairman, request } = location.state || {};
 
   //console.log("repairman", repairman);
+  //console.log("repairman.realRepairmanId", repairman.realRepairmanId);
 
   const { loading, successConfirmRequest, errorConfirmRequest, requestStatus, errorRequestStatus } = useSelector(
     (state) => state.user
@@ -191,6 +192,7 @@ const OrderDetail = () => {
       return;
     }
     dispatch(sendMessage(repairman.realRepairmanId, newMessage, user_id, request.parentRequest));
+    //request.parentRequest
     setNewMessage('');
   };
 

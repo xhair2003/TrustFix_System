@@ -27,7 +27,7 @@ const ViewRequests = () => {
   } = useSelector((state) => state.user);
 
   //console.log("request", request);
-  console.log("customerRequest", customerRequest);
+  //console.log("customerRequest", customerRequest);
 
   // Load dữ liệu ban đầu
   useEffect(() => {
