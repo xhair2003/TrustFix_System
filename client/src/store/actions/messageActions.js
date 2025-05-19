@@ -124,6 +124,8 @@ export const getChatHistory = (opponent, requestId) => async (dispatch, getState
         // Gửi request GET tới API
         const response = await axios.get(url, config);
 
+        //console.log(response.data.DT);
+
         if (response.data.EC === 1) {
             // Dispatch success với dữ liệu từ BE
             dispatch({
