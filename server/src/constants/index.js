@@ -19,16 +19,18 @@ const PROHIBITED_PATTERNS = [
 const PROHIBITED_PATTERN = [
   {
     pattern: /\b(\d{10}|\d{3}-\d{3}-\d{4}|\d{3}\.\d{3}\.\d{4})\b/,
-    description: 'Số điện thoại (10 số hoặc định dạng XXX-XXX-XXXX, XXX. назначения',
+    description: 'Số điện thoại (10 số hoặc định dạng XXX-XXX-XXXX, XXX.XXX.XXXX)',
+  },
+  {
     pattern: /(https?:\/\/[^\s]+)/i,
-    description: 'Link (http/https)',
+    description: 'Link (http hoặc https)',
   },
   {
     pattern: /\b(số nhà|đường|phố|quận|huyện|thành phố|tp\.|tỉnh)\b/i,
     description: 'Thông tin địa chỉ (số nhà, đường, phố, quận, ...)',
   },
   {
-    pattern: /\b(điện|fb|web|số điện thoại|số|điện thoại|sửa chữa|liên hệ|đặt lịch|thuê|ngoài hệ thống|chợ tốt|facebook|website)\b/i,
+    pattern: /\b(điện|fb|web|số điện thoại|số|điện thoại|sửa chữa|liên hệ|đặt lịch|thuê|ngoài hệ thống|chợ tốt|facebook|website|zalo)\b/i,
     description: 'Từ khóa nhạy cảm (facebook, zalo, liên hệ, ...)',
   },
 ];
