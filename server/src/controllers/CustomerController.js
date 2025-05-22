@@ -874,6 +874,16 @@ const findRepairman = async (req, res) => {
           });
           await newRequestForRepairman.save();
           newRequestsForRepairmen.push(newRequestForRepairman);
+          nearbyRepairmen.push({
+            _id: repairman._id,
+            firstName: repairman.firstName,
+            lastName: repairman.lastName,
+            email: repairman.email,
+            phone: repairman.phone,
+            address: repairman.address,
+            // distance: gomapData.rows[0].elements[0].distance.text,
+            // duration: gomapData.rows[0].elements[0].duration.text,
+          });
           //DuePrice cho mooix thowj
           const newDuePriceForRepairmen = new DuePrice({
             request_id: newRequestForRepairman._id,

@@ -1080,6 +1080,7 @@ const getRequestStatusByMonth = async (req, res) => {
             { updatedAt: { $gte: startDate, $lte: endDate } },
           ],
           status: { $in: ["Completed", "Cancelled"] },
+          repairman_id: req.user.id, // Thêm điều kiện lọc theo userId
         },
       },
       {
@@ -1143,6 +1144,7 @@ const getRequestStatusByYear = async (req, res) => {
             { updatedAt: { $gte: startDate, $lte: endDate } },
           ],
           status: { $in: ["Completed", "Cancelled"] },
+          repairman_id: req.user.id, // Thêm điều kiện lọc theo userId
         },
       },
       {
@@ -1255,10 +1257,15 @@ const getAllRepairmanStats = async (req, res) => {
         $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 },
       },
     ]);
-
+    console.log("Repaiman_id: ", repairman._id);
     // Lấy toàn bộ trạng thái đơn hàng
     const requests = await Request.aggregate([
-      { $match: { status: { $in: ["Completed", "Cancelled"] } } },
+      {
+        $match: {
+          status: { $in: ["Completed", "Cancelled"] },
+          repairman_id: repairman._id, // Thêm điều kiện lọc theo userId
+        }
+      },
       {
         $group: {
           _id: {
