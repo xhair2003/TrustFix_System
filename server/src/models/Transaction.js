@@ -23,7 +23,7 @@ const TransactionSchema = new mongoose.Schema(
     },
     transactionType: {
       type: String,
-      enum: ["deposite", "payment" ,  "withdraw"],
+      enum: ["deposite", "payment", "withdraw", "warning"],
       required: true,
     },
     content: {
