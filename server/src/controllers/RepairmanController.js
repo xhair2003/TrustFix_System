@@ -1263,7 +1263,7 @@ const getAllRepairmanStats = async (req, res) => {
       {
         $match: {
           status: { $in: ["Completed", "Cancelled"] },
-          repairman_id: repairman._id, // Thêm điều kiện lọc theo userId
+          repairman_id: userId, // Thêm điều kiện lọc theo userId
         }
       },
       {
