@@ -9,11 +9,12 @@ import { useLocation } from "react-router-dom";
 const Complain = () => {
     const location = useLocation();
     const { repairman, request } = location.state || {};
+    console.log("request", request);
     const hasState = !!repairman && !!request; // Kiểm tra xem có state hay không
     const dispatch = useDispatch();
     const { loading, complaintMessage, complaintError } = useSelector((state) => state.user);
 
-    const [requestId, setRequestId] = useState(request?.requestId || "");
+    const [requestId, setRequestId] = useState(request?.parentRequest || "");
     const [reason, setReason] = useState("");
     const [details, setDetails] = useState("");
     const [evidence, setEvidence] = useState(null);
