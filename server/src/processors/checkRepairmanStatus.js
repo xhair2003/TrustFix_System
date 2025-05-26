@@ -30,7 +30,7 @@ const checkRepairmanStatus = async () => {
                         const user = await User.findById(userId);
                         if (user) {
                             // Update the status or perform any other necessary action
-                            console.log(`Updating status for non-VIP repairman: ${userId}`);
+                            //console.log(`Updating status for non-VIP repairman: ${userId}`);
                             // Example: user.status = 'Available';
                             // await user.save();
                         }

@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const axios = require('axios');
 const crypto = require('crypto');
-const {encryptDisbursementData} = require('../utils/encryptPublickey');
+const { encryptDisbursementData } = require('../utils/encryptPublickey');
 
 
 const payos = new PayOS(
@@ -95,7 +95,7 @@ const callbackPayOS = async (req, res) => {
 
   console.log("callback values:", req.body);
   console.log("callback called");
-  
+
   const { data } = req.body;
   if (!data) {
     return res.status(400).json({ message: "Missing required fields" });
@@ -167,7 +167,7 @@ const paymentMOMO = async (req, res) => {
     const requestId = wallet._id;
     const orderInfo = "Thanh toán với MoMo";
     const redirectUrl = "http://localhost:3000/wallet"; // Replace with your website URL
-    const ipnUrl ="https://6e45-2405-4800-5f09-4a00-1595-6c51-d8e8-40dd.ngrok-free.app/api/callbackMOMO";
+    const ipnUrl = "https://af44-2401-d800-f520-d65f-710d-f4cf-d21b-81bf.ngrok-free.app/api/callbackMOMO";
     const expireTime = Math.floor(Date.now() / 1000) + 5 * 60;
 
     // Generate payCode with "MOMO-" prefix followed by a random 9-digit number
@@ -177,7 +177,7 @@ const paymentMOMO = async (req, res) => {
     const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=&ipnUrl=${ipnUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=${requestType}`;
     const signature = crypto.createHmac('sha256', secretKey).update(rawSignature).digest('hex');
 
-    
+
 
     const body = {
       partnerCode: partnerCode,

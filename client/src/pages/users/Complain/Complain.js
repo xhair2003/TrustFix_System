@@ -13,7 +13,7 @@ const Complain = () => {
     const dispatch = useDispatch();
     const { loading, complaintMessage, complaintError } = useSelector((state) => state.user);
 
-    const [requestId, setRequestId] = useState(request?.requestId || "");
+    const [requestId, setRequestId] = useState(request?.parentRequest || "");
     const [reason, setReason] = useState("");
     const [details, setDetails] = useState("");
     const [evidence, setEvidence] = useState(null);

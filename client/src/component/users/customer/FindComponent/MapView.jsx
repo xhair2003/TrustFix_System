@@ -16,7 +16,7 @@ const customerIcon = new L.Icon({
 
 // Repairman icon (person-shaped icon)
 const repairmanIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/3514/3514997.png', // Person icon from Flaticon
+  iconUrl: 'https://img.icons8.com/?size=100&id=23340&format=png&color=000000', // Person icon from Flaticon
   iconSize: [32, 32], // Adjust size to fit map
   iconAnchor: [16, 32], // Center bottom of icon
   popupAnchor: [0, -32], // Popup above icon

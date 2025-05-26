@@ -950,7 +950,8 @@ const getRepairmanRevenueByTime = async (req, res) => {
     const matchStage = {
       wallet_id: wallet._id,
       status: 1,
-      transactionType: "payment"
+      transactionType: "deposite",
+      content: { $regex: '^Nhận thanh toán cho yêu cầu sửa chữa mã số', $options: 'i' } // Kiểm tra tiền tố, không phân biệt hoa thường
     };
 
     let groupStage, projectStage, sortStage;
@@ -1068,6 +1069,20 @@ const getRequestStatusByMonth = async (req, res) => {
       });
     }
 
+    // Lấy user_id từ token (req.user.id)
+    const userId = req.user.id;
+
+    // Tìm bản ghi trong RepairmanUpgradeRequest với user_id khớp với req.user.id
+    const request = await RepairmanUpgradeRequest.findOne({ user_id: userId }).select('_id');
+
+    // Kiểm tra xem có bản ghi nào khớp không
+    if (!request) {
+      return res.status(404).json({
+        EC: 0,
+        EM: 'Không tìm thấy thông tin thợ sửa chữa !',
+      });
+    }
+
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0, 23, 59, 59, 999);
     const daysInMonth = new Date(year, month, 0).getDate();
@@ -1080,6 +1095,7 @@ const getRequestStatusByMonth = async (req, res) => {
             { updatedAt: { $gte: startDate, $lte: endDate } },
           ],
           status: { $in: ["Completed", "Cancelled"] },
+          repairman_id: request._id,
         },
       },
       {
@@ -1132,6 +1148,20 @@ const getRequestStatusByYear = async (req, res) => {
       });
     }
 
+    // Lấy user_id từ token (req.user.id)
+    const userId = req.user.id;
+
+    // Tìm bản ghi trong RepairmanUpgradeRequest với user_id khớp với req.user.id
+    const request = await RepairmanUpgradeRequest.findOne({ user_id: userId }).select('_id');
+
+    // Kiểm tra xem có bản ghi nào khớp không
+    if (!request) {
+      return res.status(404).json({
+        EC: 0,
+        EM: 'Không tìm thấy thông tin thợ sửa chữa !',
+      });
+    }
+
     const startDate = new Date(year, 0, 1);
     const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
 
@@ -1143,6 +1173,7 @@ const getRequestStatusByYear = async (req, res) => {
             { updatedAt: { $gte: startDate, $lte: endDate } },
           ],
           status: { $in: ["Completed", "Cancelled"] },
+          repairman_id: request._id,
         },
       },
       {
@@ -1258,7 +1289,12 @@ const getAllRepairmanStats = async (req, res) => {
 
     // Lấy toàn bộ trạng thái đơn hàng
     const requests = await Request.aggregate([
-      { $match: { status: { $in: ["Completed", "Cancelled"] } } },
+      {
+        $match: {
+          status: { $in: ["Completed", "Cancelled"] },
+          repairman_id: userId, // Thêm điều kiện lọc theo userId
+        }
+      },
       {
         $group: {
           _id: {

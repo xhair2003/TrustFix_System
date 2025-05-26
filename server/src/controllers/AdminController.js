@@ -1534,16 +1534,8 @@ const verifyRepairmanUpgradeRequest = async (req, res) => {
 // User Action
 const totalUsers = async (req, res) => {
     try {
-        // Lấy tất cả các user có vai trò không phải admin
-        const adminUserIds = await Role.find({ type: "admin" }).distinct("user_id");
-
-        // Filter tìm kiếm người dùng
-        let filter = {
-            _id: { $nin: adminUserIds }
-        };
-
         // Lấy danh sách người dùng
-        const users = await User.find(filter).lean();
+        const users = await User.find();
 
         // Tính tổng số người dùng
         const totalUsers = users.length;
@@ -1563,16 +1555,8 @@ const totalUsers = async (req, res) => {
 
 const totalBannedUsers = async (req, res) => {
     try {
-        // Lấy tất cả các user có vai trò không phải admin
-        const adminUserIds = await Role.find({ type: "admin" }).distinct("user_id");
-
         // Lấy danh sách người dùng
-        const users = await User.find({ _id: { $nin: adminUserIds }, status: 'Banned' })
-            .populate({
-                path: "roles",
-                select: "type"
-            })
-            .lean();
+        const users = await User.find({ status: 'Banned' })
 
         // Tính tổng số người dùng có trạng thái 'Banned'
         const totalBannedUsers = users.length;
@@ -1592,24 +1576,13 @@ const totalBannedUsers = async (req, res) => {
 
 const totalRepairmen = async (req, res) => {
     try {
-        // Lấy tất cả các user có vai trò không phải admin
-        const adminUserIds = await Role.find({ type: "admin" }).distinct("user_id");
+        // Lấy danh sách user_id từ bảng Role có type là "repairman"
+        const repairmanUserIds = await Role.find({ type: "repairman" }).distinct("user_id");
 
-        // Filter tìm kiếm người dùng
-        let filter = {
-            _id: { $nin: adminUserIds }
-        };
-
-        // Lấy danh sách người dùng
-        const users = await User.find(filter)
-            .populate({
-                path: "roles",
-                select: "type"
-            })
-            .lean();
-
-        // Tính tổng số người dùng có vai trò "repairman"
-        const totalRepairmans = users.filter(user => user.roles.some(role => role.type === 'repairman')).length;
+        // Đếm số lượng người dùng có _id nằm trong danh sách repairmanUserIds
+        const totalRepairmans = await User.countDocuments({
+            _id: { $in: repairmanUserIds }
+        });
 
         return res.status(200).json({
             EC: 1,
@@ -1626,24 +1599,13 @@ const totalRepairmen = async (req, res) => {
 
 const totalCustomers = async (req, res) => {
     try {
-        // Lấy tất cả các user có vai trò không phải admin
-        const adminUserIds = await Role.find({ type: "admin" }).distinct("user_id");
+        // Lấy danh sách user_id từ bảng Role có type là "customer"
+        const customerUserIds = await Role.find({ type: "customer" }).distinct("user_id");
 
-        // Filter tìm kiếm người dùng
-        let filter = {
-            _id: { $nin: adminUserIds }
-        };
-
-        // Lấy danh sách người dùng
-        const users = await User.find(filter)
-            .populate({
-                path: "roles",
-                select: "type"
-            })
-            .lean();
-
-        // Tính tổng số người dùng có vai trò "customer"
-        const totalCustomers = users.filter(user => user.roles.some(role => role.type === 'customer')).length;
+        // Đếm số lượng người dùng có _id nằm trong danh sách repairmanUserIds
+        const totalCustomers = await User.countDocuments({
+            _id: { $in: customerUserIds }
+        });
 
         return res.status(200).json({
             EC: 1,
