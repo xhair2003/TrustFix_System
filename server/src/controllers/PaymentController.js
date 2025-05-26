@@ -88,6 +88,11 @@ const payment = async (req, res) => {
 };
 
 const callbackPayOS = async (req, res) => {
+
+//  console.log("callback values:", req.body);
+//   console.log("callback called");
+//   res.json({ message: 'ok' });
+
   console.log("callback values:", req.body);
   console.log("callback called");
   
@@ -114,7 +119,7 @@ const callbackPayOS = async (req, res) => {
       transaction.status = 1;
       const wallet = await Wallet.findById(transaction.wallet_id);
       if (wallet) {
-        wallet.balance += transaction.amount * 1000;
+        wallet.balance += transaction.amount * 1;
         await wallet.save();
         console.log("Wallet balance after transaction:", wallet.balance);
       }
@@ -162,7 +167,7 @@ const paymentMOMO = async (req, res) => {
     const requestId = wallet._id;
     const orderInfo = "Thanh toán với MoMo";
     const redirectUrl = "http://localhost:3000/wallet"; // Replace with your website URL
-    const ipnUrl ="https://c8f3-2001-ee1-f70c-ba00-6002-49ba-2d3a-c73e.ngrok-free.app/api/callbackMOMO";
+    const ipnUrl ="https://6e45-2405-4800-5f09-4a00-1595-6c51-d8e8-40dd.ngrok-free.app/api/callbackMOMO";
     const expireTime = Math.floor(Date.now() / 1000) + 5 * 60;
 
     // Generate payCode with "MOMO-" prefix followed by a random 9-digit number
