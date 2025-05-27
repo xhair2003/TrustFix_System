@@ -98,15 +98,17 @@ const { CRON_TIME } = require('../constants');
 
 
 
+const emailSentTracker = {};
+
 const checkVipExpirationAndSendEmails = async () => {
   try {
-    // Thời gian hiện tại: 15:57, 26/5/2025 (+07:00)
+    // Current time: 15:05, 27/5/2025 (+07:00)
     const currentDate = new Date();
-    const targetWalletId = '6833f54d0ac9d5655e53eca9'; // Wallet ID để test
+    const targetWalletId = '683575b8a35a2b8bf9f26c6e'; // Wallet ID for testing
 
-    // Lấy các giao dịch VIP với wallet_id cụ thể
+    // Fetch VIP transactions for the specific wallet_id
     const vipTransactions = await Transaction.find({
-      payCode: { $regex: /^VIP/, $options: 'i' }, // Lọc giao dịch VIP
+      payCode: { $regex: /^VIP/, $options: 'i' },
       transactionType: 'payment',
       status: 1,
       wallet_id: targetWalletId,
@@ -116,53 +118,52 @@ const checkVipExpirationAndSendEmails = async () => {
     });
 
     if (!vipTransactions || vipTransactions.length === 0) {
-      console.log(`Không tìm thấy giao dịch VIP nào cho wallet_id: ${targetWalletId}`);
+      console.log(`No VIP transactions found for wallet_id: ${targetWalletId}`);
       return;
     }
 
     for (const transaction of vipTransactions) {
-      // Kiểm tra tính hợp lệ của giao dịch
+      // Validate transaction
       if (!transaction.wallet_id || !transaction.wallet_id.user_id) {
-        console.log(`Giao dịch không hợp lệ: ${transaction._id}`);
+        console.log(`Invalid transaction: ${transaction._id}`);
         continue;
       }
 
-      const user = transaction.wallet_id.user_id; // Thông tin người dùng
-      const vipStartDate = new Date(transaction.createdAt); // Thời điểm bắt đầu mua
+      const user = transaction.wallet_id.user_id;
+      const vipStartDate = new Date(transaction.createdAt);
 
-      // Kiểm tra tính hợp lệ của vipStartDate
+      // Validate vipStartDate
       if (isNaN(vipStartDate.getTime())) {
-        console.log(`Ngày bắt đầu không hợp lệ cho giao dịch: ${transaction._id}`);
+        console.log(`Invalid start date for transaction: ${transaction._id}`);
         continue;
       }
 
-      // Tìm yêu cầu nâng cấp VIP
+      // Find the VIP upgrade request
       const repairmanRequest = await RepairmanUpgradeRequest.findOne({
         user_id: user._id,
         vip_id: { $ne: null },
       }).populate('vip_id');
 
       if (!repairmanRequest || !repairmanRequest.vip_id) {
-        console.log(`Không tìm thấy gói VIP cho user_id: ${user._id}`);
+        console.log(`No VIP package found for user_id: ${user._id}`);
         continue;
       }
 
-      // Tính thời gian hết hạn (5 phút sau vipStartDate)
+      // Calculate expiration date (5 minutes after vipStartDate)
       const vipExpiryDate = new Date(vipStartDate);
-      vipExpiryDate.setMinutes(vipExpiryDate.getMinutes() + 5);
+      vipExpiryDate.setMinutes(vipExpiryDate.getMinutes() + 3);
 
-      // Tính thời gian từ lúc mua đến hiện tại (phút)
+      // Calculate time since purchase and time until expiry (in minutes)
       const minutesSinceStart = Math.floor((currentDate - vipStartDate) / (1000 * 60));
-
-      // Tính thời gian còn lại đến khi hết hạn (phút)
       const minutesUntilExpiry = Math.ceil((vipExpiryDate - currentDate) / (1000 * 60));
 
       console.log(
-        `User_id: ${user._id} | Thời gian kể từ khi mua: ${minutesSinceStart} phút | Còn lại: ${minutesUntilExpiry} phút`
+        `User_id: ${user._id} | Time since purchase: ${minutesSinceStart} minutes | Time remaining: ${minutesUntilExpiry} minutes`
       );
 
-      // Gửi email nhắc nhở khi còn 1 phút
-      if (minutesUntilExpiry === 1) {
+      // Check if reminder email was already sent
+      const reminderKey = `${transaction._id}_reminder`;
+      if (minutesUntilExpiry === 1 && !emailSentTracker[reminderKey]) {
         const emailContent = `
           <h1>Thông báo sắp hết hạn gói VIP</h1>
           <p>Xin chào ${user.firstName} ${user.lastName},</p>
@@ -172,12 +173,14 @@ const checkVipExpirationAndSendEmails = async () => {
           <p>Vui lòng gia hạn để tiếp tục sử dụng các dịch vụ của chúng tôi.</p>
         `;
         await sendEmail(user.email, 'Thông báo sắp hết hạn gói VIP', emailContent);
-        console.log(`Đã gửi email nhắc nhở trước 1 phút cho user_id: ${user._id}`);
+        emailSentTracker[reminderKey] = true;
+        console.log(`Sent 1-minute reminder email for user_id: ${user._id}`);
       }
 
-      // Gửi email thông báo và đặt lại vip_id khi hết hạn
-      if (minutesUntilExpiry <= 0) {
-        // repairmanRequest.vip_id = null;
+      // Check if expiration email was already sent
+      const expirationKey = `${transaction._id}_expiration`;
+      if (minutesUntilExpiry <= 0 && !emailSentTracker[expirationKey]) {
+        repairmanRequest.vip_id = null;
         await repairmanRequest.save();
         const emailContent = `
           <h1>Thông báo gói VIP đã hết hạn</h1>
@@ -188,13 +191,14 @@ const checkVipExpirationAndSendEmails = async () => {
           <p>Vui lòng gia hạn để tiếp tục sử dụng các dịch vụ của chúng tôi.</p>
         `;
         await sendEmail(user.email, 'Thông báo gói VIP đã hết hạn', emailContent);
-        console.log(`Đã gửi email thông báo hết hạn cho user_id: ${user._id}`);
+        emailSentTracker[expirationKey] = true;
+        console.log(`Sent expiration email for user_id: ${user._id}`);
       }
     }
 
-    console.log(`Hoàn thành kiểm tra và gửi email cho wallet_id: ${targetWalletId}`);
+    console.log(`Completed checking and sending emails for wallet_id: ${targetWalletId}`);
   } catch (error) {
-    console.error(`Lỗi khi kiểm tra thời hạn VIP: ${error.message}`);
+    console.error(`Error checking VIP expiration: ${error.message}`);
   }
 };
 
