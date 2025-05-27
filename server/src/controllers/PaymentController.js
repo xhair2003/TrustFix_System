@@ -162,7 +162,7 @@ const paymentMOMO = async (req, res) => {
     const requestId = wallet._id;
     const orderInfo = "Thanh toán với MoMo";
     const redirectUrl = "http://localhost:3000/wallet"; // Replace with your website URL
-    const ipnUrl = "https://d1b6-2a09-bac5-d5ca-e6-00-17-216.ngrok-free.app/api/callbackMOMO";
+    const ipnUrl = "https://acb0-2402-800-6294-6523-3591-4043-1baf-e02f.ngrok-free.app/api/callbackMOMO";
     const expireTime = Math.floor(Date.now() / 1000) + 5 * 60;
 
     // Generate payCode with "MOMO-" prefix followed by a random 9-digit number
