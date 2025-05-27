@@ -88,6 +88,11 @@ const payment = async (req, res) => {
 };
 
 const callbackPayOS = async (req, res) => {
+
+//  console.log("callback values:", req.body);
+//   console.log("callback called");
+//   res.json({ message: 'ok' });
+
   console.log("callback values:", req.body);
   console.log("callback called");
   res.json({ message: "Callback called" });
@@ -114,7 +119,7 @@ const callbackPayOS = async (req, res) => {
       transaction.status = 1;
       const wallet = await Wallet.findById(transaction.wallet_id);
       if (wallet) {
-        wallet.balance += transaction.amount * 1000;
+        wallet.balance += transaction.amount * 1;
         await wallet.save();
         console.log("Wallet balance after transaction:", wallet.balance);
       }
