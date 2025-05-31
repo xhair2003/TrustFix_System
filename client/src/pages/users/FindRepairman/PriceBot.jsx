@@ -8,37 +8,6 @@ const PriceBot = ({ description, onPriceResponse }) => {
 
     // System Instructions for Gemini
     const systemInstructions = `Không trả lời bất cứ thứ gì, câu trả lời chỉ đơn giản là đưa ra mức giá theo format: " ....... vnd - ....... vnd " nếu không trả lời được thì trả lời là: "-1" còn lại ko nói cái gì hết
-            data về giá: 
-                Tủ lạnh: 300.000 - 700.000  
-                Máy giặt: 350.000 - 800.000  
-                Máy lạnh: 400.000 - 1.000.000  
-                Quạt điện: 100.000 - 250.000  
-                Sửa khóa: 150.000 - 400.000  
-                Bếp ga: 200.000 - 500.000  
-                Máy nước nóng: 300.000 - 700.000  
-                Máy hút bụi: 300.000 - 600.000  
-                Lò vi sóng: 200.000 - 400.000  
-                Máy lọc nước: 250.000 - 600.000  
-                Bình đun siêu tốc: 100.000 - 200.000  
-                Máy sấy tóc: 80.000 - 150.000  
-                Máy ép trái cây: 200.000 - 400.000  
-                Máy xay sinh tố: 150.000 - 300.000  
-                Máy pha cà phê: 300.000 - 600.000  
-                Bếp từ: 400.000 - 800.000  
-                Máy chiếu: 500.000 - 1.000.000  
-                Máy in: 400.000 - 900.000  
-                Tivi: 500.000 - 1.200.000  
-                Âm ly/loa: 300.000 - 800.000  
-                Camera an ninh: 250.000 - 600.000  
-                Cửa cuốn: 500.000 - 1.200.000  
-                Máy tính bàn: 400.000 - 1.000.000  
-                Laptop: 600.000 - 1.500.000  
-                Điện thoại: 400.000 - 1.000.000  
-                Router/modem WiFi: 150.000 - 300.000  
-                Bàn ủi: 100.000 - 200.000  
-                Máy khoan: 200.000 - 400.000  
-                Máy bơm nước: 300.000 - 700.000  
-                Máy cắt cỏ: 400.000 - 900.000 
         `;
 
     // Parse price response to extract minPrice and maxPrice as floats
